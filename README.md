@@ -79,7 +79,7 @@ The agent does not get to mark its own homework.
 Nothing below needs a Google Cloud project. The deterministic core runs and tests offline.
 
 ```bash
-git clone https://github.com/<you>/streetcred-watchdog
+git clone https://github.com/alejandro-publius/streetcred-watchdog
 cd streetcred-watchdog
 
 python3 -m venv .venv && source .venv/bin/activate
