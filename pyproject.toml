@@ -3,19 +3,27 @@ name = "streetcred-watchdog"
 version = "0.1.0"
 description = "An autonomous agent that watches San Francisco street data and publishes its decisions, declines included."
 requires-python = ">=3.11"
+# The local loop needs one package. Everything Google is an optional extra
+# below, because a dependency you cannot avoid installing is not behind an
+# adapter no matter what the architecture diagram says.
 dependencies = [
+  "httpx>=0.27.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.4"]
+cloud = [
   "google-adk>=0.1.0",
   "google-cloud-firestore>=2.16.0",
   "google-cloud-pubsub>=2.21.0",
   "google-cloud-secret-manager>=2.20.0",
   "google-genai>=0.3.0",
-  "httpx>=0.27.0",
   "fastapi>=0.110.0",
   "uvicorn[standard]>=0.29.0",
 ]
 
-[project.optional-dependencies]
-dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "ruff>=0.4"]
+[project.scripts]
+watchdog = "watchdog.cli:main"
 
 [build-system]
 requires = ["hatchling"]

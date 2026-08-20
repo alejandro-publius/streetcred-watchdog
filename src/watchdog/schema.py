@@ -25,7 +25,12 @@ from typing import Any, Literal
 SCHEMA_VERSION = "v1"
 
 Action = Literal["rescore", "reaudit_imagery", "regenerate_letter", "flag"]
-Trigger = Literal["cron", "hourly", "manual", "backfill"]
+# "rehearsal" marks an entry whose baseline was constructed rather than
+# observed. It exists so that exercising the action path can never be mistaken
+# for the agent having seen something. Rehearsal entries are written to their
+# own state directory, kept out of the real journal, and excluded from the
+# restraint rate.
+Trigger = Literal["cron", "hourly", "manual", "backfill", "rehearsal"]
 
 
 def _clean(d: dict[str, Any]) -> dict[str, Any]:

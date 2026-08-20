@@ -9,6 +9,12 @@ dist/
 build/
 *.egg-info/
 .DS_Store
+# Run artefacts. The journal is the product, but it is produced by running the
+# agent, not by editing a file, so it is not committed. The rendered ledger in
+# docs/ is committed because it is the reviewable output of a run.
+state/
+state-rehearsal/
+outbox/
 # Never let a filled-in credential file near a commit.
 *.key
 service-account*.json
