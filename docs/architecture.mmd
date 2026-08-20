@@ -1,0 +1,76 @@
+%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Public Sans, Helvetica, sans-serif", "fontSize": "15px", "lineColor": "#5c6a6e", "edgeLabelBackground": "#fbfcfb", "tertiaryColor": "#fbfcfb", "primaryTextColor": "#161d1f"}, "flowchart": {"curve": "basis", "nodeSpacing": 45, "rankSpacing": 55}}}%%
+flowchart TB
+%% The Corner Watchdog, two layers, honestly separated.
+%% Dashed green is what actually ran, on a laptop, with no cloud account touched.
+%% Solid amber is what each stand-in is a stand-in for. None of it is wired.
+%% Render: npx @mermaid-js/mermaid-cli -i docs/architecture.mmd -o docs/architecture.svg
+
+    subgraph SOURCES["Read only, unauthenticated, no account"]
+        direction LR
+        DATASF["DataSF open data portal<br/><i>the city's own record</i>"]
+        SCRED["StreetCred public scoreboard<br/><i>the watched set, 25 worst corners</i>"]
+    end
+
+    subgraph TONIGHT["TONIGHT: ran locally, zero cloud accounts touched"]
+        direction TB
+        SCHED_L["launchd or cron<br/><i>timed trigger</i>"]
+        OBS_L["Observer sweep, python -m watchdog<br/><i>runtime</i>"]
+        FLOOR["Rule floor, delta.py<br/><b>no model, no network, no cloud</b><br/><i>a new death escalates before any model is consulted</i>"]
+        TRIAGE_L["RuleTriage<br/><i>cost-routed triage</i>"]
+        BUS_L["DirectBus<br/><i>decoupled trigger</i>"]
+        DELIB_L["RuleDecider<br/><i>deliberation with reasoning traces</i>"]
+        ACT_L["DryRunActuator, writes to outbox/<br/><i>acts, sends nothing</i>"]
+        STORE_L["LocalJsonStore, the journal<br/><i>persistent cross-session memory</i>"]
+        LEDGER_L["docs/ledger.html<br/><i>public observability</i>"]
+        SEC_L["dotenv, gitignored, never committed<br/><i>zero credentials in code</i>"]
+    end
+
+    subgraph THISWEEK["THIS WEEK: what each dashed box is a stand-in for. None is wired, nothing is deployed, no account exists."]
+        direction LR
+        SCHED_C["Cloud Scheduler<br/><i>timed trigger</i>"]
+        RUN_C["Cloud Run<br/><i>scale-to-zero runtime</i>"]
+        GEMMA_C["Gemma on Vertex<br/><i>cost-routed triage</i>"]
+        PS_C["Pub/Sub<br/><i>decoupled trigger</i>"]
+        GEMINI_C["Gemini on Vertex<br/><i>deliberation with reasoning traces</i>"]
+        POST_C["POST /api/agent/report<br/><i>the one trust boundary</i>"]
+        FS_C["Firestore<br/><i>persistent cross-session memory</i>"]
+        SM_C["Secret Manager<br/><i>zero credentials in code</i>"]
+        %% Invisible links only, to lay the inventory out in two rows rather
+        %% than one tall column. They carry no meaning: nothing in this layer
+        %% is connected to anything, which is the point of the layer.
+        SCHED_C ~~~ RUN_C ~~~ GEMMA_C ~~~ PS_C
+        GEMINI_C ~~~ POST_C ~~~ FS_C ~~~ SM_C
+    end
+
+    DATASF --> OBS_L
+    SCRED --> OBS_L
+    SCHED_L --> OBS_L
+    OBS_L --> FLOOR
+    FLOOR -->|"ambiguous middle only"| TRIAGE_L
+    FLOOR -->|"fatal or severe, settled by rule"| BUS_L
+    FLOOR -->|"nothing changed"| STORE_L
+    TRIAGE_L -->|"escalate"| BUS_L
+    TRIAGE_L -->|"ignore or defer"| STORE_L
+    BUS_L --> DELIB_L
+    DELIB_L -->|"act"| ACT_L
+    DELIB_L -->|"decline or defer"| STORE_L
+    ACT_L --> STORE_L
+    STORE_L --> LEDGER_L
+    SEC_L -.-> ACT_L
+
+    %% Invisible, and only to rank the cloud inventory below the loop that runs.
+    LEDGER_L ~~~ SCHED_C
+
+    classDef source fill:#eef2f0,stroke:#5c6a6e,stroke-width:1px,color:#161d1f
+    classDef local fill:#e7efea,stroke:#2f5d50,stroke-width:1.5px,stroke-dasharray:5 4,color:#161d1f
+    classDef cloud fill:#f7ecdf,stroke:#a1571c,stroke-width:1.5px,color:#161d1f
+    classDef floorbox fill:#fbecec,stroke:#8c2f2f,stroke-width:2.5px,color:#161d1f
+
+    class DATASF,SCRED source
+    class SCHED_L,OBS_L,TRIAGE_L,BUS_L,DELIB_L,ACT_L,STORE_L,LEDGER_L,SEC_L local
+    class SCHED_C,RUN_C,FS_C,PS_C,GEMMA_C,GEMINI_C,POST_C,SM_C cloud
+    class FLOOR floorbox
+
+    style SOURCES fill:#fbfcfb,stroke:#d5dbd7,stroke-width:1px,color:#5c6a6e
+    style TONIGHT fill:#fbfcfb,stroke:#2f5d50,stroke-width:2px,stroke-dasharray:8 5,color:#2f5d50
+    style THISWEEK fill:#fdfaf6,stroke:#a1571c,stroke-width:2px,color:#a1571c
