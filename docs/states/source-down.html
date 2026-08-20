@@ -417,8 +417,9 @@ body {
     </div>
     <p class="definition">12 of 12 evaluations ended in no action. That is the
     whole definition: every entry in the journal is the denominator, nothing is filtered out,
-    and the 0 that did end in action are shown below with the same weight as the rest.</p>
-    <div class="breakdown">
+    and the 0 that did end in action are shown below with the same weight as the rest.
+    </p>
+    <div class="breakdown breakdown-restraint">
   <p class="eyebrow">What the number is made of</p>
   <ul class="split"><li class="split-row"><span class="split-n">9</span><span class="split-label">could not read the record</span><span class="split-tag split-observed">observed</span></li><li class="split-row"><span class="split-n">3</span><span class="split-label">nothing changed</span><span class="split-tag split-observed">observed</span></li></ul>
   <p class="split-verdict"><strong>None of these 12 declines involved a judgment call.</strong> Every one was settled by a rule observing that there was nothing to compare or nothing had moved. Neither tier was consulted. On this journal the restraint rate is a measurement of a quiet city, not of an agent exercising restraint, and it would look exactly the same if both tiers were broken.</p>
@@ -433,6 +434,26 @@ body {
     <div class="count"><span class="n">0</span><span class="k">actions taken</span></div>
     <div class="count"><span class="n">0</span><span class="k">refused by budget</span></div>
   </section>
+
+  <section class="breakdown">
+  <p class="eyebrow">What the thinking cost</p>
+  <ul class="split">
+    <li class="split-row"><span class="split-n">0</span>
+      <span class="split-label">tokens actually spent</span>
+      <span class="split-tag split-observed">measured</span></li>
+    <li class="split-row"><span class="split-n">0</span>
+      <span class="split-label">tokens the same run would have cost with the models wired</span>
+      <span class="split-tag split-judged">projected</span></li>
+    <li class="split-row"><span class="split-n">12</span>
+      <span class="split-label">of 12 evaluations settled without consulting any tier</span>
+      <span class="split-tag split-observed">free</span></li>
+  </ul>
+  <p class="split-verdict">Tier consultations: none. The projection uses token counts
+  measured by rendering the real prompts against a real corner, not an estimate of an
+  estimate, and it is a projection: no model has been called by this repository, so the
+  measured spend is zero. The gap between those two numbers is the entire argument for
+  putting a deterministic floor underneath both tiers.</p>
+</section>
 
   <section class="notice">
   <p><strong>What was standing in for what, on this run.</strong></p>
@@ -871,7 +892,7 @@ body {
   
 
   <footer class="colophon">
-    <p>Rendered 2026-08-20T06:18:44+00:00 from <code>state/journal.jsonl</code>. Static page, no
+    <p>Rendered 2026-08-20T15:52:03+00:00 from <code>state/journal.jsonl</code>. Static page, no
     scripts, no analytics, nothing fetched at view time.</p>
     <p>Counts come from San Francisco's open data portal within 80 metres of each corner:
     injury collisions over five years, filtered street-condition 311 reports over three.
