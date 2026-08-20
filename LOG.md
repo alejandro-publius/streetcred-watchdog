@@ -106,7 +106,7 @@ escalations, 4 deliberations, 7 actions and 8 dry-run artefacts.
 
 ## Overnight burn pass, 2026-08-20
 
-One entry for the whole pass, as the standing rules require. 23 commits, all
+One entry for the whole pass, as the standing rules require. 28 commits, all
 inside the submission window. The gate held throughout: tests green at every
 commit, `watchdog tick` runs under its lock, no Google account touched.
 
@@ -186,15 +186,46 @@ Seven defects, none of which raised an exception. In the order they were found:
    `.elapsed`, which raises unless the body has been read, inside a block that
    catches `Exception`.
 
+### The audit at the end, and what it found in this pass's own work
+
+An adversarial pass over every document, checking each claim against the code and
+the data, found four defects in work committed earlier the same night. The first
+is the worst thing in the pass.
+
+1. **The repository's central claim was untrue of its own journal.** Four
+   documents said every entry written while a stand-in was wired carries a line
+   naming which tier was not a model. Zero of 150 entries carried one. The cause
+   was defensible: the caveat attached only to entries a tier had weighed, and
+   every entry had been settled by a rule. Fixed in the code; the ledger now
+   counts how many entries carry it, because the journal is append only and the
+   older ones never can.
+2. **prompts.py still taught the pre-contract JSON shape** while contract.py had
+   moved on. A model following that prompt perfectly would have had every answer
+   rejected. The contract test only parsed the markdown, which is exactly the gap
+   that let it through.
+3. **`watchdog run` never took the cycle lock.** Only `tick` did, so the promise
+   that a scheduled run cannot overlap with a hand-started one held in one
+   direction and missed the collision that actually matters.
+4. **The FAQ said the ingest token has never been set.** A real one sits in the
+   local `.env`. It has never been committed and nothing loads it, so the honest
+   version is stronger: the guarantee is not that the credential is missing, it
+   is that the code refuses even when it is not.
+
+Also corrected: stale counts in three documents, a two-weeks framing for a
+repository three days old, and an architecture claim that all nine rows were
+protocols when five are. `tools/check_numbers.py` now checks 12 stated figures
+against the repository on every build, with a `--fix` mode, because a count that
+moves every cycle should be a command rather than a recurring trap.
+
 ### Where the numbers stand
 
 Measured 2026-08-20 after the final cycle.
 
 | | |
 | --- | --- |
-| Tests | 436, up from 76 at the start of the pass |
+| Tests | 445, up from 76 at the start of the pass |
 | Test files | 22, source modules 27 |
-| Journal entries | 150 |
+| Journal entries | 175 |
 | Actions taken | 0 |
 | Corners watched | 25 |
 | City records covered per sweep | 5,905 |
