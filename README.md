@@ -30,6 +30,7 @@ Read this before the rest.
   to, or touched at any point in this project.** The plan for wiring them is
   [`docs/GEMINI_WIRING.md`](docs/GEMINI_WIRING.md).
   Cloud setup is a ten minute operator task: see [`docs/GCP_PRECONDITIONS.md`](docs/GCP_PRECONDITIONS.md), then [`scripts/preflight_gcp.sh`](scripts/preflight_gcp.sh) to verify.
+  The Agent Development Kit port is planned build-window work: `google-adk` is staged in the `cloud` extra and imported by nothing, and `tools/check_adk_claims.py` fails the build if this page ever says otherwise.
 - **The agent has never posted anything anywhere.** The live path exists, implements the
   interface, and refuses on every verb.
 - **Nothing in this repo has ever observed a real change at a watched corner.** The city
@@ -71,19 +72,21 @@ All measured from this repository, on 2026-08-20.
 | Evaluations journaled | 175 |
 | Actions taken | 0 |
 | Restraint rate | 100 percent, and the ledger explains why that number is not yet impressive |
-| Tests | 461, offline, no credentials, under a second |
+| Tests | 484, offline, no credentials, under a second |
 | Runtime dependencies | 1 (`httpx`) |
 | Google Cloud accounts touched | 0 |
 
-The restraint rate is 100 percent and the ledger says, on its own front page, that this is
-currently a measurement of a quiet city rather than of a careful agent, because every one
-of those declines was settled by a rule rather than weighed by a tier. A number that
-flatters the system is worth less than one that explains itself.
+The restraint rate is 100 percent and the ledger says, on its own front page, what that is
+made of: 171 of the 175 declines were settled by a rule rather than weighed by a tier, so
+the number still mostly measures a quiet city rather than a careful agent. The other four
+are the first real ones. On the sweep at 16:01 on 2026-08-20 the city's 311 counts moved at
+four watched corners, tier one weighed each and declined as ordinary variance. A number
+that flatters the system is worth less than one that explains itself.
 
 ## Quick start
 
 Verified in a clean clone and a fresh virtual environment on 2026-08-20: 15 packages
-installed including pip itself and the project, none of them Google, all 461 tests green.
+installed including pip itself and the project, none of them Google, all 484 tests green.
 
 ```bash
 git clone https://github.com/alejandro-publius/streetcred-watchdog
@@ -92,7 +95,7 @@ cd streetcred-watchdog
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"          # one runtime dependency: httpx
 
-pytest -q                        # 461 tests, no network, no credentials
+pytest -q                        # 484 tests, no network, no credentials
 python -m watchdog run --cycles 2  # the whole loop, twice, against live DataSF
 open docs/ledger.html            # every decision, restraint rate on top
 ```
@@ -212,7 +215,7 @@ Fuller versions in [`DECISIONS.md`](DECISIONS.md).
 | `src/prompts/` | Both prompts in full, with ten worked examples the test suite parses. |
 | `src/watchdog/live.py` | The live path. Implements the interface, refuses every verb. |
 | `src/watchdog/ledger.py` | The journal as a page, restraint rate on top, declines at full size. |
-| `tests/` | 461 of them. The cases where a naive implementation produces a confident lie. |
+| `tests/` | 484 of them. The cases where a naive implementation produces a confident lie. |
 | `LOG.md`, `DECISIONS.md` | What was found by running it, and what was decided and rejected. |
 
 ## A note on the radius
