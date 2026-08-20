@@ -22,6 +22,7 @@ from .outbox import DryRunActuator
 from .ports import Actuator
 from .schema import Trigger
 from .store import LocalJsonStore
+from .vocabulary import assert_pinned
 
 
 @dataclass
@@ -61,6 +62,10 @@ async def run_cycle(
     extra_degradation: str | None = None,
 ) -> CycleReport:
     """One full pass: observe, diff, triage, decide, act dry, journal."""
+    # Before anything is fetched. A cycle that runs with an unverified filter
+    # produces numbers, and a wrong number is worse than a run that stopped.
+    assert_pinned()
+
     started = _dt.datetime.now(_dt.timezone.utc)
     run_id = run_id or started.strftime("%Y%m%dT%H%M%SZ")
 
