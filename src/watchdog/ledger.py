@@ -61,6 +61,7 @@ BASIS_LABEL = {
     "rule_fatal": "rule floor, new fatality",
     "rule_severe": "rule floor, new severe injury",
     "triage": "triage weighed it",
+    "triage_defer": "triage deferred, evidence not trusted",
     # Entries written before the basis field existed. Counted as unjudged, never
     # as judged: a missing field must not be able to inflate the one claim this
     # breakdown exists to deflate.

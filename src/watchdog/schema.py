@@ -202,6 +202,7 @@ Basis = Literal[
     "rule_fatal",       # a new fatality, escalated before any tier is consulted
     "rule_severe",      # a new severe injury, same
     "triage",           # tier one weighed an ambiguous change
+    "triage_defer",     # tier one weighed it and did not trust the evidence
 ]
 
 # The bases that a rule settled without any judgment being exercised. Kept as a
