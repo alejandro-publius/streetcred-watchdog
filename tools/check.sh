@@ -68,6 +68,10 @@ step "documentation numbers"
 "$PY" tools/check_numbers.py
 report $? "stated figures match the repository"
 
+step "adk claims"
+"$PY" tools/check_adk_claims.py
+report $? "documentation matches what src/ imports"
+
 step "prose"
 # The house rule. Checked because it is the kind of thing that creeps back in one
 # paste at a time.
