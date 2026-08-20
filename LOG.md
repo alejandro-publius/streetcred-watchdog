@@ -21,3 +21,18 @@ Verdict, stated plainly: both existing commits landed fourteen days after the su
 period opened and thirteen days before it closes. They are inside the window. Tonight's
 work, 2026-08-19, is also inside the window, with twelve days of margin before the
 deadline.
+
+## Phase 2: inventory, scaffold versus implementation (2026-08-19)
+
+Ten lines, one per finding:
+
+1. Implemented and tested: schema.py, the whole Firestore document contract (Snapshot, Delta, Tier1Verdict, Tier2Decision, JournalEntry, bounded Calibration).
+2. Implemented and tested: delta.py, diff_snapshots with its three guards (first sighting, incomplete fetch, withdrawn record) plus the deterministic rule floor.
+3. Implemented but never exercised: datasf.py, five SoQL lanes per corner copied from StreetCred, async httpx, marks partial fetches incomplete; no caller exists.
+4. Implemented but never exercised: ingest.py, StreetCredClient covering journal, rescore, letter, flag, and the public board read; token comes from env only.
+5. Prose only: prompts.py holds both versioned model prompts, and nothing imports it anywhere.
+6. Missing entirely: watchdog/server.py, which the Dockerfile boots; there is no ADK agent, no FastAPI app, and no entrypoint of any kind.
+7. Missing entirely: the loop itself; no observer sweep, no actor, no journal writer, no budget enforcement, no calibration persistence, no CLI.
+8. Tests: 21 pass in 0.02s offline (13 for delta and the rule floor, 8 for calibration and journal serialisation); they import only schema and delta.
+9. Toolchain drift: pyproject requires Python 3.11 or newer, but .venv is Python 3.9 carrying only pytest; the declared Google dependencies are not installed.
+10. Secrets: .env exists locally, is matched by .gitignore line 1 (verified with git check-ignore), and git log --all --full-history -- .env returns nothing, so it has never been committed.
