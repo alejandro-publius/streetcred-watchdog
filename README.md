@@ -114,7 +114,7 @@ they are built.
 | Pattern | How it appears here | Status |
 | --- | --- | --- |
 | Event-driven fan-out | The observer publishes escalations to a bus; the actor subscribes and never reads the observer's state. Locally the bus is an in-process call that round-trips through JSON, so a payload Pub/Sub could not carry fails here rather than in production. | built |
-| Cost-routed cascade | A deterministic floor answers most deltas for free, a cheap tier takes the ambiguous middle, and an expensive tier only ever sees escalations. Across 175 real evaluations, the number that would have reached a model is zero. | built |
+| Cost-routed cascade | A deterministic floor answers most deltas for free, a cheap tier takes the ambiguous middle, and an expensive tier only ever sees escalations. Across 175 real evaluations, the number that would have reached a model is four. | built |
 | Human-in-the-loop | `flag` is a first-class action, mandatory alongside any redraft on a new fatality. The live path additionally refuses to send until a human has read a full dry-run outbox and agreed with every letter in it. | built as a gate |
 | Decline queue | Declines are journaled by the observer at the moment they are made, never routed through the expensive tier, and rendered at the same visual weight as actions. | built |
 | Review and critique verifier | StreetCred recomputes every figure in an agent-written letter from the corner's own record and stores its own answer, recording disagreement as `selfReportDisputed`. The agent does not get to mark its own homework. | planned, not deployed |

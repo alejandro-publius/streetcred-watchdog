@@ -61,7 +61,7 @@ RULES = [
     ("README.md", "entries", r"\|\s*Evaluations journaled\s*\|\s*([\d,]+)\s*\|"),
     ("README.md", "entries", r"Across ([\d,]+) real evaluations"),
     ("README.md", "corners", r"\|\s*Corners watched\s*\|\s*([\d,]+)\s*\|"),
-    ("docs/FAQ.md", "entries", r"Every one of the ([\d,]+) declines"),
+    ("docs/FAQ.md", "entries", r"Almost\. 171 of the ([\d,]+) declines"),
     ("docs/social_draft.md", "entries", r"It has made ([\d,]+) decisions"),
     ("docs/social_draft.md", "entries", r"intersections\. ([\d,]+) decisions so far"),
     ("CONTRIBUTING.md", "tests", r"lint, the ([\d,]+) tests"),

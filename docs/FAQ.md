@@ -35,10 +35,20 @@ feature that keeps the output worth reading.
 
 Yes, and the page says so before you get a chance to ask.
 
-Every one of the 175 declines in the journal was settled by a rule: most by
-observing that nothing had changed, and twenty five by refusing a comparison
-outright because the query had changed underneath them. Not one was a tier
-looking at a real change and choosing restraint. The ledger prints that breakdown
+Almost. 171 of the 175 declines were settled by a rule: most by observing that
+nothing had changed, twenty five by refusing a comparison outright because the
+query had changed underneath them.
+
+The other four are the first real thing this agent has done. On the sweep at
+16:01 on 2026-08-20, San Francisco's 311 data moved: three watched corners gained
+a street-condition report and one lost one. Tier one weighed each of the four and
+declined, because a swing of one at a corner that already has hundreds on file is
+ordinary variance and the bar is fifteen. Those four are the only entries in the
+journal where anything looked at a real change and chose to leave it alone.
+
+Four out of a hundred and seventy five is not a track record. It is the number
+being something other than zero for the first time, and the page prints it as
+four rather than rounding it into the rest. The ledger prints that breakdown
 directly under the headline number, in the same eyeline, and states that the
 figure currently measures a quiet city rather than a careful agent and would look
 identical if both tiers were broken.

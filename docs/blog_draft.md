@@ -126,10 +126,15 @@ those entries cannot be given the line now. The page prints how many carry it.
 ## The number I am least proud of, printed largest
 
 The restraint rate is a hundred percent, and directly under it the page says that
-this is not yet impressive. Every one of those declines was settled by a rule.
-Most observed that nothing had changed; twenty five refused a comparison outright
-because I had changed the query underneath them. Not one was a tier weighing a
-real change and choosing restraint. Right now that number measures a quiet city, not a careful agent, and
+this is not yet impressive. A hundred and seventy one of those declines were
+settled by a rule: most observing that nothing had changed, twenty five refusing
+a comparison outright because I had changed the query underneath them.
+
+Four are not. On the last sweep the city's 311 data finally moved, three corners
+gaining a street-condition report and one losing one, and tier one weighed each
+and declined because a swing of one at a corner with hundreds on file is ordinary
+variance. Those four are the only entries where anything looked at a real change
+and chose to leave it alone. Right now that number measures a quiet city, not a careful agent, and
 it would look exactly the same if both tiers were broken.
 
 I would rather ship the sentence that says so than a number that flatters me. The
