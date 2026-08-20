@@ -137,3 +137,23 @@ def test_both_themes_define_every_colour_token():
     for token in ("--ground", "--surface", "--ink", "--muted", "--hairline", "--held", "--acted"):
         assert html.count(f"{token}:") >= 3  # bare :root, the media query, and the explicit stamp
     assert "background: var(--ground)" in html
+
+
+def test_the_degradation_notice_says_how_many_entries_carry_it():
+    """An unqualified "every entry" was false here for 150 entries.
+
+    The journal is append only, so entries written before the field existed can
+    never gain it. Counting is the only honest way to make the claim.
+    """
+    note = "Tier one ran as deterministic rules, not Gemma: no credentials."
+    html = render_document([entry(degraded=note), entry(), entry()])
+    assert "1 of 3 entries carry this admission" in without_traces(html)
+    assert "cannot gain it" in html
+    assert "append only" in html
+
+
+def test_a_fully_labelled_journal_says_so_without_hedging():
+    note = "Tier one ran as deterministic rules, not Gemma: no credentials."
+    html = render_document([entry(degraded=note), entry(degraded=note)])
+    assert "All 2 entries carry this admission" in without_traces(html)
+    assert "cannot gain it" not in html

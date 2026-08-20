@@ -49,8 +49,10 @@ Read this before the rest.
   actual figures rather than a log line saying a letter would have been written.
 - **Publishes every decision**, including and especially the ones that ended in nothing,
   with the reasoning verbatim and a link to the raw journal record.
-- **Says when it is degraded.** Every entry written while a stand-in was wired carries a
-  line naming which tier was not a model.
+- **Says when it is degraded.** Every entry now carries a line naming which tier was not
+  a model, and the ledger prints how many entries carry it rather than claiming all of
+  them do: the journal is append only, so entries written before that field existed
+  cannot gain it.
 
 ## The numbers
 
@@ -68,7 +70,7 @@ All measured from this repository, on 2026-08-20.
 | Evaluations journaled | 175 |
 | Actions taken | 0 |
 | Restraint rate | 100 percent, and the ledger explains why that number is not yet impressive |
-| Tests | 443, offline, no credentials, under a second |
+| Tests | 445, offline, no credentials, under a second |
 | Runtime dependencies | 1 (`httpx`) |
 | Google Cloud accounts touched | 0 |
 
@@ -80,7 +82,7 @@ flatters the system is worth less than one that explains itself.
 ## Quick start
 
 Verified in a clean clone and a fresh virtual environment on 2026-08-20: 15 packages
-installed including pip itself and the project, none of them Google, all 443 tests green.
+installed including pip itself and the project, none of them Google, all 445 tests green.
 
 ```bash
 git clone https://github.com/alejandro-publius/streetcred-watchdog
@@ -89,7 +91,7 @@ cd streetcred-watchdog
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"          # one runtime dependency: httpx
 
-pytest -q                        # 443 tests, no network, no credentials
+pytest -q                        # 445 tests, no network, no credentials
 python -m watchdog run --cycles 2  # the whole loop, twice, against live DataSF
 open docs/ledger.html            # every decision, restraint rate on top
 ```
@@ -207,7 +209,7 @@ Fuller versions in [`DECISIONS.md`](DECISIONS.md).
 | `src/prompts/` | Both prompts in full, with ten worked examples the test suite parses. |
 | `src/watchdog/live.py` | The live path. Implements the interface, refuses every verb. |
 | `src/watchdog/ledger.py` | The journal as a page, restraint rate on top, declines at full size. |
-| `tests/` | 443 of them. The cases where a naive implementation produces a confident lie. |
+| `tests/` | 445 of them. The cases where a naive implementation produces a confident lie. |
 | `LOG.md`, `DECISIONS.md` | What was found by running it, and what was decided and rejected. |
 
 ## A note on the radius

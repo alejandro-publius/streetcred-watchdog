@@ -905,9 +905,22 @@ def render_body(
     notice = ""
     if degradations:
         lines = "".join(f"<p>{_e(d)}</p>" for d in degradations)
+        labelled = sum(1 for e in entries if e.get("degraded"))
+        # The journal is append only, so entries written before this field existed
+        # can never gain it. Saying how many carry the admission is the only
+        # honest way to make the claim, and an unqualified "every entry" was
+        # false here for exactly that reason until somebody counted.
+        coverage_line = (
+            f"<p>{labelled} of {len(entries)} entries carry this admission. The other "
+            f"{len(entries) - labelled} were written before the field existed and cannot "
+            "gain it: the journal is append only, which is the point of it.</p>"
+            if labelled < len(entries)
+            else f"<p>All {len(entries)} entries carry this admission.</p>"
+        )
         notice = f"""<section class="notice">
   <p><strong>What was standing in for what, on this run.</strong></p>
   {lines}
+  {coverage_line}
   <p>Recorded here because an agent that degrades quietly produces output
   indistinguishable from one that did not.</p>
 </section>"""

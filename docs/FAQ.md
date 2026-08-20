@@ -122,9 +122,14 @@ and a wiring plan with measured token counts. What does not exist is a single
 call to Vertex.
 
 The thing that keeps this honest rather than merely unfinished: every journal
-entry written while a stand-in was running says which tier was not a model. An
-agent that degrades quietly produces output indistinguishable from one that did
-not, which would make the entire record worthless.
+entry now says which tier was not a model. An agent that degrades quietly
+produces output indistinguishable from one that did not, which would make the
+entire record worthless.
+
+That claim was itself false until an audit counted. The caveat used to attach
+only to entries a tier had weighed, and every entry in this journal was settled
+by a rule, so none of the first 150 carried it. The journal is append only, so
+those entries cannot gain it now, and the ledger prints how many do.
 
 ## How do I know the agent has not posted anything?
 

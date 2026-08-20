@@ -114,9 +114,14 @@ Switching is a change at one wiring site. But it is not done, and the two tiers
 in the current build are deterministic policy rather than models.
 
 The important part is what the agent says about that. Every decision it records
-while a stand-in is running carries a line naming which tier was not a model. An
-agent that degrades quietly produces output indistinguishable from one that did
-not, which would make the whole record worthless.
+now carries a line naming which tier was not a model.
+
+That was not true until I checked. The caveat attached only to decisions a tier
+had actually weighed, which sounds right and was: crediting a model for a rule's
+work overstates things. But every decision in this journal was settled by a rule,
+so not one of the first hundred and fifty carried any admission at all, while
+four separate documents claimed they all did. The journal is append only, so
+those entries cannot be given the line now. The page prints how many carry it.
 
 ## The number I am least proud of, printed largest
 
