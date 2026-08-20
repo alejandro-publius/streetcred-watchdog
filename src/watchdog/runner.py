@@ -98,5 +98,12 @@ async def run_cycle(
 
     report.sweep = await observer.sweep(corners, trigger=trigger)
     report.actor = actor.result
+
+    # Always, including when the run acted on nothing. An empty outbox and an
+    # outbox nobody opened are indistinguishable without this.
+    manifest = getattr(act, "write_manifest", None)
+    if callable(manifest):
+        manifest()
+
     report.finished = _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")
     return report

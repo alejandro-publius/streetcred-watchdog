@@ -146,3 +146,32 @@ report, and the absence of one is not a clean bill of health.
             "dry_run": True,
         }
         return self._write(f"{_safe(slug)}.flag.json", json.dumps(payload, indent=2, sort_keys=True))
+
+    # --------------------------------------------------------------- manifest
+
+    def write_manifest(self) -> str | None:
+        """An index of the run, so the outbox explains itself to whoever opens it.
+
+        Written even when the run produced nothing, because an empty outbox and
+        an outbox that was never opened look the same on disk, and only one of
+        them means the agent decided to leave everything alone.
+        """
+        when = _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")
+        listing = "\n".join(f"  {Path(p).name}" for p in sorted(self.written)) or "  (nothing)"
+        body = f"""DRY RUN OUTBOX
+run:      {self.run_id}
+written:  {when}
+artefacts: {len(self.written)}
+
+{listing}
+
+Nothing in this directory was sent. No request left this machine on the acting
+side of the loop; the only network reads were San Francisco's open data portal
+and StreetCred's public scoreboard, both unauthenticated.
+
+An empty listing above means the agent evaluated the watched set and decided
+every change did not warrant touching anything. That is the common outcome and
+it is the point. The reasoning behind each of those decisions is in the journal,
+not here, because a decision that produced no artefact still produced a record.
+"""
+        return self._write("MANIFEST.txt", body)

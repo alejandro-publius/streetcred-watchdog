@@ -366,7 +366,10 @@ def test_a_full_cycle_that_declines_journals_the_decline(tmp_path):
     entry = store.read_journal()[-1]
     assert entry["actions"] == []
     assert "variance" in entry["tier1"]["reason"]
-    assert not (tmp_path / "outbox" / "t").exists() or not list((tmp_path / "outbox" / "t").iterdir())
+    # The manifest is written either way; nothing else is.
+    written = sorted(p.name for p in (tmp_path / "outbox" / "t").iterdir())
+    assert written == ["MANIFEST.txt"]
+    assert "(nothing)" in (tmp_path / "outbox" / "t" / "MANIFEST.txt").read_text()
 
 
 def test_two_cycles_against_an_unchanged_city_stay_quiet(tmp_path):
@@ -402,3 +405,41 @@ def test_nothing_in_the_local_loop_imports_the_streetcred_poster():
     for mod in (a, o, ob, r):
         src = Path(mod.__file__).read_text()
         assert "from .ingest" not in src and "import ingest" not in src
+
+
+def test_the_live_actuator_refuses_every_verb():
+    """It implements the protocol so the seam keeps type checking. It sends nothing."""
+    from watchdog.live import LiveActuator, LivePathRefused
+
+    live = LiveActuator()
+    assert live.is_live is True
+
+    calls = [
+        live.rescore(corner(), Counts(), "r"),
+        live.regenerate_letter(corner(), Counts(), Delta(slug="a", name="A"), "r"),
+        live.reaudit_imagery(corner(), Counts(), Delta(slug="a", name="A"), "r"),
+        live.flag(corner(), "r"),
+    ]
+    for call in calls:
+        with pytest.raises(LivePathRefused) as excinfo:
+            asyncio.run(call)
+        assert "does not post to StreetCred" in str(excinfo.value)
+        assert "WATCHDOG_INGEST_TOKEN" in str(excinfo.value)
+
+
+def test_the_live_actuator_never_reads_the_token():
+    """A module that reads a credential in order to refuse is one edit from using it."""
+    from watchdog import live
+
+    src = Path(live.__file__).read_text()
+    assert "environ" not in src
+    assert "httpx" not in src
+
+
+def test_the_manifest_is_written_even_when_nothing_was_acted_on(tmp_path):
+    act = DryRunActuator(tmp_path, run_id="quiet")
+    path = act.write_manifest()
+    body = Path(path).read_text()
+    assert "artefacts: 0" in body
+    assert "Nothing in this directory was sent" in body
+    assert "did not warrant touching anything" in body
