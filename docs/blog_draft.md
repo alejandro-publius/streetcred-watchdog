@@ -7,7 +7,7 @@
 For about two weeks my laptop has been reading San Francisco's collision records
 every few hours, comparing them against what it saw last time, and deciding
 whether anything had changed enough to be worth acting on. In that time it has
-made a hundred and twenty five decisions. Every single one of them was to do
+made a hundred and fifty decisions. Every single one of them was to do
 nothing.
 
 I think that is the interesting part, so it is the part the public page leads

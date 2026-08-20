@@ -12,7 +12,7 @@ check the figures still hold, because a post is harder to correct than a page.
 ## LinkedIn
 
 > I spent two weeks building an agent that watches the twenty five most dangerous
-> intersections in San Francisco. It has made 125 decisions so far. Every one of
+> intersections in San Francisco. It has made 150 decisions so far. Every one of
 > them was to do nothing.
 >
 > That is the part I want to talk about.
@@ -40,14 +40,14 @@ check the figures still hold, because a post is harder to correct than a page.
 > wired yet: every service is behind an adapter running a local stand-in, and every
 > decision the agent records says which stand-in produced it.
 
-**Word count:** 258. **Checks before posting:** the 125 figure comes from the
+**Word count:** 258. **Checks before posting:** the 150 figure comes from the
 journal and moves every cycle. Re-count it, or say "more than a hundred".
 
 ---
 
 ## X
 
-> Built an agent that watches SF's 25 worst intersections. 125 decisions so far,
+> Built an agent that watches SF's 25 worst intersections. 150 decisions so far,
 > all of them "do nothing".
 >
 > Then I found my severity filter had matched zero rows since the first commit.
@@ -81,7 +81,7 @@ not true:
 - Do **not** say it has caught a real change at a real corner. It has not; the
   city was quiet for the whole build, and the one real event worth citing is the
   agent catching **my** change, not the city's.
-- Do **not** round 125 up to "hundreds", and do not describe the restraint rate as
+- Do **not** round 150 up to "hundreds", and do not describe the restraint rate as
   a hundred percent without the sentence explaining why that is not impressive
   yet.
 - Do **not** imply StreetCred was built for this hackathon. It predates it.

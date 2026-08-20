@@ -64,6 +64,10 @@ else
   report 0 ".env is untracked and has never been committed"
 fi
 
+step "documentation numbers"
+"$PY" tools/check_numbers.py
+report $? "stated figures match the repository"
+
 step "prose"
 # The house rule. Checked because it is the kind of thing that creeps back in one
 # paste at a time.
