@@ -133,17 +133,67 @@ def query_fingerprint(radius_m: int) -> str:
     )
 
 
-def _iso_years_ago(years: int) -> str:
-    now = _dt.datetime.now(_dt.timezone.utc)
-    return (now - _dt.timedelta(days=365 * years)).strftime("%Y-%m-%dT%H:%M:%S")
+def _iso_years_ago(years: int, now: _dt.datetime | None = None) -> str:
+    """The start of a window, always computed in UTC.
+
+    UTC on purpose, and injectable on purpose. A window anchored to local time
+    moves by an hour twice a year when Pacific daylight saving shifts, so two
+    sweeps either side of the transition would be asking different questions
+    while claiming to ask the same one, and the difference would arrive in the
+    journal as news about a street corner.
+
+    365 days per year rather than calendar arithmetic, which means the window
+    slides by roughly a day every four years. That is deliberate and harmless
+    here because both sides of any comparison use the same rule, and it is
+    recorded in the query fingerprint if it ever changes.
+    """
+    now = now or _dt.datetime.now(_dt.timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=_dt.timezone.utc)
+    return (now.astimezone(_dt.timezone.utc) - _dt.timedelta(days=365 * years)).strftime(
+        "%Y-%m-%dT%H:%M:%S"
+    )
 
 
 def _as_int(v: Any) -> int:
     """DataSF returns integers as "11" from one dataset and "9.00000" from another."""
     try:
         return int(float(v))
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):
         return 0
+
+
+# The two aggregate shapes behave differently on an empty result set, verified
+# against the live API on 2026-08-20:
+#
+#   count(*)            over nothing -> [{"count":"0"}]     the key is always there
+#   sum(number_killed)  over nothing -> [{}]                the key is absent
+#
+# That difference is the whole reason these are two functions. Treating a missing
+# count key as zero would turn a renamed alias into a clean zero on every corner
+# forever, which is the SEVERE_VALUES failure with a different mask on. Treating
+# a missing sum key as an anomaly would mark every genuinely safe corner
+# incomplete. Both mistakes are silent, so both are pinned by tests.
+
+
+def _count_value(rows: Any) -> tuple[int, bool]:
+    """Read a count(*) response. Second element is False when it made no sense."""
+    if not isinstance(rows, list) or not rows:
+        return 0, False
+    first = rows[0]
+    if not isinstance(first, dict) or "count" not in first:
+        return 0, False
+    return _as_int(first["count"]), True
+
+
+def _sum_value(rows: Any, key: str) -> tuple[int, bool]:
+    """Read a sum() response. An absent key is zero; an absent row is not."""
+    if not isinstance(rows, list) or not rows:
+        return 0, False
+    first = rows[0]
+    if not isinstance(first, dict):
+        return 0, False
+    return _as_int(first.get(key)), True
 
 
 async def _soql(client: httpx.AsyncClient, dataset: str, params: dict[str, str]) -> list[dict]:
@@ -235,25 +285,30 @@ async def fetch_corner_records(
         if owns_client:
             await client.aclose()
 
-    if c_rows:
-        collisions = _as_int(c_rows[0].get("count"))
-    if f_rows:
-        fatal = _as_int(f_rows[0].get("sum_number_killed"))
-    if s_rows:
-        severe = _as_int(s_rows[0].get("count"))
-    if r_rows:
-        reports = _as_int(r_rows[0].get("count"))
-    district_rows = d_rows or []
+    collisions, ok = _count_value(c_rows)
+    complete = complete and ok
+    severe, ok = _count_value(s_rows)
+    complete = complete and ok
+    reports, ok = _count_value(r_rows)
+    complete = complete and ok
+    fatal, ok = _sum_value(f_rows, "sum_number_killed")
+    complete = complete and ok
+
+    district_rows = d_rows if isinstance(d_rows, list) else []
 
     # Grouped majority, then the corner's configured district wins if it has one.
+    # Ties break to the lower district number rather than to whatever order the
+    # API happened to return, so the same data always produces the same answer.
+    # A district that flips between sweeps because two groups are tied would be
+    # journaled as a real district change, which it is not.
     majority: int | None = None
     ranked = sorted(
         (
             (_as_int(row.get("supervisor_district")), _as_int(row.get("count")))
             for row in district_rows
+            if isinstance(row, dict)
         ),
-        key=lambda t: t[1],
-        reverse=True,
+        key=lambda t: (-t[1], t[0]),
     )
     for d, _n in ranked:
         if d > 0:

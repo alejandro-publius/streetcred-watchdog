@@ -16,12 +16,13 @@ is; journal entries never are.
 
 from __future__ import annotations
 
+import datetime as _dt
 import json
 import os
 from pathlib import Path
 from typing import Any
 
-from .schema import Calibration, JournalEntry, Snapshot
+from .schema import Calibration, JournalEntry, MalformedSnapshot, Snapshot
 
 DEFAULT_STATE_DIR = Path("state")
 
@@ -43,9 +44,14 @@ class LocalJsonStore:
     def __init__(self, root: str | os.PathLike[str] = DEFAULT_STATE_DIR):
         self.root = Path(root)
         self.snapshots_dir = self.root / "snapshots"
+        self.quarantine_dir = self.root / "quarantine"
         self.journal_path = self.root / "journal.jsonl"
         self.calibration_path = self.root / "calibration.json"
         self.snapshots_dir.mkdir(parents=True, exist_ok=True)
+        # slug -> why it was quarantined during this process's lifetime. Read by
+        # the observer so a corner whose baseline was thrown away is journaled
+        # as exactly that, rather than as a corner nobody has ever seen.
+        self.quarantined: dict[str, str] = {}
 
     def describe(self) -> str:
         return f"LocalJsonStore at {self.root} (stands in for Firestore)"
@@ -53,16 +59,37 @@ class LocalJsonStore:
     # ------------------------------------------------------------- snapshots
 
     def get_snapshot(self, slug: str) -> Snapshot | None:
+        """The stored baseline, or None if there is not a usable one.
+
+        A document that cannot be read is moved aside rather than left in place.
+        Left in place it would be re-read and re-rejected on every sweep forever,
+        and the corner would never rebuild a baseline; moved aside, the next
+        sweep writes a fresh one and comparison resumes the sweep after that.
+        The bad document is kept, not deleted, because it is the only evidence
+        of whatever wrote it.
+        """
         path = self.snapshots_dir / _slug_filename(slug)
         if not path.exists():
             return None
         try:
             return Snapshot.from_dict(json.loads(path.read_text()))
-        except (json.JSONDecodeError, OSError):
-            # A snapshot we cannot read is a snapshot we do not have. Returning
-            # None routes this into the first-sighting guard in delta.py, which
-            # declines to compare, rather than into a comparison against junk.
+        except (json.JSONDecodeError, OSError, MalformedSnapshot) as e:
+            self._quarantine(path, slug, f"{type(e).__name__}: {str(e)[:160]}")
             return None
+
+    def _quarantine(self, path: Path, slug: str, reason: str) -> None:
+        self.quarantine_dir.mkdir(parents=True, exist_ok=True)
+        stamp = _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+        target = self.quarantine_dir / f"{_slug_filename(slug)[:-5]}.{stamp}.json"
+        try:
+            path.replace(target)
+        except OSError:
+            # Cannot move it, so at least do not pretend the baseline is fine.
+            pass
+        self.quarantined[slug] = reason
+        with (self.root / "quarantine.log").open("a") as fh:
+            fh.write(f"{_dt.datetime.now(_dt.timezone.utc).isoformat(timespec='seconds')} "
+                     f"{slug} -> {target.name}: {reason}\n")
 
     def put_snapshot(self, snapshot: Snapshot) -> None:
         path = self.snapshots_dir / _slug_filename(snapshot.slug)
@@ -75,7 +102,10 @@ class LocalJsonStore:
         for path in sorted(self.snapshots_dir.glob("*.json")):
             try:
                 out.append(Snapshot.from_dict(json.loads(path.read_text())))
-            except (json.JSONDecodeError, OSError):
+            except (json.JSONDecodeError, OSError, MalformedSnapshot):
+                # Left in place on purpose. This is the roster-drop scan, and
+                # quarantining from a read-only survey would move a file out
+                # from under the sweep that is about to look at it properly.
                 continue
         return out
 

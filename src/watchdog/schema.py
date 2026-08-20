@@ -38,6 +38,30 @@ def _clean(d: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in d.items() if v is not None}
 
 
+class MalformedSnapshot(ValueError):
+    """A stored snapshot document that cannot be read as one.
+
+    Raised rather than coerced. A corrupted count silently becoming zero is the
+    same failure as a filter that matches nothing: the sweep continues, a number
+    comes out, and the number is false. The caller is expected to quarantine the
+    document and treat the corner as having no baseline, which refuses the
+    comparison instead of inventing one.
+    """
+
+
+def _strict_int(value: Any, field: str) -> int:
+    """Parse a stored count, or refuse. Absent and null are zero; junk is not."""
+    if value is None or value == "":
+        return 0
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError):
+        raise MalformedSnapshot(f"{field} is not a number: {value!r}") from None
+    if parsed != parsed or parsed in (float("inf"), float("-inf")):
+        raise MalformedSnapshot(f"{field} is not a finite number: {value!r}")
+    return int(parsed)
+
+
 @dataclass(frozen=True)
 class Counts:
     """The bounded record for one corner at one moment.
@@ -84,16 +108,29 @@ class Snapshot:
 
     @staticmethod
     def from_dict(d: dict[str, Any]) -> "Snapshot":
+        """Read a stored document, or raise MalformedSnapshot.
+
+        Deliberately strict about numbers and deliberately forgiving about
+        everything else. A missing name is cosmetic; a count that says "seventy"
+        means this document cannot be subtracted from anything.
+        """
+        if not isinstance(d, dict):
+            raise MalformedSnapshot(f"a snapshot document must be an object, got {type(d).__name__}")
         c = d.get("counts") or {}
+        if not isinstance(c, dict):
+            raise MalformedSnapshot(f"counts must be an object, got {type(c).__name__}")
+        district = c.get("district")
+        if district is not None:
+            district = _strict_int(district, "district") or None
         return Snapshot(
             slug=d.get("slug", ""),
             name=d.get("name", ""),
             counts=Counts(
-                collisions_5y=int(c.get("collisions_5y") or 0),
-                fatal_5y=int(c.get("fatal_5y") or 0),
-                severe_5y=int(c.get("severe_5y") or 0),
-                reports_311_3y=int(c.get("reports_311_3y") or 0),
-                district=c.get("district"),
+                collisions_5y=_strict_int(c.get("collisions_5y"), "collisions_5y"),
+                fatal_5y=_strict_int(c.get("fatal_5y"), "fatal_5y"),
+                severe_5y=_strict_int(c.get("severe_5y"), "severe_5y"),
+                reports_311_3y=_strict_int(c.get("reports_311_3y"), "reports_311_3y"),
+                district=district,
             ),
             grade=d.get("grade"),
             index=d.get("index"),
@@ -161,6 +198,7 @@ Basis = Literal[
     "fetch_failed",     # the read did not come back at all
     "methodology",      # the query itself changed, so the arithmetic is meaningless
     "roster_drop",      # the corner left the watched set, so we stopped looking
+    "corrupt_baseline", # the stored baseline was unreadable and was quarantined
     "rule_fatal",       # a new fatality, escalated before any tier is consulted
     "rule_severe",      # a new severe injury, same
     "triage",           # tier one weighed an ambiguous change
@@ -177,6 +215,7 @@ UNJUDGED_BASES = frozenset(
         "fetch_failed",
         "methodology",
         "roster_drop",
+        "corrupt_baseline",
         # Journal entries written before this field existed. They belong here and
         # not on the other side: a missing field must never be able to inflate
         # the claim that something exercised judgment.

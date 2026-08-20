@@ -56,6 +56,8 @@ BASIS_LABEL = {
     "unreliable": "comparison refused",
     "fetch_failed": "could not read the record",
     "methodology": "the query itself changed",
+    "roster_drop": "no longer on the watched set",
+    "corrupt_baseline": "stored baseline was unreadable",
     "rule_fatal": "rule floor, new fatality",
     "rule_severe": "rule floor, new severe injury",
     "triage": "triage weighed it",

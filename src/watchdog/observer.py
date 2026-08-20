@@ -89,6 +89,7 @@ class SweepResult:
     incomplete_fetches: list[str] = field(default_factory=list)
     first_sightings: int = 0
     roster_drops: list[str] = field(default_factory=list)
+    quarantined: list[str] = field(default_factory=list)
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -99,6 +100,7 @@ class SweepResult:
             "incomplete_fetches": self.incomplete_fetches,
             "first_sightings": self.first_sightings,
             "roster_drops": self.roster_drops,
+            "quarantined": self.quarantined,
         }
 
 
@@ -139,7 +141,11 @@ class Observer:
         if not by_rule:
             return "triage"
         if delta.unreliable:
-            return "methodology" if delta.note.startswith("the query") else "unreliable"
+            if delta.note.startswith("the query"):
+                return "methodology"
+            if delta.note.startswith("the stored baseline"):
+                return "corrupt_baseline"
+            return "unreliable"
         if old is None:
             return "first_sighting"
         if delta.new_fatal > 0:
@@ -222,7 +228,21 @@ class Observer:
 
             result.looked_at += 1
             old = self.store.get_snapshot(snapshot.slug)
+            quarantined = getattr(self.store, "quarantined", {}).get(snapshot.slug)
             delta = diff_snapshots(old, snapshot)
+
+            if quarantined:
+                # The delta engine will call this a first sighting, which is true
+                # but misleading. "We have never seen this corner" and "the
+                # baseline we had was unreadable and has been thrown away" are
+                # different facts, and only one of them means something went
+                # wrong here.
+                result.quarantined.append(snapshot.slug)
+                delta = replace(
+                    delta,
+                    unreliable=True,
+                    note=f"the stored baseline was unreadable and has been quarantined: {quarantined}",
+                )
 
             if snapshot.complete:
                 self.store.put_snapshot(snapshot)
