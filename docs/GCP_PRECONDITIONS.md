@@ -213,9 +213,9 @@ statement of intent rather than an observation of running code.
 | `artifactregistry.googleapis.com` | Deploy only. `gcloud run deploy --source .` pushes the image here. | The README's deploy section uses `--source .` |
 | `cloudbuild.googleapis.com` | Deploy only. `--source .` builds remotely. | Same |
 
-`google-adk` is also in the `cloud` extra and **nothing uses it**. There is no ADK
-agent in this repository. It needs no API enabled and is listed here so that its
-presence in `pyproject.toml` is not mistaken for a dependency in use.
+`google-adk` is in the `cloud` extra and needs no API enabled. Its status is
+stated once, in the README disclosure and requirements row, and enforced by
+`tools/check_adk_claims.py`.
 
 ## 4. Firestore
 

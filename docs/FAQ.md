@@ -22,11 +22,11 @@ interesting variable here. Whether you can trust what they wrote down is.
 
 ## Why are the declines the product?
 
-An agent that only publishes its actions is showing you a highlight reel. Anyone
-can build something that fires on every change; the hard part, and the part that
-would let you leave one running unsupervised, is the deciding not to.
+The argument is in the README, under "Why the declines are the product": an agent
+that only publishes its actions is showing you a highlight reel, and the hard part
+is the deciding not to.
 
-There is a second reason, less flattering. The failure mode of an automated
+There is a second reason, less flattering, and it is only here. The failure mode of an automated
 monitor is not silence, it is confident noise. A system that redrafts a letter
 every morning trains its readers to ignore it within a week. Restraint is the
 feature that keeps the output worth reading.
@@ -85,7 +85,7 @@ The days-watched strip on the ledger is drawn from journal timestamps rather tha
 from a run counter, so a day with no cycle renders as a hollow cell and is named
 in prose with the length of the longest gap. A monitor that reports an unbroken
 streak while quietly omitting the days it was switched off is making the same
-move as one that only publishes its actions.
+move as publishing only its actions, which the README's restraint section covers.
 
 `launchd` fires `watchdog tick` every six hours with `RunAtLoad` set to false,
 deliberately, so that opening the lid does not turn a schedule into a burst
@@ -136,10 +136,9 @@ entry now says which tier was not a model. An agent that degrades quietly
 produces output indistinguishable from one that did not, which would make the
 entire record worthless.
 
-That claim was itself false until an audit counted. The caveat used to attach
-only to entries a tier had weighed, and every entry in this journal was settled
-by a rule, so none of the first 150 carried it. The journal is append only, so
-those entries cannot gain it now, and the ledger prints how many do.
+That claim was itself false until an audit counted, and the ledger now prints how
+many entries carry the line rather than claiming all of them do. The full account
+of how it was false is in `LOG.md`, under the audit section of the burn pass.
 
 ## How do I know the agent has not posted anything?
 

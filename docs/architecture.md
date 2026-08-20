@@ -60,10 +60,7 @@ model. That is the load-bearing detail of the whole design: an agent that falls
 back quietly produces output indistinguishable from one that did not, so the
 fallback says so in the record rather than in a footnote.
 
-It was not always true, and the way it was false is worth keeping. The caveat used
-to attach only to entries a tier had actually weighed, on the reasoning that
-crediting a model for a rule's work overstates things. Every entry in the real
-journal was settled by a rule, so not one of the first 150 carried any admission
-at all while four documents claimed they all did. The journal is append only, so
-those entries cannot gain it now; the ledger prints how many carry the line
-instead of rounding up.
+It was not always true. The full account of how the claim was false, and of the
+audit that counted, is in `LOG.md` under the burn pass. The short version is that
+the journal is append only, so the entries written before the field existed cannot
+gain it, and the ledger prints how many carry the line instead of rounding up.

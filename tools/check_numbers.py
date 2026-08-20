@@ -64,7 +64,10 @@ RULES = [
     ("docs/FAQ.md", "entries", r"Almost\. 171 of the ([\d,]+) declines"),
     ("docs/social_draft.md", "entries", r"It has made ([\d,]+) decisions"),
     ("docs/social_draft.md", "entries", r"intersections\. ([\d,]+) decisions so far"),
-    ("CONTRIBUTING.md", "tests", r"lint, the ([\d,]+) tests"),
+    # CONTRIBUTING.md used to pin the test count here. docs/COPY_MAP.md moved it
+    # to a relative reference, "the full test suite", so there is no figure left
+    # to check. The rule is removed rather than loosened: a pattern that matches
+    # nothing would report a missing figure forever.
     ("docs/blog_draft.md", "entries", r"It has made ([\d,]+) decisions"),
 ]
 

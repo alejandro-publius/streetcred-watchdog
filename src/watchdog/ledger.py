@@ -958,8 +958,8 @@ def render_body(
     <p class="eyebrow">The Corner Watchdog &middot; decision journal</p>
     <h1>Most of what this agent decided was to leave things alone</h1>
     <p class="standfirst">Every evaluation it made is below, in full, including and especially
-    the ones that ended in nothing. A monitor that only publishes its actions is showing you a
-    highlight reel.</p>
+    the ones that ended in nothing. Why that is the product rather than an apology for one is
+    argued in the project README, under "Why the declines are the product".</p>
   </header>
 
   {state_banner}
