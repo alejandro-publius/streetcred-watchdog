@@ -29,6 +29,7 @@ Read this before the rest.
   a working local stand-in, and **no Google Cloud account has been created, authenticated
   to, or touched at any point in this project.** The plan for wiring them is
   [`docs/GEMINI_WIRING.md`](docs/GEMINI_WIRING.md).
+  Cloud setup is a ten minute operator task: see [`docs/GCP_PRECONDITIONS.md`](docs/GCP_PRECONDITIONS.md), then [`scripts/preflight_gcp.sh`](scripts/preflight_gcp.sh) to verify.
 - **The agent has never posted anything anywhere.** The live path exists, implements the
   interface, and refuses on every verb.
 - **Nothing in this repo has ever observed a real change at a watched corner.** The city
