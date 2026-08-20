@@ -11,13 +11,13 @@ check the figures still hold, because a post is harder to correct than a page.
 
 ## LinkedIn
 
-> I spent two weeks building an agent that watches the twenty five most dangerous
-> intersections in San Francisco. It has made 150 decisions so far. Every one of
+> I spent three days building an agent that watches the twenty five most dangerous
+> intersections in San Francisco. It has made 175 decisions so far. Every one of
 > them was to do nothing.
 >
 > That is the part I want to talk about.
 >
-> Two weeks in, I ran it against live data and every corner reported zero severe
+> The first time I ran it against live data, every corner reported zero severe
 > injuries. The city's own board said one of them had nine. My filter was querying
 > `collision_severity in('Severe Injury')`. San Francisco publishes that category
 > as `Injury (Severe)`. The query was valid, it ran without complaint, it matched
@@ -47,7 +47,7 @@ journal and moves every cycle. Re-count it, or say "more than a hundred".
 
 ## X
 
-> Built an agent that watches SF's 25 worst intersections. 150 decisions so far,
+> Built an agent that watches SF's 25 worst intersections. 175 decisions so far,
 > all of them "do nothing".
 >
 > Then I found my severity filter had matched zero rows since the first commit.

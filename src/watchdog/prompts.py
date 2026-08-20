@@ -13,8 +13,11 @@ change to them bumps the version and shows up in the journal.
 
 from __future__ import annotations
 
-TRIAGE_PROMPT_VERSION = "triage-v1"
-DELIBERATION_PROMPT_VERSION = "deliberate-v1"
+# Bumped when the decision schema changed. The versions are journaled, so an
+# entry produced under the old shape stays distinguishable from one produced
+# under the new one.
+TRIAGE_PROMPT_VERSION = "triage-v2"
+DELIBERATION_PROMPT_VERSION = "deliberate-v2"
 
 # --------------------------------------------------------------------- tier 1
 
@@ -44,8 +47,12 @@ expected answer. Escalate when the change would plausibly alter what the public 
 says about how dangerous this corner is. Do not escalate because the corner is already
 dangerous; that is not a change.
 
-Return strict JSON only:
-{{"significant": true or false, "reason": "one or two plain sentences", "confidence": 0.0 to 1.0}}
+Return strict JSON only, matching this schema exactly. Any field not listed is rejected.
+{{"verdict": "escalate | ignore | defer", "reason": "one or two plain sentences", "confidence": 0.0 to 1.0}}
+
+Use "ignore" when the change is ordinary variance or moves no published figure; that is the most
+common correct answer. Use "defer" when you do not trust the input enough to judge it, which is not
+the same as ignoring: an ignore says the change does not matter, a defer says you cannot tell.
 
 The reason is published verbatim on a public page. Write it for a resident, not for a log."""
 
@@ -82,12 +89,19 @@ published evidence is still accurate after this change. Do not act to look busy,
 not rescore a corner whose grade cannot move. If the letter's stated numbers are still
 correct, leave the letter alone even if something else changed.
 
-Return strict JSON only:
-{{"actions": ["..."], "reasoning": "two to four plain sentences"}}
+Return strict JSON only, matching this schema exactly. Any field not listed is rejected.
+{{"verdict": "act | decline | defer",
+  "reasoning": "two to four plain sentences",
+  "actions": ["rescore | regenerate_letter | reaudit_imagery | flag"],
+  "published_claim_now_wrong": "required when verdict is act",
+  "still_accurate": "required when verdict is decline",
+  "what_would_resolve_it": "required when verdict is defer"}}
 
-An empty actions list is a considered decline. Your reasoning is published verbatim on a
-public page beside the actions, or beside the absence of them, so state plainly what you
-weighed and why it did or did not clear the bar."""
+You may not name an action before you have named the published claim it corrects, which is why an
+"act" verdict without published_claim_now_wrong is rejected. A decline is a first-class success
+outcome and must name what is still accurate. Your reasoning is published verbatim on a public page
+beside the actions, or beside the absence of them, so state plainly what you weighed and why it did
+or did not clear the bar."""
 
 
 def triage_prompt(*, name, grade, index, delta, calibration) -> str:

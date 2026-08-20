@@ -21,8 +21,10 @@ import pytest
 
 from watchdog.contract import (
     ALLOWED_ACTIONS,
+    DELIBERATION_KEYS,
     DELIBERATION_VERDICTS,
     MIN_REASON_CHARS,
+    TRIAGE_KEYS,
     TRIAGE_VERDICTS,
     ContractViolation,
     deliberation_schema_block,
@@ -60,6 +62,53 @@ def examples(path: Path) -> list[dict]:
 def test_both_prompt_files_exist():
     assert TRIAGE_MD.exists()
     assert DELIBERATION_MD.exists()
+
+
+def _keys_declared_in(prompt_text: str) -> set[str]:
+    """The JSON field names a rendered prompt actually shows the model."""
+    unescaped = prompt_text.replace("{{", "{").replace("}}", "}")
+    return set(re.findall(r'"(\w+)":', unescaped))
+
+
+def test_the_python_triage_prompt_declares_the_schema_the_code_enforces():
+    """The gap that let a real drift through.
+
+    This suite originally checked only the markdown under src/prompts/, so
+    prompts.py went on teaching the pre-contract shape, `{"significant": ...}`,
+    while the parser had moved to `{"verdict": ...}`. A model following that
+    prompt perfectly would have had every answer rejected, and nothing on either
+    side would have logged why.
+    """
+    from watchdog.prompts import TRIAGE_PROMPT
+
+    assert _keys_declared_in(TRIAGE_PROMPT) == TRIAGE_KEYS
+
+
+def test_the_python_deliberation_prompt_declares_the_schema_the_code_enforces():
+    from watchdog.prompts import DELIBERATION_PROMPT
+
+    assert _keys_declared_in(DELIBERATION_PROMPT) == DELIBERATION_KEYS
+
+
+def test_the_python_prompts_and_the_markdown_agree_on_the_verdicts():
+    from watchdog.prompts import DELIBERATION_PROMPT, TRIAGE_PROMPT
+
+    for verdict in TRIAGE_VERDICTS:
+        assert verdict in TRIAGE_PROMPT, f"triage prompt never mentions {verdict!r}"
+    for verdict in DELIBERATION_VERDICTS:
+        assert verdict in DELIBERATION_PROMPT, f"deliberation prompt never mentions {verdict!r}"
+
+
+def test_a_rendered_triage_prompt_still_declares_the_schema():
+    """Rendered, not just the template, so a format() bug cannot hide it."""
+    from watchdog.prompts import triage_prompt
+    from watchdog.schema import Calibration
+
+    rendered = triage_prompt(
+        name="6th and Mission", grade="F", index=99,
+        delta="3 new injury collisions.", calibration=Calibration(),
+    )
+    assert _keys_declared_in(rendered) == TRIAGE_KEYS
 
 
 def test_the_triage_prompt_declares_the_schema_the_code_enforces():

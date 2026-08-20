@@ -41,8 +41,9 @@ class VertexDecider:
     async def decide(self, delta, corner, counts, escalation_reason) -> Tier2Decision: ...
 ```
 
-They render the prompts that already exist in `prompts.py`, send them, and push
-the reply through `contract.py`'s `parse_triage` / `parse_deliberation`, which
+They render the prompts in `prompts.py`, which declare the same JSON schema
+`contract.py` enforces (a test asserts that, after the two drifted apart once),
+send them, and push the reply through `parse_triage` / `parse_deliberation`, which
 already reject unknown fields, empty reasoning, invented action verbs, and an
 `act` verdict that has not named the claim it is correcting. None of that
 validation needs writing; it needs calling.
@@ -113,8 +114,8 @@ Per cycle over 25 corners, the two bounding cases:
 | every delta settled by rule | 0 | 0 | 0 | 0 |
 | every corner ambiguous, all escalate | 25 | 25 | ~16,675 | ~6,525 |
 
-The first row is not a hypothetical. Across the 100 evaluations in this repo's
-real journal, the count that would have reached a model is **zero**: 25 settled
+The first row is not a hypothetical. Across the 150 evaluations in this repo's
+real journal, the count that would have reached a model is **zero**: 75 settled
 as `no_change`, 25 as `methodology`, and 50 predate the basis field. The rule
 floor and the empty-delta guard absorb the overwhelming majority of a quiet
 morning, which is the entire economic argument for the two-tier split.

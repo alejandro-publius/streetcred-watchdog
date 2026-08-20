@@ -35,7 +35,7 @@ feature that keeps the output worth reading.
 
 Yes, and the page says so before you get a chance to ask.
 
-Every one of the 150 declines in the journal was settled by a rule observing that
+Every one of the 175 declines in the journal was settled by a rule observing that
 nothing had changed or that there was no baseline yet. Not one was a tier looking
 at a real change and choosing restraint. The ledger prints that breakdown
 directly under the headline number, in the same eyeline, and states that the

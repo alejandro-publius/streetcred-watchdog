@@ -4,11 +4,10 @@
 
 ---
 
-For about two weeks my laptop has been reading San Francisco's collision records
-every few hours, comparing them against what it saw last time, and deciding
-whether anything had changed enough to be worth acting on. In that time it has
-made a hundred and fifty decisions. Every single one of them was to do
-nothing.
+Over the last three days my laptop has been reading San Francisco's collision
+records, comparing them against what it saw last time, and deciding whether
+anything had changed enough to be worth acting on. It has made 175 decisions.
+Every single one of them was to do nothing.
 
 I think that is the interesting part, so it is the part the public page leads
 with.
@@ -39,9 +38,9 @@ changes are noise, and the correct answer is to leave the page alone.
 
 ## The bug that is the reason I would show you this project
 
-Two weeks in, I ran the loop against live data for the first time and every
-single one of the twenty five corners reported zero severe injuries. StreetCred's
-own board said 6th and Mission had nine.
+The first time I ran the loop against live data, every single one of the twenty
+five corners reported zero severe injuries. StreetCred's own board said 6th and
+Mission had nine.
 
 The query looked like this:
 
@@ -122,9 +121,10 @@ not, which would make the whole record worthless.
 ## The number I am least proud of, printed largest
 
 The restraint rate is a hundred percent, and directly under it the page says that
-this is not yet impressive. Every one of those declines was settled by a rule
-observing that nothing had changed, not by a tier weighing something and choosing
-restraint. Right now that number measures a quiet city, not a careful agent, and
+this is not yet impressive. Every one of those declines was settled by a rule.
+Most observed that nothing had changed; twenty five refused a comparison outright
+because I had changed the query underneath them. Not one was a tier weighing a
+real change and choosing restraint. Right now that number measures a quiet city, not a careful agent, and
 it would look exactly the same if both tiers were broken.
 
 I would rather ship the sentence that says so than a number that flatters me. The

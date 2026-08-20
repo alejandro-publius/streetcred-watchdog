@@ -11,7 +11,7 @@ pip install -e ".[dev]"
 ./tools/check.sh
 ```
 
-`check.sh` runs everything a CI job would: lint, the 436 tests, and three checks a
+`check.sh` runs everything a CI job would: lint, the 440 tests, and three checks a
 linter cannot make. It needs no network, no credentials and no cloud account. If
 it passes on your machine it passes on mine.
 
@@ -101,6 +101,16 @@ Two house rules, both checked by `tools/check.sh`:
   where it stands in for something. If you cannot source a figure, write that it
   is unknown. The prompt examples in `src/prompts/` use real corner records and
   label every constructed change as constructed.
+
+Counts that move with every cycle are checked rather than trusted. After running
+cycles, refresh the documents and read the diff:
+
+```bash
+python tools/check_numbers.py --fix
+```
+
+`check.sh` fails if a stated figure disagrees with the repository. Fix the
+document, not the checker.
 
 ## What not to change without discussion
 

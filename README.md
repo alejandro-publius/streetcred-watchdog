@@ -65,10 +65,10 @@ All measured from this repository, on 2026-08-20.
 | Fatalities in the watched set's five year record | 12 |
 | Severe injuries in the same record | 129 |
 | DataSF queries per sweep | 125, unauthenticated |
-| Evaluations journaled | 150 |
+| Evaluations journaled | 175 |
 | Actions taken | 0 |
 | Restraint rate | 100 percent, and the ledger explains why that number is not yet impressive |
-| Tests | 436, offline, no credentials, under a second |
+| Tests | 440, offline, no credentials, under a second |
 | Runtime dependencies | 1 (`httpx`) |
 | Google Cloud accounts touched | 0 |
 
@@ -80,7 +80,7 @@ flatters the system is worth less than one that explains itself.
 ## Quick start
 
 Verified in a clean clone and a fresh virtual environment on 2026-08-20: 15 packages
-installed including pip itself and the project, none of them Google, all 436 tests green.
+installed including pip itself and the project, none of them Google, all 440 tests green.
 
 ```bash
 git clone https://github.com/alejandro-publius/streetcred-watchdog
@@ -89,7 +89,7 @@ cd streetcred-watchdog
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"          # one runtime dependency: httpx
 
-pytest -q                        # 436 tests, no network, no credentials
+pytest -q                        # 440 tests, no network, no credentials
 python -m watchdog run --cycles 2  # the whole loop, twice, against live DataSF
 open docs/ledger.html            # every decision, restraint rate on top
 ```
@@ -112,7 +112,7 @@ they are built.
 | Pattern | How it appears here | Status |
 | --- | --- | --- |
 | Event-driven fan-out | The observer publishes escalations to a bus; the actor subscribes and never reads the observer's state. Locally the bus is an in-process call that round-trips through JSON, so a payload Pub/Sub could not carry fails here rather than in production. | built |
-| Cost-routed cascade | A deterministic floor answers most deltas for free, a cheap tier takes the ambiguous middle, and an expensive tier only ever sees escalations. Across 150 real evaluations, the number that would have reached a model is zero. | built |
+| Cost-routed cascade | A deterministic floor answers most deltas for free, a cheap tier takes the ambiguous middle, and an expensive tier only ever sees escalations. Across 175 real evaluations, the number that would have reached a model is zero. | built |
 | Human-in-the-loop | `flag` is a first-class action, mandatory alongside any redraft on a new fatality. The live path additionally refuses to send until a human has read a full dry-run outbox and agreed with every letter in it. | built as a gate |
 | Decline queue | Declines are journaled by the observer at the moment they are made, never routed through the expensive tier, and rendered at the same visual weight as actions. | built |
 | Review and critique verifier | StreetCred recomputes every figure in an agent-written letter from the corner's own record and stores its own answer, recording disagreement as `selfReportDisputed`. The agent does not get to mark its own homework. | planned, not deployed |
@@ -207,7 +207,7 @@ Fuller versions in [`DECISIONS.md`](DECISIONS.md).
 | `src/prompts/` | Both prompts in full, with ten worked examples the test suite parses. |
 | `src/watchdog/live.py` | The live path. Implements the interface, refuses every verb. |
 | `src/watchdog/ledger.py` | The journal as a page, restraint rate on top, declines at full size. |
-| `tests/` | 436 of them. The cases where a naive implementation produces a confident lie. |
+| `tests/` | 440 of them. The cases where a naive implementation produces a confident lie. |
 | `LOG.md`, `DECISIONS.md` | What was found by running it, and what was decided and rejected. |
 
 ## A note on the radius

@@ -134,7 +134,27 @@ class Observer:
         self.provenance = provenance
 
     def _caveat(self, by_rule: bool) -> str | None:
-        parts = [self.provenance, None if by_rule else self.degraded]
+        """What this entry has to admit about how it was produced.
+
+        This used to attach the model caveat only to entries a tier had actually
+        weighed, on the reasoning that crediting a model for a rule's work
+        overstates things. That reasoning was right and the result was wrong:
+        every entry in the real journal was settled by a rule, so not one of the
+        150 carried any admission at all, while the README, the architecture doc
+        and the blog all claimed every entry did.
+
+        A reader of the journal has to be able to tell that neither tier is a
+        model in this build. So the build note goes on every entry, and the
+        wording changes rather than disappearing when a rule settled it.
+        """
+        parts = [self.provenance]
+        if self.degraded:
+            parts.append(
+                f"No tier was consulted for this entry; a rule settled it. In this build "
+                f"neither tier is a model in any case. {self.degraded}"
+                if by_rule
+                else self.degraded
+            )
         joined = " ".join(p for p in parts if p)
         return joined or None
 
@@ -238,7 +258,8 @@ class Observer:
                             basis="fetch_failed",
                         ),
                         degraded=" ".join(
-                            p for p in (self.provenance, f"Read failed: {type(snapshot).__name__}.") if p
+                            p for p in (self._caveat(by_rule=True),
+                                        f"Read failed: {type(snapshot).__name__}.") if p
                         ),
                         run_id=self.run_id,
                     )

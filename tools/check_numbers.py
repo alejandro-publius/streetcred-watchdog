@@ -65,12 +65,21 @@ RULES = [
     ("docs/social_draft.md", "entries", r"It has made ([\d,]+) decisions"),
     ("docs/social_draft.md", "entries", r"intersections\. ([\d,]+) decisions so far"),
     ("CONTRIBUTING.md", "tests", r"lint, the ([\d,]+) tests"),
+    ("docs/blog_draft.md", "entries", r"It has made ([\d,]+) decisions"),
 ]
 
 
-def main() -> int:
+def main(fix: bool = False) -> int:
+    """Check every stated figure, or rewrite them to match.
+
+    `--fix` exists because the journal grows on every cycle, so any count pinned
+    in prose is stale within hours. Leaving that to be noticed by hand is how the
+    drift happened in the first place. Refreshing is one command, and the check
+    then holds the result.
+    """
     facts = live_facts()
     problems: list[str] = []
+    fixed = 0
     checked = 0
 
     for filename, fact, pattern in RULES:
@@ -86,6 +95,18 @@ def main() -> int:
                 "changed and the rule needs updating, or the figure was dropped."
             )
             continue
+
+        if fix:
+            def replace(match: re.Match[str], fact: str = fact) -> str:
+                whole, stated = match.group(0), match.group(1)
+                return whole.replace(stated, f"{facts[fact]:,}" if "," in stated else str(facts[fact]))
+
+            updated = re.sub(pattern, replace, text)
+            if updated != text:
+                path.write_text(updated)
+                fixed += 1
+            continue
+
         for raw in matches:
             checked += 1
             stated = int(raw.replace(",", ""))
@@ -95,6 +116,11 @@ def main() -> int:
                 )
 
     print(f"live facts: {facts}")
+
+    if fix:
+        print(f"rewrote figures in {fixed} document(s)")
+        return 0
+
     print(f"{checked} stated figures checked across {len({r[0] for r in RULES})} documents")
 
     if problems:
@@ -103,8 +129,9 @@ def main() -> int:
         for p in problems:
             print(f"  {p}")
         print()
-        print("Fix the document rather than this file. A number on a page that asks to be")
-        print("trusted is the last place a stale figure should be allowed to sit.")
+        print("Run `python tools/check_numbers.py --fix` to refresh them, then read the diff.")
+        print("A number on a page that asks to be trusted is the last place a stale figure")
+        print("should be allowed to sit.")
         return 1
 
     print("every stated figure matches")
@@ -112,4 +139,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(fix="--fix" in sys.argv))

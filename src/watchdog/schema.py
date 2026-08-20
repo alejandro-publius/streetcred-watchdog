@@ -223,6 +223,12 @@ UNJUDGED_BASES = frozenset(
         "roster_drop",
         "corrupt_baseline",
         "budget_exhausted",
+        # A defer says the tier did not trust the evidence, and a tier that timed
+        # out produces the same basis. Neither is a decision to leave a real
+        # change alone, so neither may be counted as restraint. Conservative on
+        # purpose: the cost of miscounting a genuine defer is a slightly lower
+        # headline number, and the cost of the reverse is the number being a lie.
+        "triage_defer",
         # Journal entries written before this field existed. They belong here and
         # not on the other side: a missing field must never be able to inflate
         # the claim that something exercised judgment.

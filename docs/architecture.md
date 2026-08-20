@@ -41,10 +41,17 @@ consulted, so no model can be talked out of it.
 | The one trust boundary | `DryRunActuator`, writes to `outbox/` | `POST /api/agent/report` | no |
 | Public observability | `docs/ledger.html` | the same page, hosted | rendered locally |
 
-Every row is a protocol in [`ports.py`](../src/watchdog/ports.py) with two
-implementations. Swapping a row is a constructor change at one wiring site,
-`select_brains()` and `run_cycle()`, and nothing above the seam knows which side
-is running. The plan for doing that is [`GEMINI_WIRING.md`](GEMINI_WIRING.md).
+Five of those rows are protocols in [`ports.py`](../src/watchdog/ports.py):
+`Store`, `Bus`, `Triage`, `Decider` and `Actuator`. Each currently has one
+implementation, the local one, and the cloud column names what a second would be.
+The other four rows are not protocols and should not be read as though they were:
+the timed trigger is launchd or cron calling the CLI, the runtime is the process
+itself, credentials are a gitignored file, and the ledger is a rendered page.
+
+Swapping a protocol is a constructor change at one of two wiring sites,
+`select_brains()` in `brains.py` for the two tiers and `run_cycle()` in
+`runner.py` for the rest, and nothing above the seam knows which side is running.
+The plan for doing that is [`GEMINI_WIRING.md`](GEMINI_WIRING.md).
 
 ## The one thing the diagram cannot show
 
