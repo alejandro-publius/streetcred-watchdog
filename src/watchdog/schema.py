@@ -143,6 +143,40 @@ class Delta:
         return _clean(asdict(self))
 
 
+# What actually settled a tier-one verdict. Recorded per entry because "the
+# agent declined" covers two completely different events: a rule observing that
+# there was nothing to compare, and a tier weighing a real change and choosing
+# not to act. A restraint rate that adds them together describes a quiet city
+# and reads as a careful agent.
+Basis = Literal[
+    "first_sighting",   # no baseline yet, so there is nothing to compare
+    "no_change",        # the record is identical to last time
+    "unreliable",       # a snapshot on one side was incomplete
+    "fetch_failed",     # the read did not come back at all
+    "methodology",      # the query itself changed, so the arithmetic is meaningless
+    "rule_fatal",       # a new fatality, escalated before any tier is consulted
+    "rule_severe",      # a new severe injury, same
+    "triage",           # tier one weighed an ambiguous change
+]
+
+# The bases that a rule settled without any judgment being exercised. Kept as a
+# named set because the ledger's honesty depends on the distinction and a
+# hand-maintained list at the render site would drift.
+UNJUDGED_BASES = frozenset(
+    {
+        "first_sighting",
+        "no_change",
+        "unreliable",
+        "fetch_failed",
+        "methodology",
+        # Journal entries written before this field existed. They belong here and
+        # not on the other side: a missing field must never be able to inflate
+        # the claim that something exercised judgment.
+        "unrecorded",
+    }
+)
+
+
 @dataclass(frozen=True)
 class Tier1Verdict:
     """The reflex tier's answer. Cheap, runs on everything."""
@@ -154,6 +188,13 @@ class Tier1Verdict:
     # diary prints "Rule" instead of "Triage" for these, because crediting a
     # model for a deterministic floor overstates what was decided.
     by_rule: bool = False
+    # Which rule, or none of them. See Basis above.
+    basis: Basis | None = None
+
+    @property
+    def involved_judgment(self) -> bool:
+        """Whether anything actually weighed this, as opposed to observing it."""
+        return self.basis not in UNJUDGED_BASES if self.basis else True
 
     def to_dict(self) -> dict[str, Any]:
         return _clean({
@@ -161,6 +202,7 @@ class Tier1Verdict:
             "reason": self.reason,
             "confidence": self.confidence,
             "byRule": self.by_rule,
+            "basis": self.basis,
         })
 
 

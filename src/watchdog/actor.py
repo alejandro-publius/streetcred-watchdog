@@ -95,6 +95,7 @@ class Actor:
             reason=t1.get("reason", ""),
             confidence=t1.get("confidence"),
             by_rule=bool(t1.get("byRule")),
+            basis=t1.get("basis"),
         )
 
         self.result.deliberated += 1

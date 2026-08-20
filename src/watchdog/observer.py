@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import asyncio
 import datetime as _dt
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any, Protocol
 
 import httpx
@@ -36,7 +36,7 @@ import httpx
 from .datasf import DEFAULT_RADIUS_M, fetch_corner_records
 from .delta import diff_snapshots, rule_verdict
 from .ports import Bus, Store, Triage
-from .schema import JournalEntry, Snapshot, Tier1Verdict, Trigger
+from .schema import Basis, Delta, JournalEntry, Snapshot, Tier1Verdict, Trigger
 
 # DataSF is a public service being used by an unauthenticated client. Five lanes
 # per corner times twenty five corners is a lot of requests to open at once, and
@@ -127,6 +127,25 @@ class Observer:
         joined = " ".join(p for p in parts if p)
         return joined or None
 
+    @staticmethod
+    def _basis(old: Snapshot | None, delta: Delta, by_rule: bool) -> Basis:
+        """Which rule settled this, or that a tier actually weighed it.
+
+        Derived from the delta rather than threaded back out of rule_verdict, so
+        delta.py keeps the signature its tests were written against.
+        """
+        if not by_rule:
+            return "triage"
+        if delta.unreliable:
+            return "methodology" if delta.note.startswith("the query") else "unreliable"
+        if old is None:
+            return "first_sighting"
+        if delta.new_fatal > 0:
+            return "rule_fatal"
+        if delta.new_severe > 0:
+            return "rule_severe"
+        return "no_change"
+
     async def sweep(self, corners: list[dict[str, Any]], *, trigger: Trigger = "manual") -> SweepResult:
         result = SweepResult()
         fresh = await self.fetcher.fetch_all(corners)
@@ -155,6 +174,7 @@ class Observer:
                                 "to judge. The previous baseline is kept untouched."
                             ),
                             by_rule=True,
+                            basis="fetch_failed",
                         ),
                         degraded=" ".join(
                             p for p in (self.provenance, f"Read failed: {type(snapshot).__name__}.") if p
@@ -182,9 +202,15 @@ class Observer:
             ruled = rule_verdict(delta, calibration)
             if ruled is not None:
                 significant, reason = ruled
-                verdict = Tier1Verdict(significant=significant, reason=reason, by_rule=True)
+                verdict = Tier1Verdict(
+                    significant=significant,
+                    reason=reason,
+                    by_rule=True,
+                    basis=self._basis(old, delta, by_rule=True),
+                )
             else:
-                verdict = await self.triage.judge(delta, corner, calibration)
+                judged = await self.triage.judge(delta, corner, calibration)
+                verdict = replace(judged, basis=judged.basis or "triage")
 
             if not verdict.significant:
                 result.declined += 1

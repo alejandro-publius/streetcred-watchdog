@@ -23,6 +23,7 @@ import html
 from pathlib import Path
 from typing import Any
 
+from .schema import UNJUDGED_BASES
 from .store import LocalJsonStore
 
 TITLE = "The Restraint Ledger"
@@ -47,26 +48,114 @@ def _decided_by(entry: dict[str, Any]) -> str:
     return "Triage"
 
 
+# How each basis reads on the page. The wording matters: these are the labels
+# that stop "declined" from covering two different events.
+BASIS_LABEL = {
+    "first_sighting": "no baseline yet",
+    "no_change": "nothing changed",
+    "unreliable": "comparison refused",
+    "fetch_failed": "could not read the record",
+    "methodology": "the query itself changed",
+    "rule_fatal": "rule floor, new fatality",
+    "rule_severe": "rule floor, new severe injury",
+    "triage": "triage weighed it",
+    # Entries written before the basis field existed. Counted as unjudged, never
+    # as judged: a missing field must not be able to inflate the one claim this
+    # breakdown exists to deflate.
+    "unrecorded": "basis not recorded, older entry",
+}
+
+
 def summarise(entries: list[dict[str, Any]]) -> dict[str, Any]:
     total = len(entries)
-    held = sum(1 for e in entries if not e.get("actions"))
-    acted = total - held
+    held = [e for e in entries if not e.get("actions")]
+    acted = total - len(held)
     escalated = sum(1 for e in entries if e.get("tier2"))
     by_rule = sum(1 for e in entries if (e.get("tier1") or {}).get("byRule"))
     intents = sum(len(e.get("intents") or []) for e in entries)
     actions = sum(len(e.get("actions") or []) for e in entries)
     corners = {e.get("slug") for e in entries if e.get("slug")}
+
+    # The distinction the whole page turns on. A decline settled by a rule
+    # observing that there was nothing to compare is not the same event as a
+    # tier weighing a real change and choosing not to act, and a restraint rate
+    # that adds them together describes a quiet city while reading as a careful
+    # agent.
+    bases: dict[str, int] = {}
+    for e in held:
+        b = (e.get("tier1") or {}).get("basis") or "unrecorded"
+        bases[b] = bases.get(b, 0) + 1
+    unjudged = sum(n for b, n in bases.items() if b in UNJUDGED_BASES)
+    judged_declines = len(held) - unjudged
+    deliberated_declines = sum(1 for e in held if e.get("tier2"))
+    triage_declines = judged_declines - deliberated_declines
+
     return {
         "total": total,
-        "held": held,
+        "held": len(held),
         "acted": acted,
         "escalated": escalated,
         "by_rule": by_rule,
         "intents": intents,
         "actions": actions,
         "corners": len(corners),
-        "restraint": (held / total * 100) if total else 0.0,
+        "restraint": (len(held) / total * 100) if total else 0.0,
+        "bases": bases,
+        "unjudged_declines": unjudged,
+        "judged_declines": judged_declines,
+        "triage_declines": triage_declines,
+        "deliberated_declines": deliberated_declines,
     }
+
+
+def _breakdown_html(s: dict[str, Any]) -> str:
+    """What the restraint rate is actually made of.
+
+    Printed directly under the headline rather than further down the page,
+    because a reader who stops after the big number should already have been
+    told what it does and does not measure.
+    """
+    if not s["held"]:
+        return ""
+
+    rows = []
+    for basis, count in sorted(s["bases"].items(), key=lambda kv: -kv[1]):
+        judged = basis not in UNJUDGED_BASES
+        label = BASIS_LABEL.get(basis, basis)
+        rows.append(
+            f'<li class="split-row"><span class="split-n">{count}</span>'
+            f'<span class="split-label">{_e(label)}</span>'
+            f'<span class="split-tag split-{"judged" if judged else "observed"}">'
+            f'{"weighed" if judged else "observed"}</span></li>'
+        )
+
+    judged = s["judged_declines"]
+    if judged == 0:
+        verdict = (
+            f"<strong>None of these {s['held']} declines involved a judgment call.</strong> Every one "
+            "was settled by a rule observing that there was nothing to compare or nothing had moved. "
+            "Neither tier was consulted. On this journal the restraint rate is a measurement of a "
+            "quiet city, not of an agent exercising restraint, and it would look exactly the same if "
+            "both tiers were broken."
+        )
+    else:
+        parts = []
+        if s["triage_declines"]:
+            parts.append(f"{s['triage_declines']} at triage")
+        if s["deliberated_declines"]:
+            parts.append(f"{s['deliberated_declines']} after deliberation")
+        verdict = (
+            f"<strong>{judged} of these {s['held']} declines involved a judgment call</strong> "
+            f"({', '.join(parts)}). The other {s['unjudged_declines']} were settled by a rule before "
+            "either tier was consulted. Only the first group is evidence that anything is exercising "
+            "restraint; the second is evidence that the city was quiet."
+        )
+
+    return f"""<div class="breakdown">
+  <p class="eyebrow">What the number is made of</p>
+  <ul class="split">{"".join(rows)}</ul>
+  <p class="split-verdict">{verdict}</p>
+</div>"""
 
 
 def _entry_html(entry: dict[str, Any]) -> str:
@@ -117,6 +206,11 @@ def _entry_html(entry: dict[str, Any]) -> str:
     conf = t1.get("confidence")
     conf_html = f'<span class="meta-bit">confidence {_e(conf)}</span>' if conf is not None else ""
 
+    basis = t1.get("basis")
+    basis_html = (
+        f'<span class="meta-bit">{_e(BASIS_LABEL.get(basis, basis))}</span>' if basis else ""
+    )
+
     return f"""<article class="entry entry-{tone}">
   <header class="entry-head">
     <h3>{_e(entry.get("name") or entry.get("slug") or "an unnamed corner")}</h3>
@@ -131,6 +225,7 @@ def _entry_html(entry: dict[str, Any]) -> str:
     <span class="meta-bit">{_e(entry.get("ts"))}</span>
     <span class="meta-bit">{_e(entry.get("slug"))}</span>
     <span class="meta-bit">decided by {_e(decided.lower())}</span>
+    {basis_html}
     <span class="meta-bit">trigger {_e(entry.get("trigger"))}</span>
     {conf_html}
   </footer>
@@ -286,6 +381,43 @@ body {
   font-size: 0.9rem;
   color: var(--muted);
 }
+
+.breakdown {
+  border-top: 1px solid var(--hairline);
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.split { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.split-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.split-row:last-child { border-bottom: none; }
+.split-n {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 1rem;
+  min-width: 2.25rem;
+  text-align: right;
+}
+.split-label { flex: 1; }
+.split-tag {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.45rem;
+  white-space: nowrap;
+}
+.split-judged { background: var(--held-wash); color: var(--held); }
+.split-observed { background: var(--hairline); color: var(--muted); }
+.split-verdict { margin: 0; font-size: 0.92rem; }
+.split-verdict strong { font-weight: 600; }
 
 .counts {
   display: grid;
@@ -456,6 +588,7 @@ def render_body(
 
     held_pct = s["restraint"]
     acted_pct = 100 - held_pct if s["total"] else 0
+    breakdown = _breakdown_html(s)
 
     degradations = sorted({e["degraded"] for e in entries if e.get("degraded")})
     notice = ""
@@ -513,6 +646,7 @@ def render_body(
     <p class="definition">{s["held"]} of {s["total"]} evaluations ended in no action. That is the
     whole definition: every entry in the journal is the denominator, nothing is filtered out,
     and the {s["acted"]} that did end in action are shown below with the same weight as the rest.</p>
+    {breakdown}
   </section>
 
   <section class="counts">
