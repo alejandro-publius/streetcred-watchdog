@@ -74,21 +74,53 @@ The agent does not get to mark its own homework.
   and rule calibration from logged outcomes, not model retraining.** The public page says
   exactly that sentence and never claims otherwise.
 
-## Spin up locally
+## Run the whole thing locally
 
-Nothing below needs a Google Cloud project. The deterministic core runs and tests offline.
+No Google Cloud project, no service account, no emulator, no keys. One command runs
+the entire loop: observe, diff, triage, deliberate, act into a local outbox in dry run,
+journal every decision, render the ledger.
 
 ```bash
 git clone https://github.com/alejandro-publius/streetcred-watchdog
 cd streetcred-watchdog
 
 python3 -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
+pip install -e ".[dev]"   # one runtime dependency: httpx
 
-pytest -q                 # 21 tests, no network, no credentials
+pytest -q                              # 76 tests, no network, no credentials
+python -m watchdog run --cycles 2      # the loop, twice, against live DataSF
+open docs/ledger.html                  # the decision journal, restraint rate on top
 ```
 
-To run against real data and a real project:
+The only two networks it touches are San Francisco's open data portal and StreetCred's
+public scoreboard, both unauthenticated reads. Nothing is posted anywhere; `--live` is a
+stub that refuses and tells you what is missing.
+
+Two cycles minutes apart will find that nothing changed, which is the honest result and
+also means the expensive half of the loop never runs. To exercise it:
+
+```bash
+python -m watchdog rehearse   # constructed baselines, kept out of the real journal
+```
+
+### Every cloud dependency is behind an adapter
+
+| Seam | Local today | Deployed later |
+| --- | --- | --- |
+| Snapshots, journal, calibration | `LocalJsonStore`, files under `state/` | Firestore |
+| Observer to actor | `DirectBus`, a function call through a JSON round trip | Pub/Sub |
+| Tier one triage | `RuleTriage`, deterministic thresholds | Gemma on Vertex |
+| Tier two deliberation | `RuleDecider`, deterministic policy | Gemini on Vertex |
+| Acting | `DryRunActuator`, renders artefacts to `outbox/` | POST to StreetCred |
+
+The stand-ins do not pretend to be models. Every journal entry written while one is
+wired carries a line naming which tier was not a model, because an agent that degrades
+quietly produces output indistinguishable from one that did not.
+
+### To deploy
+
+The deployed path is not built. `watchdog/server.py` does not exist yet, so the
+Dockerfile below would not boot. `DECISIONS.md` lists what is missing.
 
 ```bash
 cp .env.example .env      # fill in project, location and the ingest token
@@ -98,18 +130,22 @@ cp .env.example .env      # fill in project, location and the ingest token
 #   printf '%s' 'THE_TOKEN' | npx wrangler secret put WATCHDOG_INGEST_TOKEN
 # and in this project's Secret Manager.
 
+pip install -e ".[cloud]"
 gcloud run deploy watchdog-observer --source . --set-env-vars SERVICE=observer
 gcloud run deploy watchdog-actor    --source . --set-env-vars SERVICE=actor
 ```
 
 ## Requirements coverage
 
-| Requirement | How |
-| --- | --- |
-| Gemini 3 or newer via Vertex AI | `gemini-3.7-flash` for tier-two deliberation |
-| Agent Development Kit | Both services are ADK agents with registered tools |
-| Google Cloud services (one required) | Cloud Run, Firestore, Pub/Sub, Cloud Scheduler, Secret Manager |
-| Additional Google model (bonus) | Gemma for tier-one triage, structurally not decoratively |
+This table describes the deployed design. None of it is wired in this build; the
+adapters above are what runs today, and the loop degrades to them out loud.
+
+| Requirement | How | Built |
+| --- | --- | --- |
+| Gemini 3 or newer via Vertex AI | `gemini-3.7-flash` for tier-two deliberation | No, `RuleDecider` stands in |
+| Agent Development Kit | Both services are ADK agents with registered tools | No |
+| Google Cloud services (one required) | Cloud Run, Firestore, Pub/Sub, Cloud Scheduler, Secret Manager | No, all five behind adapters |
+| Additional Google model (bonus) | Gemma for tier-one triage, structurally not decoratively | No, `RuleTriage` stands in |
 
 ## Repository map
 
@@ -119,8 +155,14 @@ gcloud run deploy watchdog-actor    --source . --set-env-vars SERVICE=actor
 | `src/watchdog/delta.py` | `diff_snapshots` and the rule floor. Deterministic, no model, no network. |
 | `src/watchdog/datasf.py` | DataSF reads, copied query-for-query from StreetCred so the two systems can never disagree about a count. |
 | `src/watchdog/prompts.py` | Both prompts, versioned. The split between them is the architecture. |
-| `src/watchdog/ingest.py` | Posting to StreetCred. Decides nothing, swallows nothing. |
+| `src/watchdog/ingest.py` | Posting to StreetCred. Decides nothing, swallows nothing. Unimported by the local loop, and a test keeps it that way. |
+| `src/watchdog/ports.py` | Every cloud dependency, named as a protocol. The seams. |
+| `src/watchdog/observer.py` | The sweep: look, compare, triage, escalate or decline. |
+| `src/watchdog/actor.py` | Deliberate on what was escalated, then act or decline. |
+| `src/watchdog/live.py` | The live path. It implements the interface and refuses. |
+| `src/watchdog/ledger.py` | The journal as a page, restraint rate on top. |
 | `tests/` | The cases where a naive diff produces a confident lie. |
+| `LOG.md`, `DECISIONS.md` | What was found by running it, and what was decided and rejected. |
 
 ## A note on the radius
 
