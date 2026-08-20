@@ -11,7 +11,7 @@ pip install -e ".[dev]"
 ./tools/check.sh
 ```
 
-`check.sh` runs everything a CI job would: lint, the 440 tests, and three checks a
+`check.sh` runs everything a CI job would: lint, the 443 tests, and three checks a
 linter cannot make. It needs no network, no credentials and no cloud account. If
 it passes on your machine it passes on mine.
 

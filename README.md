@@ -68,7 +68,7 @@ All measured from this repository, on 2026-08-20.
 | Evaluations journaled | 175 |
 | Actions taken | 0 |
 | Restraint rate | 100 percent, and the ledger explains why that number is not yet impressive |
-| Tests | 440, offline, no credentials, under a second |
+| Tests | 443, offline, no credentials, under a second |
 | Runtime dependencies | 1 (`httpx`) |
 | Google Cloud accounts touched | 0 |
 
@@ -80,7 +80,7 @@ flatters the system is worth less than one that explains itself.
 ## Quick start
 
 Verified in a clean clone and a fresh virtual environment on 2026-08-20: 15 packages
-installed including pip itself and the project, none of them Google, all 440 tests green.
+installed including pip itself and the project, none of them Google, all 443 tests green.
 
 ```bash
 git clone https://github.com/alejandro-publius/streetcred-watchdog
@@ -89,7 +89,7 @@ cd streetcred-watchdog
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"          # one runtime dependency: httpx
 
-pytest -q                        # 440 tests, no network, no credentials
+pytest -q                        # 443 tests, no network, no credentials
 python -m watchdog run --cycles 2  # the whole loop, twice, against live DataSF
 open docs/ledger.html            # every decision, restraint rate on top
 ```
@@ -207,7 +207,7 @@ Fuller versions in [`DECISIONS.md`](DECISIONS.md).
 | `src/prompts/` | Both prompts in full, with ten worked examples the test suite parses. |
 | `src/watchdog/live.py` | The live path. Implements the interface, refuses every verb. |
 | `src/watchdog/ledger.py` | The journal as a page, restraint rate on top, declines at full size. |
-| `tests/` | 440 of them. The cases where a naive implementation produces a confident lie. |
+| `tests/` | 443 of them. The cases where a naive implementation produces a confident lie. |
 | `LOG.md`, `DECISIONS.md` | What was found by running it, and what was decided and rejected. |
 
 ## A note on the radius

@@ -84,6 +84,24 @@ def _print_report(report, index: int, total: int) -> None:
 
 
 async def _cmd_run(args: argparse.Namespace) -> int:
+    """The hand-started loop. Takes the same lock the scheduler does.
+
+    It did not, until an audit read the FAQ's claim that a scheduled run can
+    never overlap with one started by hand and checked it. Only `tick` took the
+    lock, so the promise held in exactly one direction and the interesting
+    collision, somebody running this while the six-hourly job was mid-sweep, was
+    the one it did not cover.
+    """
+    try:
+        with schedule_mod.cycle_lock(args.state):
+            return await _run_cycles(args)
+    except schedule_mod.CycleAlreadyRunning as e:
+        _p(f"Refusing to start: {e}.")
+        _p("Two cycles at once would interleave writes to the same snapshots and journal.")
+        return 4
+
+
+async def _run_cycles(args: argparse.Namespace) -> int:
     _p("The Corner Watchdog, local loop.")
 
     injection = None

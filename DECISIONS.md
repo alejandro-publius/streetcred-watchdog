@@ -70,7 +70,9 @@ with the basis `methodology`.
 fingerprint, and `r=150m` tells a reader what happened where `a3f19c` does not.
 
 **Verified by running it:** the cycle after the radius change journaled 25 refusals
-naming both fingerprints, and took no action. The 150 metre baselines were then
+and took no action. Each names the new fingerprint and records the old side as
+`not recorded`, because those baselines predated the field. That is the correct
+reading rather than a gap: what they were measured under genuinely is not known. The 150 metre baselines were then
 replaced by 80 metre ones and comparison resumes normally from the next sweep.
 
 ### Deviation from the instruction

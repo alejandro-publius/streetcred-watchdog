@@ -35,9 +35,10 @@ feature that keeps the output worth reading.
 
 Yes, and the page says so before you get a chance to ask.
 
-Every one of the 175 declines in the journal was settled by a rule observing that
-nothing had changed or that there was no baseline yet. Not one was a tier looking
-at a real change and choosing restraint. The ledger prints that breakdown
+Every one of the 175 declines in the journal was settled by a rule: most by
+observing that nothing had changed, and twenty five by refusing a comparison
+outright because the query had changed underneath them. Not one was a tier
+looking at a real change and choosing restraint. The ledger prints that breakdown
 directly under the headline number, in the same eyeline, and states that the
 figure currently measures a quiet city rather than a careful agent and would look
 identical if both tiers were broken.
@@ -56,10 +57,15 @@ published safety grade would mean the grade tracks salience rather than harm,
 and the corners that get written about are not the same corners as the corners
 where people get hurt.
 
-Press does escalate in tier one, and there is a worked example of exactly that in
-`src/prompts/triage.md`. What it escalates to is a *look*, because the published
-page cites what is on file and a new item means the page is now missing something
-a reader would expect to see. Escalation is not action.
+Press is designed to escalate in tier one, and `src/prompts/triage.md` carries a
+worked example of it. Being straight about the state of that: the rendered tier
+one prompt in `prompts.py` has no press field yet, and nothing in this repo
+produces a press signal, so that example teaches an input the loop cannot
+currently supply. Tier two does take press, as `none on file`.
+
+What press escalates to, once wired, is a *look*, because the published page
+cites what is on file and a new item means the page is now missing something a
+reader would expect to see. Escalation is not action.
 
 ## What happens when the laptop is closed?
 
@@ -73,11 +79,12 @@ move as one that only publishes its actions.
 
 `launchd` fires `watchdog tick` every six hours with `RunAtLoad` set to false,
 deliberately, so that opening the lid does not turn a schedule into a burst
-against a public data portal. The cycle takes a lock, so a scheduled run can
-never overlap with one started by hand, and a lock whose owner died is broken
-after an hour with the break recorded in `state/locks.log` rather than the
-decision journal, because machine noise must not inflate the denominator of the
-restraint rate.
+against a public data portal. Both `tick` and `run` take the same cycle lock, so
+a scheduled run cannot overlap with one started by hand. A lock whose owner
+process is gone is broken straight away; one whose owner is still alive is broken
+only after an hour. Either way the break is recorded in `state/locks.log` rather
+than the decision journal, because machine noise must not inflate the denominator
+of the restraint rate.
 
 ## What would filing an actual Open311 report require?
 
@@ -127,8 +134,13 @@ Four ways, in increasing order of how much you have to trust me.
    no token and imports no HTTP client, and a test asserts both.
 2. `tools/check.sh` greps the local loop for any import of `ingest.py`, the one
    module that can POST, and fails if it finds one.
-3. `WATCHDOG_INGEST_TOKEN` has never been set. `.env` is gitignored and
-   `git log --all --full-history -- .env` returns nothing.
+3. A `WATCHDOG_INGEST_TOKEN` does exist in the local `.env`, and this is the
+   more useful fact rather than the embarrassing one: nothing posted anyway.
+   Nothing in the package loads `.env`, so the value never reaches the process
+   environment and `StreetCredClient` resolves an empty token. The guarantee is
+   not that the credential is missing; it is that the code refuses even when it
+   is not. `.env` is gitignored and `git log --all --full-history -- .env`
+   returns nothing, so it has never been committed.
 4. Every dry-run outbox carries a `MANIFEST.txt` saying what was rendered and
    that nothing was sent, written even on runs that produced no artefacts.
 
