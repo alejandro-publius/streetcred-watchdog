@@ -28,6 +28,7 @@ class ActorResult:
     deliberated: int = 0
     acted: int = 0
     declined: int = 0
+    blocked: int = 0
     actions_taken: list[str] = field(default_factory=list)
     intents: list[str] = field(default_factory=list)
     artefacts: list[str] = field(default_factory=list)
@@ -37,6 +38,7 @@ class ActorResult:
             "deliberated": self.deliberated,
             "acted": self.acted,
             "declined": self.declined,
+            "blocked": self.blocked,
             "actions_taken": self.actions_taken,
             "intents": self.intents,
             "artefacts": self.artefacts,
@@ -136,6 +138,10 @@ class Actor:
 
         if taken:
             self.result.acted += 1
+        elif decision.actions:
+            # It chose to act and the budget refused. Counting this as a decline
+            # would let an exhausted budget inflate the restraint rate.
+            self.result.blocked += 1
         else:
             self.result.declined += 1
         self.result.actions_taken.extend(taken)

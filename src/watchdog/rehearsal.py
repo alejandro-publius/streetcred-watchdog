@@ -104,6 +104,7 @@ async def rehearse(
     outbox_dir: str | Path = "outbox",
     watched_path: str | Path = "data/watched.json",
     printer: Callable[[str], None] = print,
+    injection: Any = None,
 ) -> int:
     real = LocalJsonStore(state_dir)
     snapshots = {s.slug: s for s in real.all_snapshots()}
@@ -158,7 +159,9 @@ async def rehearse(
         trigger="rehearsal",
         store=rehearsal_store,
         fetcher=ReplayFetcher(snapshots),
-        extra_degradation=BASELINE_NOTE,
+        extra_degradation=" ".join(p for p in (BASELINE_NOTE, injection.note if injection else None) if p),
+        action_budget=injection.action_budget if injection else None,
+        token_budget=injection.token_budget if injection else None,
     )
 
     s, a = report.sweep, report.actor
@@ -166,6 +169,8 @@ async def rehearse(
     printer(f"  deliberated on {a.deliberated}, acted on {a.acted}, declined after deliberation {a.declined}")
     if a.actions_taken:
         printer(f"  actions: {', '.join(a.actions_taken)}")
+    if a.intents:
+        printer(f"  refused and journaled as intents: {'; '.join(a.intents)}")
     for artefact in a.artefacts:
         printer(f"  wrote {artefact}")
     return 0

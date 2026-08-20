@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Any
 
 from . import doctor as doctor_mod
+from . import inject as inject_mod
 from . import ledger as ledger_mod
 from . import roster as roster_mod
 from . import schedule as schedule_mod
@@ -81,6 +82,20 @@ def _print_report(report, index: int, total: int) -> None:
 
 async def _cmd_run(args: argparse.Namespace) -> int:
     _p("The Corner Watchdog, local loop.")
+
+    injection = None
+    state_dir = args.state
+    if args.inject:
+        injection = inject_mod.build(args.inject)
+        # Injected runs write somewhere else on purpose, so a rehearsed failure
+        # can never end up in the journal that gets submitted.
+        state_dir = args.inject_state
+        _p("")
+        _p(f"  INJECTING FAILURE: {args.inject}")
+        _p(f"  {injection.what_it_shows}")
+        _p(f"  writing to {state_dir}, not {args.state}, so the real journal stays real")
+        _p("  every entry this run writes will say it was injected")
+
     corners = await _ensure_watched(Path(args.watched), args.count, args.origin)
 
     reports = []
@@ -89,10 +104,14 @@ async def _cmd_run(args: argparse.Namespace) -> int:
         _p(f"cycle {i} of {args.cycles}")
         report = await run_cycle(
             corners,
-            state_dir=args.state,
+            state_dir=state_dir,
             outbox_dir=args.outbox,
             run_id=f"cycle-{i}",
             trigger="manual",
+            fetcher=injection.fetcher if injection else None,
+            action_budget=injection.action_budget if injection else None,
+            token_budget=injection.token_budget if injection else None,
+            extra_degradation=injection.note if injection else None,
         )
         if i == 1:
             _p("  wiring:")
@@ -103,7 +122,7 @@ async def _cmd_run(args: argparse.Namespace) -> int:
         _print_report(report, i, args.cycles)
         reports.append(report.as_dict())
 
-    runs_path = Path(args.state) / "runs.json"
+    runs_path = Path(state_dir) / "runs.json"
     runs_path.parent.mkdir(parents=True, exist_ok=True)
     existing = []
     if runs_path.exists():
@@ -115,7 +134,7 @@ async def _cmd_run(args: argparse.Namespace) -> int:
 
     if not args.no_ledger:
         out = ledger_mod.render_to_file(
-            state_dir=args.state, out_path=args.ledger,
+            state_dir=state_dir, out_path=args.ledger,
             rehearsal_dir=args.rehearsal_state, watched_path=args.watched,
         )
         _p("")
@@ -158,11 +177,16 @@ async def _cmd_watched(args: argparse.Namespace) -> int:
 
 
 async def _cmd_rehearse(args: argparse.Namespace) -> int:
+    injection = inject_mod.build(args.inject) if args.inject else None
+    if injection:
+        _p(f"INJECTING FAILURE: {args.inject}, {injection.what_it_shows}")
+        _p("")
     return await rehearse(
         state_dir=args.state,
         rehearsal_dir=args.rehearsal_state,
         outbox_dir=args.outbox,
         printer=_p,
+        injection=injection,
     )
 
 
@@ -266,6 +290,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="watchdog", description=__doc__)
     p.add_argument("--state", default="state", help="local stand-in for Firestore")
     p.add_argument("--rehearsal-state", default="state-rehearsal", help="where rehearsal entries live")
+    p.add_argument("--inject-state", default="state-injected", help="where injected-failure runs write")
     p.add_argument("--outbox", default="outbox", help="where dry-run artefacts are written")
     p.add_argument("--watched", default="data/watched.json")
     p.add_argument("--ledger", default="docs/ledger.html")
@@ -276,6 +301,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     run = sub.add_parser("run", help="the whole loop: observe, diff, triage, decide, act dry, journal")
     run.add_argument("--cycles", type=int, default=1)
+    run.add_argument(
+        "--inject",
+        choices=sorted(inject_mod.available()),
+        help="break something on purpose to show the degradation path, into --inject-state",
+    )
     run.add_argument("--no-ledger", action="store_true", help="skip rendering the ledger at the end")
     run.add_argument(
         "--live",
@@ -295,6 +325,11 @@ def build_parser() -> argparse.ArgumentParser:
     r = sub.add_parser(
         "rehearse",
         help="exercise the action path offline against a constructed baseline, kept out of the real journal",
+    )
+    r.add_argument(
+        "--inject",
+        choices=sorted(inject_mod.available()),
+        help="break something on purpose while exercising the action path",
     )
     r.set_defaults(fn=_cmd_rehearse)
 

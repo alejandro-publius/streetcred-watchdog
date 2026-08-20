@@ -60,6 +60,8 @@ async def run_cycle(
     store: LocalJsonStore | None = None,
     fetcher: Fetcher | None = None,
     extra_degradation: str | None = None,
+    action_budget: ActionBudget | None = None,
+    token_budget: TokenBudget | None = None,
 ) -> CycleReport:
     """One full pass: observe, diff, triage, decide, act dry, journal."""
     # Before anything is fetched. A cycle that runs with an unverified filter
@@ -77,8 +79,8 @@ async def run_cycle(
     # applies to, because the rule floor answers many of them without a model.
     degraded = " ".join(p for p in (extra_degradation, model_note) if p) or None
     act: Actuator = actuator or DryRunActuator(outbox_dir, run_id=run_id)
-    budget = ActionBudget.from_env()
-    tokens = TokenBudget.from_env()
+    budget = action_budget or ActionBudget.from_env()
+    tokens = token_budget or TokenBudget.from_env()
 
     observer = Observer(
         store, bus, triage, fetcher=fetcher, degraded=model_note,

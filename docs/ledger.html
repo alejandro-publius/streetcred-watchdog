@@ -417,7 +417,8 @@ body {
     </div>
     <p class="definition">150 of 150 evaluations ended in no action. That is the
     whole definition: every entry in the journal is the denominator, nothing is filtered out,
-    and the 0 that did end in action are shown below with the same weight as the rest.</p>
+    and the 0 that did end in action are shown below with the same weight as the rest.
+    </p>
     <div class="breakdown breakdown-restraint">
   <p class="eyebrow">What the number is made of</p>
   <ul class="split"><li class="split-row"><span class="split-n">75</span><span class="split-label">nothing changed</span><span class="split-tag split-observed">observed</span></li><li class="split-row"><span class="split-n">50</span><span class="split-label">basis not recorded, older entry</span><span class="split-tag split-observed">observed</span></li><li class="split-row"><span class="split-n">25</span><span class="split-label">the query itself changed</span><span class="split-tag split-observed">observed</span></li></ul>
@@ -5613,24 +5614,33 @@ body {
   <p class="caveat">The previous reading in this comparison was constructed, not observed. The current reading is a real DataSF snapshot from an earlier cycle. Nothing here is evidence that anything happened at this corner.</p>
   <details class="trace"><summary>The full journal record</summary><pre>{
   &quot;actions&quot;: [],
+  &quot;cost&quot;: {
+    &quot;actualTokens&quot;: 0,
+    &quot;projectedOutputTokens&quot;: 0,
+    &quot;projectedPromptTokens&quot;: 0,
+    &quot;projectionOnly&quot;: true,
+    &quot;tiersConsulted&quot;: []
+  },
   &quot;degraded&quot;: &quot;The previous reading in this comparison was constructed, not observed. The current reading is a real DataSF snapshot from an earlier cycle. Nothing here is evidence that anything happened at this corner.&quot;,
   &quot;delta&quot;: &quot;No change at 4th and Ellis.&quot;,
   &quot;intents&quot;: [],
   &quot;name&quot;: &quot;4th and Ellis&quot;,
+  &quot;runId&quot;: &quot;rehearsal&quot;,
   &quot;slug&quot;: &quot;4th-and-ellis&quot;,
   &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
     &quot;byRule&quot;: true,
     &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
     &quot;significant&quot;: false
   },
   &quot;trigger&quot;: &quot;rehearsal&quot;,
-  &quot;ts&quot;: &quot;2026-08-20T05:24:27+00:00&quot;
+  &quot;ts&quot;: &quot;2026-08-20T15:39:23+00:00&quot;
 }</pre></details>
   <footer class="entry-foot">
-    <span class="meta-bit">2026-08-20T05:24:27+00:00</span>
+    <span class="meta-bit">2026-08-20T15:39:23+00:00</span>
     <span class="meta-bit">4th-and-ellis</span>
     <span class="meta-bit">decided by rule floor</span>
-    
+    <span class="meta-bit">nothing changed</span>
     <span class="meta-bit">trigger rehearsal</span>
     
   </footer>
@@ -5646,24 +5656,35 @@ body {
   <p class="caveat">The previous reading in this comparison was constructed, not observed. The current reading is a real DataSF snapshot from an earlier cycle. Nothing here is evidence that anything happened at this corner. Tier one ran as deterministic rules, not Gemma: GOOGLE_CLOUD_PROJECT is not set. Tier two ran as deterministic policy, not Gemini: GOOGLE_CLOUD_PROJECT is not set.</p>
   <details class="trace"><summary>The full journal record</summary><pre>{
   &quot;actions&quot;: [],
+  &quot;cost&quot;: {
+    &quot;actualTokens&quot;: 0,
+    &quot;projectedOutputTokens&quot;: 77,
+    &quot;projectedPromptTokens&quot;: 265,
+    &quot;projectionOnly&quot;: true,
+    &quot;tiersConsulted&quot;: [
+      &quot;tier1&quot;
+    ]
+  },
   &quot;degraded&quot;: &quot;The previous reading in this comparison was constructed, not observed. The current reading is a real DataSF snapshot from an earlier cycle. Nothing here is evidence that anything happened at this corner. Tier one ran as deterministic rules, not Gemma: GOOGLE_CLOUD_PROJECT is not set. Tier two ran as deterministic policy, not Gemini: GOOGLE_CLOUD_PROJECT is not set.&quot;,
   &quot;delta&quot;: &quot;6th and Minna: 311 street-condition reports rose by 3.&quot;,
   &quot;intents&quot;: [],
   &quot;name&quot;: &quot;6th and Minna&quot;,
+  &quot;runId&quot;: &quot;rehearsal&quot;,
   &quot;slug&quot;: &quot;6th-and-minna&quot;,
   &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;triage&quot;,
     &quot;byRule&quot;: false,
     &quot;reason&quot;: &quot;Street-condition reports rose by 3, which is ordinary week-to-week variance at a corner this busy. The bar for a closer look is 15. Nothing here changes what the record says about this crossing.&quot;,
     &quot;significant&quot;: false
   },
   &quot;trigger&quot;: &quot;rehearsal&quot;,
-  &quot;ts&quot;: &quot;2026-08-20T05:24:27+00:00&quot;
+  &quot;ts&quot;: &quot;2026-08-20T15:39:23+00:00&quot;
 }</pre></details>
   <footer class="entry-foot">
-    <span class="meta-bit">2026-08-20T05:24:27+00:00</span>
+    <span class="meta-bit">2026-08-20T15:39:23+00:00</span>
     <span class="meta-bit">6th-and-minna</span>
     <span class="meta-bit">decided by triage</span>
-    
+    <span class="meta-bit">triage weighed it</span>
     <span class="meta-bit">trigger rehearsal</span>
     
   </footer>
@@ -5681,12 +5702,24 @@ body {
   &quot;actions&quot;: [
     &quot;reaudit_imagery&quot;
   ],
+  &quot;cost&quot;: {
+    &quot;actualTokens&quot;: 0,
+    &quot;projectedOutputTokens&quot;: 261,
+    &quot;projectedPromptTokens&quot;: 667,
+    &quot;projectionOnly&quot;: true,
+    &quot;tiersConsulted&quot;: [
+      &quot;tier1&quot;,
+      &quot;tier2&quot;
+    ]
+  },
   &quot;degraded&quot;: &quot;The previous reading in this comparison was constructed, not observed. The current reading is a real DataSF snapshot from an earlier cycle. Nothing here is evidence that anything happened at this corner. Tier one ran as deterministic rules, not Gemma: GOOGLE_CLOUD_PROJECT is not set. Tier two ran as deterministic policy, not Gemini: GOOGLE_CLOUD_PROJECT is not set.&quot;,
   &quot;delta&quot;: &quot;Larkin and Myrtle: 311 street-condition reports rose by 22.&quot;,
   &quot;intents&quot;: [],
   &quot;name&quot;: &quot;Larkin and Myrtle&quot;,
+  &quot;runId&quot;: &quot;rehearsal&quot;,
   &quot;slug&quot;: &quot;larkin-and-myrtle&quot;,
   &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;triage&quot;,
     &quot;byRule&quot;: false,
     &quot;reason&quot;: &quot;Street-condition reports here rose by 22 since the last look, past the current bar of 15. A swing that size usually means something at the corner actually changed.&quot;,
     &quot;significant&quot;: true
@@ -5698,13 +5731,13 @@ body {
     &quot;reasoning&quot;: &quot;A street-condition swing this size with no new collisions points at something visible at the corner rather than at the crash record, so the imagery is what to look at.&quot;
   },
   &quot;trigger&quot;: &quot;rehearsal&quot;,
-  &quot;ts&quot;: &quot;2026-08-20T05:24:27+00:00&quot;
+  &quot;ts&quot;: &quot;2026-08-20T15:39:23+00:00&quot;
 }</pre></details>
   <footer class="entry-foot">
-    <span class="meta-bit">2026-08-20T05:24:27+00:00</span>
+    <span class="meta-bit">2026-08-20T15:39:23+00:00</span>
     <span class="meta-bit">larkin-and-myrtle</span>
     <span class="meta-bit">decided by deliberation</span>
-    
+    <span class="meta-bit">triage weighed it</span>
     <span class="meta-bit">trigger rehearsal</span>
     
   </footer>
@@ -5723,12 +5756,24 @@ body {
     &quot;rescore&quot;,
     &quot;regenerate_letter&quot;
   ],
+  &quot;cost&quot;: {
+    &quot;actualTokens&quot;: 0,
+    &quot;projectedOutputTokens&quot;: 261,
+    &quot;projectedPromptTokens&quot;: 667,
+    &quot;projectionOnly&quot;: true,
+    &quot;tiersConsulted&quot;: [
+      &quot;tier1&quot;,
+      &quot;tier2&quot;
+    ]
+  },
   &quot;degraded&quot;: &quot;The previous reading in this comparison was constructed, not observed. The current reading is a real DataSF snapshot from an earlier cycle. Nothing here is evidence that anything happened at this corner. Tier one ran as deterministic rules, not Gemma: GOOGLE_CLOUD_PROJECT is not set. Tier two ran as deterministic policy, not Gemini: GOOGLE_CLOUD_PROJECT is not set.&quot;,
   &quot;delta&quot;: &quot;6th and Jessie: 2 new injury collisions.&quot;,
   &quot;intents&quot;: [],
   &quot;name&quot;: &quot;6th and Jessie&quot;,
+  &quot;runId&quot;: &quot;rehearsal&quot;,
   &quot;slug&quot;: &quot;6th-and-jessie&quot;,
   &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;triage&quot;,
     &quot;byRule&quot;: false,
     &quot;reason&quot;: &quot;2 new injury collisions on the city&#x27;s record here since the last look, at or above the current bar of 1. That is worth a closer look at what this corner&#x27;s page says.&quot;,
     &quot;significant&quot;: true
@@ -5741,13 +5786,13 @@ body {
     &quot;reasoning&quot;: &quot;The letter on this corner&#x27;s page states its collision figures outright, and those figures moved, so both the score inputs and the letter&#x27;s own sentences are now behind the city&#x27;s record.&quot;
   },
   &quot;trigger&quot;: &quot;rehearsal&quot;,
-  &quot;ts&quot;: &quot;2026-08-20T05:24:27+00:00&quot;
+  &quot;ts&quot;: &quot;2026-08-20T15:39:23+00:00&quot;
 }</pre></details>
   <footer class="entry-foot">
-    <span class="meta-bit">2026-08-20T05:24:27+00:00</span>
+    <span class="meta-bit">2026-08-20T15:39:23+00:00</span>
     <span class="meta-bit">6th-and-jessie</span>
     <span class="meta-bit">decided by deliberation</span>
-    
+    <span class="meta-bit">triage weighed it</span>
     <span class="meta-bit">trigger rehearsal</span>
     
   </footer>
@@ -5766,12 +5811,23 @@ body {
     &quot;rescore&quot;,
     &quot;regenerate_letter&quot;
   ],
+  &quot;cost&quot;: {
+    &quot;actualTokens&quot;: 0,
+    &quot;projectedOutputTokens&quot;: 184,
+    &quot;projectedPromptTokens&quot;: 402,
+    &quot;projectionOnly&quot;: true,
+    &quot;tiersConsulted&quot;: [
+      &quot;tier2&quot;
+    ]
+  },
   &quot;degraded&quot;: &quot;The previous reading in this comparison was constructed, not observed. The current reading is a real DataSF snapshot from an earlier cycle. Nothing here is evidence that anything happened at this corner. Tier one ran as deterministic rules, not Gemma: GOOGLE_CLOUD_PROJECT is not set. Tier two ran as deterministic policy, not Gemini: GOOGLE_CLOUD_PROJECT is not set.&quot;,
   &quot;delta&quot;: &quot;6th and Mission: 1 new severe injury collision.&quot;,
   &quot;intents&quot;: [],
   &quot;name&quot;: &quot;6th and Mission&quot;,
+  &quot;runId&quot;: &quot;rehearsal&quot;,
   &quot;slug&quot;: &quot;6th-and-mission&quot;,
   &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;rule_severe&quot;,
     &quot;byRule&quot;: true,
     &quot;reason&quot;: &quot;1 new severe injury collision recorded. Severe injuries are significant by rule.&quot;,
     &quot;significant&quot;: true
@@ -5784,13 +5840,13 @@ body {
     &quot;reasoning&quot;: &quot;The letter on this corner&#x27;s page states its collision figures outright, and those figures moved, so both the score inputs and the letter&#x27;s own sentences are now behind the city&#x27;s record.&quot;
   },
   &quot;trigger&quot;: &quot;rehearsal&quot;,
-  &quot;ts&quot;: &quot;2026-08-20T05:24:27+00:00&quot;
+  &quot;ts&quot;: &quot;2026-08-20T15:39:23+00:00&quot;
 }</pre></details>
   <footer class="entry-foot">
-    <span class="meta-bit">2026-08-20T05:24:27+00:00</span>
+    <span class="meta-bit">2026-08-20T15:39:23+00:00</span>
     <span class="meta-bit">6th-and-mission</span>
     <span class="meta-bit">decided by deliberation</span>
-    
+    <span class="meta-bit">rule floor, new severe injury</span>
     <span class="meta-bit">trigger rehearsal</span>
     
   </footer>
@@ -5810,12 +5866,23 @@ body {
     &quot;regenerate_letter&quot;,
     &quot;flag&quot;
   ],
+  &quot;cost&quot;: {
+    &quot;actualTokens&quot;: 0,
+    &quot;projectedOutputTokens&quot;: 184,
+    &quot;projectedPromptTokens&quot;: 402,
+    &quot;projectionOnly&quot;: true,
+    &quot;tiersConsulted&quot;: [
+      &quot;tier2&quot;
+    ]
+  },
   &quot;degraded&quot;: &quot;The previous reading in this comparison was constructed, not observed. The current reading is a real DataSF snapshot from an earlier cycle. Nothing here is evidence that anything happened at this corner. Tier one ran as deterministic rules, not Gemma: GOOGLE_CLOUD_PROJECT is not set. Tier two ran as deterministic policy, not Gemini: GOOGLE_CLOUD_PROJECT is not set.&quot;,
   &quot;delta&quot;: &quot;6th and Stevenson: 1 new fatal collision.&quot;,
   &quot;intents&quot;: [],
   &quot;name&quot;: &quot;6th and Stevenson&quot;,
+  &quot;runId&quot;: &quot;rehearsal&quot;,
   &quot;slug&quot;: &quot;6th-and-stevenson&quot;,
   &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;rule_fatal&quot;,
     &quot;byRule&quot;: true,
     &quot;reason&quot;: &quot;1 new fatal collision recorded. Any new fatality is significant by rule, before any model is consulted.&quot;,
     &quot;significant&quot;: true
@@ -5829,13 +5896,13 @@ body {
     &quot;reasoning&quot;: &quot;The letter on this corner&#x27;s page states its collision figures outright, and those figures moved, so both the score inputs and the letter&#x27;s own sentences are now behind the city&#x27;s record. A new fatality is not something to leave to an automated redraft alone, so a human is flagged as well.&quot;
   },
   &quot;trigger&quot;: &quot;rehearsal&quot;,
-  &quot;ts&quot;: &quot;2026-08-20T05:24:27+00:00&quot;
+  &quot;ts&quot;: &quot;2026-08-20T15:39:23+00:00&quot;
 }</pre></details>
   <footer class="entry-foot">
-    <span class="meta-bit">2026-08-20T05:24:27+00:00</span>
+    <span class="meta-bit">2026-08-20T15:39:23+00:00</span>
     <span class="meta-bit">6th-and-stevenson</span>
     <span class="meta-bit">decided by deliberation</span>
-    
+    <span class="meta-bit">rule floor, new fatality</span>
     <span class="meta-bit">trigger rehearsal</span>
     
   </footer>
@@ -5843,7 +5910,7 @@ body {
 </section>
 
   <footer class="colophon">
-    <p>Rendered 2026-08-20T06:32:02+00:00 from <code>state/journal.jsonl</code>. Static page, no
+    <p>Rendered 2026-08-20T15:39:24+00:00 from <code>state/journal.jsonl</code>. Static page, no
     scripts, no analytics, nothing fetched at view time.</p>
     <p>Counts come from San Francisco's open data portal within 80 metres of each corner:
     injury collisions over five years, filtered street-condition 311 reports over three.

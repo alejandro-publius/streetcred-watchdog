@@ -71,10 +71,22 @@ BASIS_LABEL = {
 }
 
 
+def _wanted_to_act(entry: dict[str, Any]) -> bool:
+    """The decider chose actions and the budget refused every one of them.
+
+    Not restraint. The agent decided to act and was stopped, which is the exact
+    opposite, and counting it as restraint would let an exhausted budget inflate
+    the one number this page asks to be trusted on. Found by injecting a spent
+    budget and reading what the ledger then claimed.
+    """
+    return bool(entry.get("intents")) and not entry.get("actions")
+
+
 def summarise(entries: list[dict[str, Any]]) -> dict[str, Any]:
     total = len(entries)
-    held = [e for e in entries if not e.get("actions")]
-    acted = total - len(held)
+    blocked = [e for e in entries if _wanted_to_act(e)]
+    held = [e for e in entries if not e.get("actions") and not _wanted_to_act(e)]
+    acted = total - len(held) - len(blocked)
     escalated = sum(1 for e in entries if e.get("tier2"))
     by_rule = sum(1 for e in entries if (e.get("tier1") or {}).get("byRule"))
     intents = sum(len(e.get("intents") or []) for e in entries)
@@ -104,6 +116,7 @@ def summarise(entries: list[dict[str, Any]]) -> dict[str, Any]:
         "intents": intents,
         "actions": actions,
         "corners": len(corners),
+        "blocked": len(blocked),
         "restraint": (len(held) / total * 100) if total else 0.0,
         "bases": bases,
         "unjudged_declines": unjudged,
@@ -880,6 +893,11 @@ def render_body(
     held_pct = s["restraint"]
     acted_pct = 100 - held_pct if s["total"] else 0
     breakdown = _breakdown_html(s)
+    blocked_line = (
+        f"{s['blocked']} more wanted to act and were stopped by a spent budget. Those are counted "
+        "as neither: an agent that decided to act and was prevented is not exercising restraint."
+        if s["blocked"] else ""
+    )
     streak_html = _streak_html(streak(entries))
     state_banner = _state_banner(coverage(entries, roster_size))
     spend_html = _spend_html(spend(entries), len(entries))
@@ -947,7 +965,8 @@ def render_body(
     </div>
     <p class="definition">{s["held"]} of {s["total"]} evaluations ended in no action. That is the
     whole definition: every entry in the journal is the denominator, nothing is filtered out,
-    and the {s["acted"]} that did end in action are shown below with the same weight as the rest.</p>
+    and the {s["acted"]} that did end in action are shown below with the same weight as the rest.
+    {blocked_line}</p>
     {breakdown}
   </section>
 
