@@ -19,6 +19,7 @@ import textwrap
 from pathlib import Path
 from typing import Any
 
+from .datasf import DEFAULT_RADIUS_M
 from .schema import Counts, Delta
 
 DEFAULT_OUTBOX = Path("outbox")
@@ -85,12 +86,15 @@ class DryRunActuator:
         severe_line = (
             f" {counts.severe_5y} left someone with a severe injury." if counts.severe_5y else ""
         )
+        radius = int(corner.get("radiusMeters") or DEFAULT_RADIUS_M)
         paragraphs = [
             f"In the last five years, San Francisco's own collision record holds "
-            f"{counts.collisions_5y} injury collisions within 150 meters of {name}. {fatal_line}"
+            f"{counts.collisions_5y} injury collisions within {radius} meters of {name}. {fatal_line}"
             f"{severe_line} Over the last three years the city logged {counts.reports_311_3y} "
-            "street-condition reports in the same 150 meters: defects, broken lights, blocked "
-            "sidewalks, curb and sign faults.",
+            f"street-condition reports in the same {radius} meters: defects, broken lights, blocked "
+            "sidewalks, curb and sign faults. That three year window is this agent's own and is "
+            "longer than the roughly one year figure StreetCred's scoreboard shows, so the two "
+            "numbers are different quantities rather than a disagreement.",
             f"This letter is being redrafted because the record moved. {delta.summary()}",
             "Every figure above is read from DataSF and is checkable against it. Before a letter "
             "like this is published, StreetCred recomputes each number from the corner's own "
@@ -128,7 +132,7 @@ Requested: {_dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")}
 What moved:
   {delta.summary()}
 
-Current record within 150 meters:
+Current record within {int(corner.get("radiusMeters") or DEFAULT_RADIUS_M)} meters:
   injury collisions, 5 years        {counts.collisions_5y}
   of those, fatal                   {counts.fatal_5y}
   of those, severe injury           {counts.severe_5y}

@@ -6,6 +6,81 @@ true to reverse it.
 
 ---
 
+## 2026-08-20: the radius was 150 and should have been 80, and the guard that catches that class of change
+
+### The measurement
+
+The previous entry listed "StreetCred's severe count for 6th and Mission is 9 where
+DataSF returns 11, unexplained" as an open hole. It is now explained, and the cause
+was larger than one number.
+
+Querying DataSF at 80 metres over five years reproduces StreetCred's published
+scoreboard counts **exactly, in all four severity categories, for six of six corners
+probed**:
+
+| corner | published f/s/ov/p | DataSF 80m 5y |
+| --- | --- | --- |
+| 6th-and-mission | 0/9/15/38 | 0/9/15/38 |
+| 6th-and-stevenson | 1/6/14/37 | 1/6/14/37 |
+| 6th-and-jessie | 0/7/13/39 | 0/7/13/39 |
+| larkin-and-myrtle | 0/5/15/30 | 0/5/15/30 |
+| 6th-and-minna | 0/5/10/36 | 0/5/10/36 |
+| 4th-and-ellis | 1/6/16/12 | 1/6/16/12 |
+
+150 metres does not reproduce them and is not close. Across the full watched set of
+25 corners, snapshots taken at 80 metres now agree with StreetCred on **fatalities
+25 of 25, severe injuries 24 of 25, and total injury collisions 23 of 25**.
+
+**Decision:** `DEFAULT_RADIUS_M` moves from 150 to 80. The README asserted the
+opposite, that StreetCred's stats query used 150 and that 80 was a different query
+for a different purpose. That assertion came from reading StreetCred's source rather
+than measuring its output, and it was wrong. The governing rule is that the two
+systems must never disagree about a number, so the number that reproduces
+StreetCred's published figures wins. The README claim has been corrected.
+
+### What is still not resolved, stated plainly
+
+- **Two corners still disagree.** `gough-and-haight` reports 41 collisions where
+  StreetCred publishes 56, and it matches almost exactly at **90** metres (0/5/22/30
+  against a published 0/5/21/30) rather than 80. `jones-and-market` is off by a
+  single record. So StreetCred's corner geometry is not a uniform 80 metre circle
+  for every corner, and the actual rule is not determined. 80 is the best available
+  answer, not the certain one.
+- **The 311 window could not be pinned.** At 80 metres the published figure sits
+  within one or two records of a 365 day window and matches exactly at none of 330,
+  350, 360, 365, 370, 380 or 400 days across four corners. The agent therefore keeps
+  its own three year window and says so in every letter, so the two figures are
+  openly different quantities rather than two claims about the same quantity that
+  disagree.
+
+### Decision: snapshots carry a fingerprint of the question they answer
+
+Changing the radius invalidates every stored baseline. Without a guard, the next
+sweep would have subtracted 80 metre counts from 150 metre counts and reported a
+forty percent collapse in collisions at all twenty five corners on the same morning,
+with confident reasoning attached and nothing anywhere flagging it. That is the exact
+failure mode this repo exists to prevent, produced by fixing a bug.
+
+Every snapshot now carries `query_fingerprint`, a readable string naming the radius,
+both windows, the severity vocabulary and the size of the 311 allow list.
+`diff_snapshots` refuses to compare across a change in it and journals the refusal
+with the basis `methodology`.
+
+**Rejected:** a hash. The journal entry that refuses a comparison prints the
+fingerprint, and `r=150m` tells a reader what happened where `a3f19c` does not.
+
+**Verified by running it:** the cycle after the radius change journaled 25 refusals
+naming both fingerprints, and took no action. The 150 metre baselines were then
+replaced by 80 metre ones and comparison resumes normally from the next sweep.
+
+### Deviation from the instruction
+
+`delta.py` was listed in the previous entry as kept unchanged. It has now changed:
+one guard was added ahead of the arithmetic. Recorded here because the earlier entry
+claimed otherwise.
+
+---
+
 ## 2026-08-19: make the whole loop run locally, keep the cloud behind seams
 
 ### What was kept from the 2026-08-18 scaffold

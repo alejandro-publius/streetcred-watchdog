@@ -47,14 +47,37 @@ SERVICE_NAMES = [
     "Color Curb",
 ]
 
-# StreetCred's corners all carry radiusMeters: 150, and its letters say "within
-# 150 meters" in so many words. The build doc's parenthetical says 80m, which is
-# the hazards corroboration radius in src/hazards.js, a different query for a
-# different purpose. Using 80 here would make the agent and the letter disagree
-# about the same corner, so 150 it is.
-DEFAULT_RADIUS_M = 150
+# Measured, not assumed. On 2026-08-19 the counts StreetCred publishes on its
+# scoreboard were reproduced exactly, in all four collision severity categories,
+# for six of six corners, by querying DataSF at 80 metres over five years.
+# 150 metres does not reproduce them and is not close.
+#
+#   corner              published f/s/ov/p    datasf 80m 5y
+#   6th-and-mission     0/9/15/38             0/9/15/38
+#   6th-and-stevenson   1/6/14/37             1/6/14/37
+#   6th-and-jessie      0/7/13/39             0/7/13/39
+#   larkin-and-myrtle   0/5/15/30             0/5/15/30
+#   6th-and-minna       0/5/10/36             0/5/10/36
+#   4th-and-ellis       1/6/16/12             1/6/16/12
+#
+# The repo previously used 150 on the strength of a reading of StreetCred's
+# source rather than a measurement of its output, and asserted in the README
+# that 80 was a different query for a different purpose. That was wrong. The
+# governing rule is that the two systems must never disagree about a number, so
+# the number that reproduces StreetCred's published figures wins.
+DEFAULT_RADIUS_M = 80
 
 COLLISION_YEARS = 5
+
+# StreetCred's scoreboard 311 figure could not be reproduced exactly at any
+# window tried on 2026-08-19. At 80 metres it lands within one or two records of
+# the published number at roughly 365 days and is not exact at 330, 350, 360,
+# 365, 370, 380 or 400 days across four corners. The residual is unexplained.
+#
+# So this stays at three years, which is the agent's own window, deliberately
+# longer than the scoreboard's and stated as such everywhere it is printed. Two
+# numbers that are openly different quantities are honest; two numbers that
+# claim to be the same thing and differ are the failure this repo is about.
 REPORTS_YEARS = 3
 
 # Every value collision_severity actually takes in ubvf-ztfx, read off the
@@ -87,6 +110,27 @@ KNOWN_SEVERITY_VALUES = (
 # purest form of the failure this repo is written against: no error, a number,
 # and the number is false.
 SEVERE_VALUES = ("Injury (Severe)",)
+
+
+def query_fingerprint(radius_m: int) -> str:
+    """Everything about the question that, if changed, changes the answer.
+
+    Stamped onto every snapshot. Two snapshots taken under different questions
+    cannot be subtracted from each other, and the difference between them is not
+    news about a street corner, it is news about this repo. Without this the day
+    the radius moved from 150 to 80 would have arrived in the journal as a forty
+    percent collapse in collisions at all twenty five corners on the same
+    morning, with reasoning attached, and nothing would have flagged it.
+
+    Deliberately human readable rather than a hash, because the journal entry
+    that refuses a comparison prints it, and "r=150m" tells a reader what
+    happened where "a3f19c" does not.
+    """
+    severe = "+".join(sorted(SEVERE_VALUES))
+    return (
+        f"r={radius_m}m;collisions={COLLISION_YEARS}y;reports={REPORTS_YEARS}y;"
+        f"severe={severe};services={len(SERVICE_NAMES)}"
+    )
 
 
 def _iso_years_ago(years: int) -> str:
@@ -229,6 +273,7 @@ async def fetch_corner_records(
         ),
         fetched_at=_dt.datetime.now(_dt.timezone.utc).isoformat(),
         complete=complete,
+        query_fingerprint=query_fingerprint(radius_m),
     )
 
 

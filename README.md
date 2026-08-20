@@ -166,8 +166,22 @@ adapters above are what runs today, and the loop degrades to them out loud.
 
 ## A note on the radius
 
-The build doc specifies an 80 metre radius for corner records. StreetCred's stats query uses
-**150 metres**, and its letters say "within 150 meters" in so many words. Since the governing
-rule is that the two systems must never disagree about a number, this repo uses 150. The 80
-metre figure is StreetCred's hazards-corroboration radius, a different query for a different
-purpose.
+This repo used 150 metres until 2026-08-20, on the strength of reading StreetCred's source
+rather than measuring its output. That was wrong.
+
+Querying DataSF at **80 metres over five years** reproduces StreetCred's published scoreboard
+counts exactly, in all four severity categories, for six of six corners probed. 150 metres does
+not reproduce them and is not close. Across the whole watched set, 80 metres agrees with
+StreetCred on fatalities at 25 of 25 corners, severe injuries at 24 of 25, and total injury
+collisions at 23 of 25.
+
+Two corners still disagree. `gough-and-haight` matches at roughly 90 metres rather than 80, so
+StreetCred's corner geometry is not a uniform circle and the exact rule is not known. The 311
+window could not be pinned at all: the published figure sits within one or two records of a one
+year window and matches exactly at none of the seven window lengths tried. The agent therefore
+keeps its own three year 311 window and says so in every letter, so the two figures are openly
+different quantities rather than two claims about the same thing that disagree.
+
+Changing the radius invalidated every stored baseline, so snapshots now carry a
+`query_fingerprint` and the delta engine refuses to compare across a change in it. Full evidence
+and the residuals are in `DECISIONS.md`.

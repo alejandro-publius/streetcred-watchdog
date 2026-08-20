@@ -24,10 +24,11 @@ from typing import Any
 
 import httpx
 
+from .datasf import DEFAULT_RADIUS_M
+
 DEFAULT_ORIGIN = "https://streetcred.thealexschroeder.workers.dev"
 DEFAULT_PATH = Path("data/watched.json")
 WATCHED_COUNT = 25
-DEFAULT_RADIUS_M = 150
 
 
 async def fetch_worst(

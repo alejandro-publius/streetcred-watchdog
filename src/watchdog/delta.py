@@ -49,6 +49,25 @@ def diff_snapshots(old: Snapshot | None, new: Snapshot) -> Delta:
     o: Counts = old.counts
     n: Counts = new.counts
 
+    # Guard 2b: the two snapshots must be answers to the same question. A change
+    # in radius, window or category vocabulary moves every count at every corner
+    # at once, and subtracting across that change produces a delta that is news
+    # about this repo wearing the clothes of news about a street. The radius
+    # moved from 150 metres to 80 on 2026-08-19; without this guard that would
+    # have arrived as a forty percent collapse in collisions at all twenty five
+    # corners on the same morning, with confident reasoning attached.
+    if old.query_fingerprint != new.query_fingerprint:
+        return Delta(
+            slug=new.slug,
+            name=name,
+            empty=True,
+            unreliable=True,
+            note=(
+                "the query changed between these two looks, so the arithmetic is meaningless: "
+                f"{old.query_fingerprint or 'not recorded'} then {new.query_fingerprint or 'not recorded'}"
+            ),
+        )
+
     # Guard 3: counts can legitimately fall when the city reclassifies or
     # withdraws a record. A negative "new collisions" is not a thing, so it is
     # floored at zero and the drop is carried in the note instead of silently

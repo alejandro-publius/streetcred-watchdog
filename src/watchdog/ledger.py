@@ -675,9 +675,12 @@ def render_body(
   <footer class="colophon">
     <p>Rendered {_e(generated_at)} from <code>state/journal.jsonl</code>. Static page, no
     scripts, no analytics, nothing fetched at view time.</p>
-    <p>Counts come from San Francisco's open data portal within 150 metres of each corner:
+    <p>Counts come from San Francisco's open data portal within 80 metres of each corner:
     injury collisions over five years, filtered street-condition 311 reports over three.
-    The watched set is the worst 25 corners on StreetCred's public scoreboard.</p>
+    80 metres is the radius that reproduces StreetCred's published scoreboard figures exactly,
+    measured across six corners rather than assumed. The three year 311 window is this agent's
+    own and is longer than the scoreboard's, so those two figures are different quantities
+    rather than a disagreement. The watched set is the worst 25 corners on that scoreboard.</p>
     <p>This run posted nothing anywhere. Every action shown was rendered to a local outbox
     and read by nobody but the person who ran it.</p>
   </footer>

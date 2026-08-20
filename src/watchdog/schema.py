@@ -70,6 +70,11 @@ class Snapshot:
     # not know it is incomplete will produce a phantom delta on the next sweep,
     # which is the most expensive kind of wrong this system can be.
     complete: bool = True
+    # The question these counts are the answer to: radius, windows, severity
+    # vocabulary. Two snapshots taken under different questions cannot be
+    # subtracted from each other. Empty on snapshots written before this field
+    # existed, which is why an empty one never compares equal to a real one.
+    query_fingerprint: str = ""
     schema_version: str = SCHEMA_VERSION
 
     def to_dict(self) -> dict[str, Any]:
@@ -94,6 +99,7 @@ class Snapshot:
             index=d.get("index"),
             fetched_at=d.get("fetched_at", ""),
             complete=bool(d.get("complete", True)),
+            query_fingerprint=d.get("query_fingerprint", ""),
             schema_version=d.get("schema_version", SCHEMA_VERSION),
         )
 
