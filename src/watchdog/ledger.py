@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import datetime as _dt
 import html
+import json
 from pathlib import Path
 from typing import Any
 
@@ -109,6 +110,94 @@ def summarise(entries: list[dict[str, Any]]) -> dict[str, Any]:
         "triage_declines": triage_declines,
         "deliberated_declines": deliberated_declines,
     }
+
+
+def _day(ts: str) -> str | None:
+    """The UTC date an entry was written, or None if the stamp is unreadable."""
+    if not isinstance(ts, str) or len(ts) < 10:
+        return None
+    try:
+        _dt.date.fromisoformat(ts[:10])
+    except ValueError:
+        return None
+    return ts[:10]
+
+
+def streak(entries: list[dict[str, Any]], *, today: str | None = None) -> dict[str, Any]:
+    """Which days this agent actually ran, and which it did not.
+
+    Counted from the journal rather than from a run log, because the journal is
+    the thing that has to be true. A run that started and wrote nothing is not a
+    day this agent watched anything, whatever a counter says.
+
+    Gaps are returned, not smoothed. A monitor that reports a streak while
+    quietly omitting the days it was switched off is making the same move as a
+    monitor that only publishes its actions.
+    """
+    days = sorted({d for d in (_day(e.get("ts", "")) for e in entries) if d})
+    if not days:
+        return {"days": [], "first": None, "last": None, "elapsed": 0, "ran": 0,
+                "gaps": [], "longest_gap": 0, "calendar": []}
+
+    first = _dt.date.fromisoformat(days[0])
+    last = _dt.date.fromisoformat(today) if today else _dt.date.fromisoformat(days[-1])
+    if last < first:
+        last = first
+
+    ran_set = set(days)
+    calendar = []
+    gaps: list[str] = []
+    longest = run = 0
+    span = (last - first).days + 1
+    for i in range(span):
+        d = (first + _dt.timedelta(days=i)).isoformat()
+        did = d in ran_set
+        calendar.append({"date": d, "ran": did})
+        if did:
+            run = 0
+        else:
+            gaps.append(d)
+            run += 1
+            longest = max(longest, run)
+
+    return {
+        "days": days,
+        "first": days[0],
+        "last": last.isoformat(),
+        "elapsed": span,
+        "ran": len(ran_set),
+        "gaps": gaps,
+        "longest_gap": longest,
+        "calendar": calendar,
+    }
+
+
+def _streak_html(st: dict[str, Any]) -> str:
+    if not st["days"]:
+        return ""
+
+    cells = "".join(
+        f'<span class="day {"day-ran" if d["ran"] else "day-missed"}" title="{d["date"]}'
+        f'{"" if d["ran"] else ", no cycle"}"></span>'
+        for d in st["calendar"]
+    )
+
+    if st["gaps"]:
+        gap_line = (
+            f"{len(st['gaps'])} day{'s' if len(st['gaps']) != 1 else ''} with no cycle at all"
+            f"{', the longest run being ' + str(st['longest_gap']) + ' consecutive' if st['longest_gap'] > 1 else ''}"
+            f". Those days are shown hollow above and are not counted as anything."
+        )
+    else:
+        gap_line = "No day in that span passed without a cycle."
+
+    return f"""<section class="streak">
+  <p class="eyebrow">Days watched</p>
+  <div class="days" role="img" aria-label="{st['ran']} of {st['elapsed']} days had a cycle">{cells}</div>
+  <p class="definition">Cycles ran on {st['ran']} of the {st['elapsed']} day{'s' if st['elapsed'] != 1 else ''}
+  between {_e(st['first'])} and {_e(st['last'])}, counted from journal entries rather than from a run
+  counter, because a run that wrote nothing is not a day anything was watched. {gap_line}</p>
+</section>"""
 
 
 def _breakdown_html(s: dict[str, Any]) -> str:
@@ -206,6 +295,16 @@ def _entry_html(entry: dict[str, Any]) -> str:
     degraded = entry.get("degraded")
     degraded_html = f'<p class="caveat">{_e(degraded)}</p>' if degraded else ""
 
+    # The full record, behind a disclosure. Note what is NOT in here: the delta,
+    # the reasoning, the outcome and the caveat are all rendered above, in the
+    # open, for every entry including the declines. Only the raw document is
+    # folded away, because a reader who wants to check the page against the
+    # journal should not have to leave the page to do it.
+    trace = (
+        '<details class="trace"><summary>The full journal record</summary>'
+        f'<pre>{_e(json.dumps(entry, indent=2, sort_keys=True))}</pre></details>'
+    )
+
     conf = t1.get("confidence")
     conf_html = f'<span class="meta-bit">confidence {_e(conf)}</span>' if conf is not None else ""
 
@@ -224,6 +323,7 @@ def _entry_html(entry: dict[str, Any]) -> str:
   {outcome}
   {intents_html}
   {degraded_html}
+  {trace}
   <footer class="entry-foot">
     <span class="meta-bit">{_e(entry.get("ts"))}</span>
     <span class="meta-bit">{_e(entry.get("slug"))}</span>
@@ -383,6 +483,48 @@ body {
   margin: 0;
   font-size: 0.9rem;
   color: var(--muted);
+}
+
+.streak {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+.day {
+  width: 0.75rem;
+  height: 0.75rem;
+  display: block;
+}
+.day-ran { background: var(--held); }
+.day-missed {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--hairline);
+}
+
+.trace { font-size: 0.85rem; }
+.trace summary {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+}
+.trace summary:focus-visible { outline: 2px solid var(--held); outline-offset: 2px; }
+.trace pre {
+  margin: 0.6rem 0 0;
+  padding: 0.75rem;
+  background: var(--ground);
+  border: 1px solid var(--hairline);
+  overflow-x: auto;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.72rem;
+  line-height: 1.5;
 }
 
 .breakdown {
@@ -592,6 +734,7 @@ def render_body(
     held_pct = s["restraint"]
     acted_pct = 100 - held_pct if s["total"] else 0
     breakdown = _breakdown_html(s)
+    streak_html = _streak_html(streak(entries))
 
     degradations = sorted({e["degraded"] for e in entries if e.get("degraded")})
     notice = ""
@@ -636,6 +779,8 @@ def render_body(
     the ones that ended in nothing. A monitor that only publishes its actions is showing you a
     highlight reel.</p>
   </header>
+
+  {streak_html}
 
   <section class="headline">
     <div class="rate">

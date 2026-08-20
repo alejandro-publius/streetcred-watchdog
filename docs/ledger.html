@@ -157,6 +157,48 @@ body {
   color: var(--muted);
 }
 
+.streak {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+.day {
+  width: 0.75rem;
+  height: 0.75rem;
+  display: block;
+}
+.day-ran { background: var(--held); }
+.day-missed {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--hairline);
+}
+
+.trace { font-size: 0.85rem; }
+.trace summary {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+}
+.trace summary:focus-visible { outline: 2px solid var(--held); outline-offset: 2px; }
+.trace pre {
+  margin: 0.6rem 0 0;
+  padding: 0.75rem;
+  background: var(--ground);
+  border: 1px solid var(--hairline);
+  overflow-x: auto;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
 .breakdown {
   border-top: 1px solid var(--hairline);
   padding-top: 1rem;
@@ -353,6 +395,14 @@ body {
     highlight reel.</p>
   </header>
 
+  <section class="streak">
+  <p class="eyebrow">Days watched</p>
+  <div class="days" role="img" aria-label="1 of 1 days had a cycle"><span class="day day-ran" title="2026-08-20"></span></div>
+  <p class="definition">Cycles ran on 1 of the 1 day
+  between 2026-08-20 and 2026-08-20, counted from journal entries rather than from a run
+  counter, because a run that wrote nothing is not a day anything was watched. No day in that span passed without a cycle.</p>
+</section>
+
   <section class="headline">
     <div class="rate">
       <span class="figure">100</span><span class="unit">%</span>
@@ -400,6 +450,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 16th and Rondel.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;16th and Rondel&quot;,
+  &quot;slug&quot;: &quot;16th-and-rondel&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">16th-and-rondel</span>
@@ -418,6 +483,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 7th and Odd Fellows.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;7th and Odd Fellows&quot;,
+  &quot;slug&quot;: &quot;7th-and-odd-fellows&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">7th-and-odd-fellows</span>
@@ -436,6 +516,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Friendship and Fulton.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Friendship and Fulton&quot;,
+  &quot;slug&quot;: &quot;friendship-and-fulton&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">friendship-and-fulton</span>
@@ -454,6 +549,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 16th and Caledonia.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;16th and Caledonia&quot;,
+  &quot;slug&quot;: &quot;16th-and-caledonia&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">16th-and-caledonia</span>
@@ -472,6 +582,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Lafayette and Mission.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Lafayette and Mission&quot;,
+  &quot;slug&quot;: &quot;lafayette-and-mission&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">lafayette-and-mission</span>
@@ -490,6 +615,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Jones and Market.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Jones and Market&quot;,
+  &quot;slug&quot;: &quot;jones-and-market&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">jones-and-market</span>
@@ -508,6 +648,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Larch and Van Ness.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Larch and Van Ness&quot;,
+  &quot;slug&quot;: &quot;larch-and-van-ness&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">larch-and-van-ness</span>
@@ -526,6 +681,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 7th and Charles J Brenham.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;7th and Charles J Brenham&quot;,
+  &quot;slug&quot;: &quot;7th-and-charles-j-brenham&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">7th-and-charles-j-brenham</span>
@@ -544,6 +714,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 12th and Mission.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;12th and Mission&quot;,
+  &quot;slug&quot;: &quot;12th-and-mission&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">12th-and-mission</span>
@@ -562,6 +747,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 4th and Stevenson.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;4th and Stevenson&quot;,
+  &quot;slug&quot;: &quot;4th-and-stevenson&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">4th-and-stevenson</span>
@@ -580,6 +780,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Larkin and Willow.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Larkin and Willow&quot;,
+  &quot;slug&quot;: &quot;larkin-and-willow&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">larkin-and-willow</span>
@@ -598,6 +813,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Polk and Willow.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Polk and Willow&quot;,
+  &quot;slug&quot;: &quot;polk-and-willow&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">polk-and-willow</span>
@@ -616,6 +846,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 9th and Mission.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;9th and Mission&quot;,
+  &quot;slug&quot;: &quot;9th-and-mission&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">9th-and-mission</span>
@@ -634,6 +879,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Gough and Haight.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Gough and Haight&quot;,
+  &quot;slug&quot;: &quot;gough-and-haight&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">gough-and-haight</span>
@@ -652,6 +912,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 6th and Natoma.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Natoma&quot;,
+  &quot;slug&quot;: &quot;6th-and-natoma&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">6th-and-natoma</span>
@@ -670,6 +945,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Cyril Magnin and Eddy.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Cyril Magnin and Eddy&quot;,
+  &quot;slug&quot;: &quot;cyril-magnin-and-eddy&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">cyril-magnin-and-eddy</span>
@@ -688,6 +978,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 8th and Minna.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;8th and Minna&quot;,
+  &quot;slug&quot;: &quot;8th-and-minna&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">8th-and-minna</span>
@@ -706,6 +1011,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 5th and Cyril Magnin.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;5th and Cyril Magnin&quot;,
+  &quot;slug&quot;: &quot;5th-and-cyril-magnin&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">5th-and-cyril-magnin</span>
@@ -724,6 +1044,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Gough and Market.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Gough and Market&quot;,
+  &quot;slug&quot;: &quot;gough-and-market&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">gough-and-market</span>
@@ -742,6 +1077,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 4th and Ellis.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;4th and Ellis&quot;,
+  &quot;slug&quot;: &quot;4th-and-ellis&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">4th-and-ellis</span>
@@ -760,6 +1110,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 6th and Minna.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Minna&quot;,
+  &quot;slug&quot;: &quot;6th-and-minna&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">6th-and-minna</span>
@@ -778,6 +1143,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Larkin and Myrtle.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Larkin and Myrtle&quot;,
+  &quot;slug&quot;: &quot;larkin-and-myrtle&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">larkin-and-myrtle</span>
@@ -796,6 +1176,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 6th and Jessie.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Jessie&quot;,
+  &quot;slug&quot;: &quot;6th-and-jessie&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">6th-and-jessie</span>
@@ -814,6 +1209,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 6th and Stevenson.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Stevenson&quot;,
+  &quot;slug&quot;: &quot;6th-and-stevenson&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">6th-and-stevenson</span>
@@ -832,6 +1242,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 6th and Mission.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Mission&quot;,
+  &quot;slug&quot;: &quot;6th-and-mission&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
     <span class="meta-bit">6th-and-mission</span>
@@ -850,6 +1275,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at 16th and Rondel: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;16th and Rondel&quot;,
+  &quot;slug&quot;: &quot;16th-and-rondel&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">16th-and-rondel</span>
@@ -868,6 +1308,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at 7th and Odd Fellows: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;7th and Odd Fellows&quot;,
+  &quot;slug&quot;: &quot;7th-and-odd-fellows&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">7th-and-odd-fellows</span>
@@ -886,6 +1341,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at Friendship and Fulton: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Friendship and Fulton&quot;,
+  &quot;slug&quot;: &quot;friendship-and-fulton&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">friendship-and-fulton</span>
@@ -904,6 +1374,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at 16th and Caledonia: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;16th and Caledonia&quot;,
+  &quot;slug&quot;: &quot;16th-and-caledonia&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">16th-and-caledonia</span>
@@ -922,6 +1407,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at Lafayette and Mission: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Lafayette and Mission&quot;,
+  &quot;slug&quot;: &quot;lafayette-and-mission&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">lafayette-and-mission</span>
@@ -940,6 +1440,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at Jones and Market: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Jones and Market&quot;,
+  &quot;slug&quot;: &quot;jones-and-market&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">jones-and-market</span>
@@ -958,6 +1473,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at Larch and Van Ness: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Larch and Van Ness&quot;,
+  &quot;slug&quot;: &quot;larch-and-van-ness&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">larch-and-van-ness</span>
@@ -976,6 +1506,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at 7th and Charles J Brenham: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;7th and Charles J Brenham&quot;,
+  &quot;slug&quot;: &quot;7th-and-charles-j-brenham&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">7th-and-charles-j-brenham</span>
@@ -994,6 +1539,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at 12th and Mission: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;12th and Mission&quot;,
+  &quot;slug&quot;: &quot;12th-and-mission&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">12th-and-mission</span>
@@ -1012,6 +1572,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at 4th and Stevenson: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;4th and Stevenson&quot;,
+  &quot;slug&quot;: &quot;4th-and-stevenson&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">4th-and-stevenson</span>
@@ -1030,6 +1605,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at Larkin and Willow: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Larkin and Willow&quot;,
+  &quot;slug&quot;: &quot;larkin-and-willow&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">larkin-and-willow</span>
@@ -1048,6 +1638,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at Polk and Willow: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Polk and Willow&quot;,
+  &quot;slug&quot;: &quot;polk-and-willow&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">polk-and-willow</span>
@@ -1066,6 +1671,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at 9th and Mission: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;9th and Mission&quot;,
+  &quot;slug&quot;: &quot;9th-and-mission&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">9th-and-mission</span>
@@ -1084,6 +1704,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at Gough and Haight: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Gough and Haight&quot;,
+  &quot;slug&quot;: &quot;gough-and-haight&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">gough-and-haight</span>
@@ -1102,6 +1737,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at 6th and Natoma: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Natoma&quot;,
+  &quot;slug&quot;: &quot;6th-and-natoma&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">6th-and-natoma</span>
@@ -1120,6 +1770,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at Cyril Magnin and Eddy: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Cyril Magnin and Eddy&quot;,
+  &quot;slug&quot;: &quot;cyril-magnin-and-eddy&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">cyril-magnin-and-eddy</span>
@@ -1138,6 +1803,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at 8th and Minna: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;8th and Minna&quot;,
+  &quot;slug&quot;: &quot;8th-and-minna&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">8th-and-minna</span>
@@ -1156,6 +1836,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at 5th and Cyril Magnin: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;5th and Cyril Magnin&quot;,
+  &quot;slug&quot;: &quot;5th-and-cyril-magnin&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">5th-and-cyril-magnin</span>
@@ -1174,6 +1869,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at Gough and Market: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Gough and Market&quot;,
+  &quot;slug&quot;: &quot;gough-and-market&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">gough-and-market</span>
@@ -1192,6 +1902,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at 4th and Ellis: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;4th and Ellis&quot;,
+  &quot;slug&quot;: &quot;4th-and-ellis&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">4th-and-ellis</span>
@@ -1210,6 +1935,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at 6th and Minna: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Minna&quot;,
+  &quot;slug&quot;: &quot;6th-and-minna&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">6th-and-minna</span>
@@ -1228,6 +1968,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at Larkin and Myrtle: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Larkin and Myrtle&quot;,
+  &quot;slug&quot;: &quot;larkin-and-myrtle&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">larkin-and-myrtle</span>
@@ -1246,6 +2001,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at 6th and Jessie: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Jessie&quot;,
+  &quot;slug&quot;: &quot;6th-and-jessie&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">6th-and-jessie</span>
@@ -1264,6 +2034,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at 6th and Stevenson: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Stevenson&quot;,
+  &quot;slug&quot;: &quot;6th-and-stevenson&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">6th-and-stevenson</span>
@@ -1282,6 +2067,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at 6th and Mission: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Mission&quot;,
+  &quot;slug&quot;: &quot;6th-and-mission&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
     <span class="meta-bit">6th-and-mission</span>
@@ -1300,6 +2100,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 16th and Rondel.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;16th and Rondel&quot;,
+  &quot;slug&quot;: &quot;16th-and-rondel&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">16th-and-rondel</span>
@@ -1318,6 +2132,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 7th and Odd Fellows.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;7th and Odd Fellows&quot;,
+  &quot;slug&quot;: &quot;7th-and-odd-fellows&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">7th-and-odd-fellows</span>
@@ -1336,6 +2164,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Friendship and Fulton.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Friendship and Fulton&quot;,
+  &quot;slug&quot;: &quot;friendship-and-fulton&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">friendship-and-fulton</span>
@@ -1354,6 +2196,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 16th and Caledonia.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;16th and Caledonia&quot;,
+  &quot;slug&quot;: &quot;16th-and-caledonia&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">16th-and-caledonia</span>
@@ -1372,6 +2228,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Lafayette and Mission.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Lafayette and Mission&quot;,
+  &quot;slug&quot;: &quot;lafayette-and-mission&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">lafayette-and-mission</span>
@@ -1390,6 +2260,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Jones and Market.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Jones and Market&quot;,
+  &quot;slug&quot;: &quot;jones-and-market&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">jones-and-market</span>
@@ -1408,6 +2292,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Larch and Van Ness.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Larch and Van Ness&quot;,
+  &quot;slug&quot;: &quot;larch-and-van-ness&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">larch-and-van-ness</span>
@@ -1426,6 +2324,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 7th and Charles J Brenham.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;7th and Charles J Brenham&quot;,
+  &quot;slug&quot;: &quot;7th-and-charles-j-brenham&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">7th-and-charles-j-brenham</span>
@@ -1444,6 +2356,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 12th and Mission.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;12th and Mission&quot;,
+  &quot;slug&quot;: &quot;12th-and-mission&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">12th-and-mission</span>
@@ -1462,6 +2388,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 4th and Stevenson.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;4th and Stevenson&quot;,
+  &quot;slug&quot;: &quot;4th-and-stevenson&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">4th-and-stevenson</span>
@@ -1480,6 +2420,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Larkin and Willow.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Larkin and Willow&quot;,
+  &quot;slug&quot;: &quot;larkin-and-willow&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">larkin-and-willow</span>
@@ -1498,6 +2452,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Polk and Willow.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Polk and Willow&quot;,
+  &quot;slug&quot;: &quot;polk-and-willow&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">polk-and-willow</span>
@@ -1516,6 +2484,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 9th and Mission.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;9th and Mission&quot;,
+  &quot;slug&quot;: &quot;9th-and-mission&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">9th-and-mission</span>
@@ -1534,6 +2516,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Gough and Haight.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Gough and Haight&quot;,
+  &quot;slug&quot;: &quot;gough-and-haight&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">gough-and-haight</span>
@@ -1552,6 +2548,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 6th and Natoma.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Natoma&quot;,
+  &quot;slug&quot;: &quot;6th-and-natoma&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">6th-and-natoma</span>
@@ -1570,6 +2580,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Cyril Magnin and Eddy.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Cyril Magnin and Eddy&quot;,
+  &quot;slug&quot;: &quot;cyril-magnin-and-eddy&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">cyril-magnin-and-eddy</span>
@@ -1588,6 +2612,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 8th and Minna.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;8th and Minna&quot;,
+  &quot;slug&quot;: &quot;8th-and-minna&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">8th-and-minna</span>
@@ -1606,6 +2644,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 5th and Cyril Magnin.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;5th and Cyril Magnin&quot;,
+  &quot;slug&quot;: &quot;5th-and-cyril-magnin&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">5th-and-cyril-magnin</span>
@@ -1624,6 +2676,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Gough and Market.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Gough and Market&quot;,
+  &quot;slug&quot;: &quot;gough-and-market&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">gough-and-market</span>
@@ -1642,6 +2708,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 4th and Ellis.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;4th and Ellis&quot;,
+  &quot;slug&quot;: &quot;4th-and-ellis&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">4th-and-ellis</span>
@@ -1660,6 +2740,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 6th and Minna.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Minna&quot;,
+  &quot;slug&quot;: &quot;6th-and-minna&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">6th-and-minna</span>
@@ -1678,6 +2772,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Larkin and Myrtle.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Larkin and Myrtle&quot;,
+  &quot;slug&quot;: &quot;larkin-and-myrtle&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">larkin-and-myrtle</span>
@@ -1696,6 +2804,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 6th and Jessie.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Jessie&quot;,
+  &quot;slug&quot;: &quot;6th-and-jessie&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">6th-and-jessie</span>
@@ -1714,6 +2836,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 6th and Stevenson.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Stevenson&quot;,
+  &quot;slug&quot;: &quot;6th-and-stevenson&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">6th-and-stevenson</span>
@@ -1732,6 +2868,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 6th and Mission.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Mission&quot;,
+  &quot;slug&quot;: &quot;6th-and-mission&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
     <span class="meta-bit">6th-and-mission</span>
@@ -1750,6 +2900,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 16th and Rondel.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;16th and Rondel&quot;,
+  &quot;slug&quot;: &quot;16th-and-rondel&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">16th-and-rondel</span>
@@ -1768,6 +2932,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 7th and Odd Fellows.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;7th and Odd Fellows&quot;,
+  &quot;slug&quot;: &quot;7th-and-odd-fellows&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">7th-and-odd-fellows</span>
@@ -1786,6 +2964,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Friendship and Fulton.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Friendship and Fulton&quot;,
+  &quot;slug&quot;: &quot;friendship-and-fulton&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">friendship-and-fulton</span>
@@ -1804,6 +2996,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 16th and Caledonia.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;16th and Caledonia&quot;,
+  &quot;slug&quot;: &quot;16th-and-caledonia&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">16th-and-caledonia</span>
@@ -1822,6 +3028,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Lafayette and Mission.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Lafayette and Mission&quot;,
+  &quot;slug&quot;: &quot;lafayette-and-mission&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">lafayette-and-mission</span>
@@ -1840,6 +3060,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Jones and Market.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Jones and Market&quot;,
+  &quot;slug&quot;: &quot;jones-and-market&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">jones-and-market</span>
@@ -1858,6 +3092,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Larch and Van Ness.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Larch and Van Ness&quot;,
+  &quot;slug&quot;: &quot;larch-and-van-ness&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">larch-and-van-ness</span>
@@ -1876,6 +3124,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 7th and Charles J Brenham.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;7th and Charles J Brenham&quot;,
+  &quot;slug&quot;: &quot;7th-and-charles-j-brenham&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">7th-and-charles-j-brenham</span>
@@ -1894,6 +3156,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 12th and Mission.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;12th and Mission&quot;,
+  &quot;slug&quot;: &quot;12th-and-mission&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">12th-and-mission</span>
@@ -1912,6 +3188,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 4th and Stevenson.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;4th and Stevenson&quot;,
+  &quot;slug&quot;: &quot;4th-and-stevenson&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">4th-and-stevenson</span>
@@ -1930,6 +3220,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Larkin and Willow.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Larkin and Willow&quot;,
+  &quot;slug&quot;: &quot;larkin-and-willow&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">larkin-and-willow</span>
@@ -1948,6 +3252,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Polk and Willow.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Polk and Willow&quot;,
+  &quot;slug&quot;: &quot;polk-and-willow&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">polk-and-willow</span>
@@ -1966,6 +3284,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 9th and Mission.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;9th and Mission&quot;,
+  &quot;slug&quot;: &quot;9th-and-mission&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">9th-and-mission</span>
@@ -1984,6 +3316,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Gough and Haight.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Gough and Haight&quot;,
+  &quot;slug&quot;: &quot;gough-and-haight&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">gough-and-haight</span>
@@ -2002,6 +3348,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 6th and Natoma.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Natoma&quot;,
+  &quot;slug&quot;: &quot;6th-and-natoma&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">6th-and-natoma</span>
@@ -2020,6 +3380,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Cyril Magnin and Eddy.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Cyril Magnin and Eddy&quot;,
+  &quot;slug&quot;: &quot;cyril-magnin-and-eddy&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">cyril-magnin-and-eddy</span>
@@ -2038,6 +3412,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 8th and Minna.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;8th and Minna&quot;,
+  &quot;slug&quot;: &quot;8th-and-minna&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">8th-and-minna</span>
@@ -2056,6 +3444,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 5th and Cyril Magnin.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;5th and Cyril Magnin&quot;,
+  &quot;slug&quot;: &quot;5th-and-cyril-magnin&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">5th-and-cyril-magnin</span>
@@ -2074,6 +3476,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Gough and Market.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Gough and Market&quot;,
+  &quot;slug&quot;: &quot;gough-and-market&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">gough-and-market</span>
@@ -2092,6 +3508,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 4th and Ellis.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;4th and Ellis&quot;,
+  &quot;slug&quot;: &quot;4th-and-ellis&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">4th-and-ellis</span>
@@ -2110,6 +3540,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 6th and Minna.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Minna&quot;,
+  &quot;slug&quot;: &quot;6th-and-minna&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">6th-and-minna</span>
@@ -2128,6 +3572,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at Larkin and Myrtle.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Larkin and Myrtle&quot;,
+  &quot;slug&quot;: &quot;larkin-and-myrtle&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">larkin-and-myrtle</span>
@@ -2146,6 +3604,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 6th and Jessie.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Jessie&quot;,
+  &quot;slug&quot;: &quot;6th-and-jessie&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">6th-and-jessie</span>
@@ -2164,6 +3636,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 6th and Stevenson.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Stevenson&quot;,
+  &quot;slug&quot;: &quot;6th-and-stevenson&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">6th-and-stevenson</span>
@@ -2182,6 +3668,20 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 6th and Mission.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Mission&quot;,
+  &quot;slug&quot;: &quot;6th-and-mission&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
     <span class="meta-bit">6th-and-mission</span>
@@ -2213,6 +3713,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   <p class="caveat">The previous reading in this comparison was constructed, not observed. The current reading is a real DataSF snapshot from an earlier cycle. Nothing here is evidence that anything happened at this corner.</p>
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;degraded&quot;: &quot;The previous reading in this comparison was constructed, not observed. The current reading is a real DataSF snapshot from an earlier cycle. Nothing here is evidence that anything happened at this corner.&quot;,
+  &quot;delta&quot;: &quot;No change at 4th and Ellis.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;4th and Ellis&quot;,
+  &quot;slug&quot;: &quot;4th-and-ellis&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;rehearsal&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:24:27+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:24:27+00:00</span>
     <span class="meta-bit">4th-and-ellis</span>
@@ -2231,6 +3746,21 @@ body {
   <p class="outcome outcome-held">No action taken.</p>
   
   <p class="caveat">The previous reading in this comparison was constructed, not observed. The current reading is a real DataSF snapshot from an earlier cycle. Nothing here is evidence that anything happened at this corner. Tier one ran as deterministic rules, not Gemma: GOOGLE_CLOUD_PROJECT is not set. Tier two ran as deterministic policy, not Gemini: GOOGLE_CLOUD_PROJECT is not set.</p>
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;degraded&quot;: &quot;The previous reading in this comparison was constructed, not observed. The current reading is a real DataSF snapshot from an earlier cycle. Nothing here is evidence that anything happened at this corner. Tier one ran as deterministic rules, not Gemma: GOOGLE_CLOUD_PROJECT is not set. Tier two ran as deterministic policy, not Gemini: GOOGLE_CLOUD_PROJECT is not set.&quot;,
+  &quot;delta&quot;: &quot;6th and Minna: 311 street-condition reports rose by 3.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Minna&quot;,
+  &quot;slug&quot;: &quot;6th-and-minna&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: false,
+    &quot;reason&quot;: &quot;Street-condition reports rose by 3, which is ordinary week-to-week variance at a corner this busy. The bar for a closer look is 15. Nothing here changes what the record says about this crossing.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;rehearsal&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:24:27+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:24:27+00:00</span>
     <span class="meta-bit">6th-and-minna</span>
@@ -2249,6 +3779,29 @@ body {
   <p class="outcome outcome-acted">Acted: re-audited the imagery.</p>
   
   <p class="caveat">The previous reading in this comparison was constructed, not observed. The current reading is a real DataSF snapshot from an earlier cycle. Nothing here is evidence that anything happened at this corner. Tier one ran as deterministic rules, not Gemma: GOOGLE_CLOUD_PROJECT is not set. Tier two ran as deterministic policy, not Gemini: GOOGLE_CLOUD_PROJECT is not set.</p>
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [
+    &quot;reaudit_imagery&quot;
+  ],
+  &quot;degraded&quot;: &quot;The previous reading in this comparison was constructed, not observed. The current reading is a real DataSF snapshot from an earlier cycle. Nothing here is evidence that anything happened at this corner. Tier one ran as deterministic rules, not Gemma: GOOGLE_CLOUD_PROJECT is not set. Tier two ran as deterministic policy, not Gemini: GOOGLE_CLOUD_PROJECT is not set.&quot;,
+  &quot;delta&quot;: &quot;Larkin and Myrtle: 311 street-condition reports rose by 22.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;Larkin and Myrtle&quot;,
+  &quot;slug&quot;: &quot;larkin-and-myrtle&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: false,
+    &quot;reason&quot;: &quot;Street-condition reports here rose by 22 since the last look, past the current bar of 15. A swing that size usually means something at the corner actually changed.&quot;,
+    &quot;significant&quot;: true
+  },
+  &quot;tier2&quot;: {
+    &quot;actions&quot;: [
+      &quot;reaudit_imagery&quot;
+    ],
+    &quot;reasoning&quot;: &quot;A street-condition swing this size with no new collisions points at something visible at the corner rather than at the crash record, so the imagery is what to look at.&quot;
+  },
+  &quot;trigger&quot;: &quot;rehearsal&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:24:27+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:24:27+00:00</span>
     <span class="meta-bit">larkin-and-myrtle</span>
@@ -2267,6 +3820,31 @@ body {
   <p class="outcome outcome-acted">Acted: rescored the corner, redrafted the letter.</p>
   
   <p class="caveat">The previous reading in this comparison was constructed, not observed. The current reading is a real DataSF snapshot from an earlier cycle. Nothing here is evidence that anything happened at this corner. Tier one ran as deterministic rules, not Gemma: GOOGLE_CLOUD_PROJECT is not set. Tier two ran as deterministic policy, not Gemini: GOOGLE_CLOUD_PROJECT is not set.</p>
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [
+    &quot;rescore&quot;,
+    &quot;regenerate_letter&quot;
+  ],
+  &quot;degraded&quot;: &quot;The previous reading in this comparison was constructed, not observed. The current reading is a real DataSF snapshot from an earlier cycle. Nothing here is evidence that anything happened at this corner. Tier one ran as deterministic rules, not Gemma: GOOGLE_CLOUD_PROJECT is not set. Tier two ran as deterministic policy, not Gemini: GOOGLE_CLOUD_PROJECT is not set.&quot;,
+  &quot;delta&quot;: &quot;6th and Jessie: 2 new injury collisions.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Jessie&quot;,
+  &quot;slug&quot;: &quot;6th-and-jessie&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: false,
+    &quot;reason&quot;: &quot;2 new injury collisions on the city&#x27;s record here since the last look, at or above the current bar of 1. That is worth a closer look at what this corner&#x27;s page says.&quot;,
+    &quot;significant&quot;: true
+  },
+  &quot;tier2&quot;: {
+    &quot;actions&quot;: [
+      &quot;rescore&quot;,
+      &quot;regenerate_letter&quot;
+    ],
+    &quot;reasoning&quot;: &quot;The letter on this corner&#x27;s page states its collision figures outright, and those figures moved, so both the score inputs and the letter&#x27;s own sentences are now behind the city&#x27;s record.&quot;
+  },
+  &quot;trigger&quot;: &quot;rehearsal&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:24:27+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:24:27+00:00</span>
     <span class="meta-bit">6th-and-jessie</span>
@@ -2285,6 +3863,31 @@ body {
   <p class="outcome outcome-acted">Acted: rescored the corner, redrafted the letter.</p>
   
   <p class="caveat">The previous reading in this comparison was constructed, not observed. The current reading is a real DataSF snapshot from an earlier cycle. Nothing here is evidence that anything happened at this corner. Tier one ran as deterministic rules, not Gemma: GOOGLE_CLOUD_PROJECT is not set. Tier two ran as deterministic policy, not Gemini: GOOGLE_CLOUD_PROJECT is not set.</p>
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [
+    &quot;rescore&quot;,
+    &quot;regenerate_letter&quot;
+  ],
+  &quot;degraded&quot;: &quot;The previous reading in this comparison was constructed, not observed. The current reading is a real DataSF snapshot from an earlier cycle. Nothing here is evidence that anything happened at this corner. Tier one ran as deterministic rules, not Gemma: GOOGLE_CLOUD_PROJECT is not set. Tier two ran as deterministic policy, not Gemini: GOOGLE_CLOUD_PROJECT is not set.&quot;,
+  &quot;delta&quot;: &quot;6th and Mission: 1 new severe injury collision.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Mission&quot;,
+  &quot;slug&quot;: &quot;6th-and-mission&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;1 new severe injury collision recorded. Severe injuries are significant by rule.&quot;,
+    &quot;significant&quot;: true
+  },
+  &quot;tier2&quot;: {
+    &quot;actions&quot;: [
+      &quot;rescore&quot;,
+      &quot;regenerate_letter&quot;
+    ],
+    &quot;reasoning&quot;: &quot;The letter on this corner&#x27;s page states its collision figures outright, and those figures moved, so both the score inputs and the letter&#x27;s own sentences are now behind the city&#x27;s record.&quot;
+  },
+  &quot;trigger&quot;: &quot;rehearsal&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:24:27+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:24:27+00:00</span>
     <span class="meta-bit">6th-and-mission</span>
@@ -2303,6 +3906,33 @@ body {
   <p class="outcome outcome-acted">Acted: rescored the corner, redrafted the letter, flagged it for a human.</p>
   
   <p class="caveat">The previous reading in this comparison was constructed, not observed. The current reading is a real DataSF snapshot from an earlier cycle. Nothing here is evidence that anything happened at this corner. Tier one ran as deterministic rules, not Gemma: GOOGLE_CLOUD_PROJECT is not set. Tier two ran as deterministic policy, not Gemini: GOOGLE_CLOUD_PROJECT is not set.</p>
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [
+    &quot;rescore&quot;,
+    &quot;regenerate_letter&quot;,
+    &quot;flag&quot;
+  ],
+  &quot;degraded&quot;: &quot;The previous reading in this comparison was constructed, not observed. The current reading is a real DataSF snapshot from an earlier cycle. Nothing here is evidence that anything happened at this corner. Tier one ran as deterministic rules, not Gemma: GOOGLE_CLOUD_PROJECT is not set. Tier two ran as deterministic policy, not Gemini: GOOGLE_CLOUD_PROJECT is not set.&quot;,
+  &quot;delta&quot;: &quot;6th and Stevenson: 1 new fatal collision.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Stevenson&quot;,
+  &quot;slug&quot;: &quot;6th-and-stevenson&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;1 new fatal collision recorded. Any new fatality is significant by rule, before any model is consulted.&quot;,
+    &quot;significant&quot;: true
+  },
+  &quot;tier2&quot;: {
+    &quot;actions&quot;: [
+      &quot;rescore&quot;,
+      &quot;regenerate_letter&quot;,
+      &quot;flag&quot;
+    ],
+    &quot;reasoning&quot;: &quot;The letter on this corner&#x27;s page states its collision figures outright, and those figures moved, so both the score inputs and the letter&#x27;s own sentences are now behind the city&#x27;s record. A new fatality is not something to leave to an automated redraft alone, so a human is flagged as well.&quot;
+  },
+  &quot;trigger&quot;: &quot;rehearsal&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:24:27+00:00&quot;
+}</pre></details>
   <footer class="entry-foot">
     <span class="meta-bit">2026-08-20T05:24:27+00:00</span>
     <span class="meta-bit">6th-and-stevenson</span>
@@ -2315,7 +3945,7 @@ body {
 </section>
 
   <footer class="colophon">
-    <p>Rendered 2026-08-20T05:53:49+00:00 from <code>state/journal.jsonl</code>. Static page, no
+    <p>Rendered 2026-08-20T06:13:25+00:00 from <code>state/journal.jsonl</code>. Static page, no
     scripts, no analytics, nothing fetched at view time.</p>
     <p>Counts come from San Francisco's open data portal within 80 metres of each corner:
     injury collisions over five years, filtered street-condition 311 reports over three.

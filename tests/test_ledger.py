@@ -9,6 +9,8 @@ page just starts lying by omission.
 
 from __future__ import annotations
 
+import re
+
 from watchdog.ledger import render_document, summarise
 
 
@@ -59,17 +61,37 @@ def test_the_page_prints_the_definition_beside_the_number():
     assert "50" in html
 
 
+def without_traces(html: str) -> str:
+    """The page as a reader sees it before opening any disclosure."""
+    return re.sub(r'<details class="trace">.*?</details>', "", html, flags=re.S)
+
+
 def test_a_decline_renders_with_its_reasoning_at_full_size():
     declined = entry(reason="Inside ordinary weekly variance for a corner this busy.")
     acted = entry(slug="6th-market", name="6th and Market", actions=["rescore"],
                   tier2={"reasoning": "the letter cites a figure that moved", "actions": ["rescore"]})
     html = render_document([declined, acted])
+    visible = without_traces(html)
 
-    assert "Inside ordinary weekly variance" in html
-    assert "No action taken." in html
+    # The reasoning and the outcome are in the open, not behind the disclosure.
+    assert "Inside ordinary weekly variance" in visible
+    assert "No action taken." in visible
     # Same element, same class, no collapsing and no separate thinner treatment.
     assert html.count('class="entry entry-') == 2
-    assert "<details" not in html and "display:none" not in html.replace(" ", "")
+    assert "display:none" not in html.replace(" ", "")
+
+
+def test_the_only_thing_behind_a_disclosure_is_the_raw_record():
+    """Expandable is fine. Hiding a decline's reasoning behind it is not."""
+    html = render_document([entry(reason="Inside ordinary weekly variance for a corner this busy.")])
+    assert html.count("<details") == 1
+    assert "The full journal record" in html
+    assert "Inside ordinary weekly variance" in without_traces(html)
+
+
+def test_declines_and_actions_get_the_same_number_of_disclosures():
+    html = render_document([entry(), entry(actions=["rescore"])])
+    assert html.count("<details") == 2
 
 
 def test_budget_intents_are_visible_on_the_page():
@@ -80,8 +102,8 @@ def test_budget_intents_are_visible_on_the_page():
 
 def test_degradation_is_stated_once_at_the_top():
     note = "Tier one ran as deterministic rules, not Gemma: no credentials."
-    html = render_document([entry(degraded=note), entry(degraded=note)])
-    assert html.count(note) == 3  # once in the notice, once per entry caveat
+    visible = without_traces(render_document([entry(degraded=note), entry(degraded=note)]))
+    assert visible.count(note) == 3  # once in the notice, once per entry caveat
 
 
 def test_rehearsal_is_walled_off_from_the_headline():
