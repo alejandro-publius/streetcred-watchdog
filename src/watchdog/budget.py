@@ -65,7 +65,7 @@ class Cost:
         }
 
     @staticmethod
-    def for_tiers(*tiers: str) -> "Cost":
+    def for_tiers(*tiers: str) -> Cost:
         prompt = out = 0
         for tier in tiers:
             if tier == "tier1":
@@ -100,7 +100,7 @@ class TokenBudget:
     refused: int = 0
 
     @staticmethod
-    def from_env() -> "TokenBudget":
+    def from_env() -> TokenBudget:
         raw = os.environ.get("DAILY_TOKEN_BUDGET", "0")
         try:
             limit = int(raw)
@@ -141,7 +141,7 @@ class ActionBudget:
     refused: list[str] = field(default_factory=list)
 
     @staticmethod
-    def from_env() -> "ActionBudget":
+    def from_env() -> ActionBudget:
         raw = os.environ.get("DAILY_ACTION_BUDGET", "40")
         try:
             limit = int(raw)

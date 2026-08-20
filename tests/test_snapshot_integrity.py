@@ -42,7 +42,7 @@ def corner(slug="taylor-and-turk"):
 
 
 class Fake:
-    def __init__(self, *snaps):
+    def __init__(self, *snaps) -> None:
         self.q = list(snaps)
 
     def describe(self):

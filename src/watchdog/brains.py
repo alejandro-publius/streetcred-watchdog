@@ -122,7 +122,8 @@ class RuleTriage:
                 significant=False,
                 reason=(
                     f"Street-condition reports {direction} by {swing}, which is ordinary week-to-week "
-                    f"variance at a corner this busy. The bar for a closer look is {calibration.reports_311_jump}. "
+                    "variance at a corner this busy. The bar for a closer look is "
+                    f"{calibration.reports_311_jump}. "
                     "Nothing here changes what the record says about this crossing."
                 ),
                 confidence=None,

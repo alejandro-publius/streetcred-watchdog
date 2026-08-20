@@ -63,7 +63,7 @@ def corner(slug="taylor-and-turk", name="Taylor and Turk"):
 class FakeFetcher:
     """Hands back prepared snapshots. Opens nothing."""
 
-    def __init__(self, *snapshots):
+    def __init__(self, *snapshots) -> None:
         self.queue = list(snapshots)
 
     def describe(self) -> str:

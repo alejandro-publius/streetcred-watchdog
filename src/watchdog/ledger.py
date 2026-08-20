@@ -211,8 +211,7 @@ def streak(entries: list[dict[str, Any]], *, today: str | None = None) -> dict[s
 
     first = _dt.date.fromisoformat(days[0])
     last = _dt.date.fromisoformat(today) if today else _dt.date.fromisoformat(days[-1])
-    if last < first:
-        last = first
+    last = max(last, first)
 
     ran_set = set(days)
     calendar = []
@@ -888,7 +887,7 @@ def render_body(
 ) -> str:
     rehearsal = rehearsal or []
     s = summarise(entries)
-    generated_at = generated_at or _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")
+    generated_at = generated_at or _dt.datetime.now(_dt.UTC).isoformat(timespec="seconds")
 
     held_pct = s["restraint"]
     acted_pct = 100 - held_pct if s["total"] else 0
@@ -1053,7 +1052,7 @@ def render_corner_body(
 ) -> str:
     corner = corner or {}
     name = corner.get("name") or (history[0].get("name") if history else slug) or slug
-    generated_at = generated_at or _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")
+    generated_at = generated_at or _dt.datetime.now(_dt.UTC).isoformat(timespec="seconds")
 
     if not history:
         body = (

@@ -40,7 +40,7 @@ class InjectedOutage(httpx.ConnectError):
 class FailingFetcher:
     """Every corner raises. Stands in for the source being unreachable."""
 
-    def __init__(self, message: str = "injected outage, DataSF was not actually contacted"):
+    def __init__(self, message: str = "injected outage, DataSF was not actually contacted") -> None:
         self.message = message
 
     def describe(self) -> str:
@@ -53,7 +53,7 @@ class FailingFetcher:
 class PartialFetcher:
     """Half the corners come back, the rest raise. The messier, likelier outage."""
 
-    def __init__(self, inner, fail_every: int = 2):
+    def __init__(self, inner, fail_every: int = 2) -> None:
         self.inner = inner
         self.fail_every = fail_every
 

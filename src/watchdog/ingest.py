@@ -41,7 +41,7 @@ class IngestResult:
 
 
 class StreetCredClient:
-    def __init__(self, origin: str | None = None, token: str | None = None):
+    def __init__(self, origin: str | None = None, token: str | None = None) -> None:
         self.origin = (origin or os.environ.get("STREETCRED_ORIGIN") or DEFAULT_ORIGIN).rstrip("/")
         # Read from the environment, which on Cloud Run is populated from Secret
         # Manager. Never written to a file, never logged, never journaled.
@@ -61,10 +61,10 @@ class StreetCredClient:
             )
             try:
                 body = r.json()
-            except Exception:
+            except Exception:  # noqa: BLE001 - a non-JSON body is a finding, not a crash
                 body = {"error": "non json response"}
             return IngestResult(r.status_code == 200, r.status_code, body)
-        except Exception as e:  # a failed post is journaled, never fatal
+        except Exception as e:  # noqa: BLE001 - a failed post is journaled, never fatal
             return IngestResult(False, 0, {"error": str(e)[:200]})
         finally:
             if owns:

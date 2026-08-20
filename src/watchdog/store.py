@@ -16,6 +16,7 @@ is; journal entries never are.
 
 from __future__ import annotations
 
+import contextlib
 import datetime as _dt
 import json
 import os
@@ -41,7 +42,7 @@ def _slug_filename(slug: str) -> str:
 class LocalJsonStore:
     """The Firestore stand-in. No account, no emulator, no network."""
 
-    def __init__(self, root: str | os.PathLike[str] = DEFAULT_STATE_DIR):
+    def __init__(self, root: str | os.PathLike[str] = DEFAULT_STATE_DIR) -> None:
         self.root = Path(root)
         self.snapshots_dir = self.root / "snapshots"
         self.quarantine_dir = self.root / "quarantine"
@@ -79,16 +80,14 @@ class LocalJsonStore:
 
     def _quarantine(self, path: Path, slug: str, reason: str) -> None:
         self.quarantine_dir.mkdir(parents=True, exist_ok=True)
-        stamp = _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+        stamp = _dt.datetime.now(_dt.UTC).strftime("%Y%m%dT%H%M%S%fZ")
         target = self.quarantine_dir / f"{_slug_filename(slug)[:-5]}.{stamp}.json"
-        try:
+        # Cannot move it, so at least do not pretend the baseline is fine.
+        with contextlib.suppress(OSError):
             path.replace(target)
-        except OSError:
-            # Cannot move it, so at least do not pretend the baseline is fine.
-            pass
         self.quarantined[slug] = reason
         with (self.root / "quarantine.log").open("a") as fh:
-            fh.write(f"{_dt.datetime.now(_dt.timezone.utc).isoformat(timespec='seconds')} "
+            fh.write(f"{_dt.datetime.now(_dt.UTC).isoformat(timespec='seconds')} "
                      f"{slug} -> {target.name}: {reason}\n")
 
     def put_snapshot(self, snapshot: Snapshot) -> None:

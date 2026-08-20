@@ -95,7 +95,9 @@ def test_declines_and_actions_get_the_same_number_of_disclosures():
 
 
 def test_budget_intents_are_visible_on_the_page():
-    html = render_document([entry(actions=["rescore"], intents=["would have redrafted the letter, budget reached"])])
+    html = render_document([
+        entry(actions=["rescore"], intents=["would have redrafted the letter, budget reached"])
+    ])
     assert "Budget refused" in html
     assert "would have redrafted the letter, budget reached" in html
 

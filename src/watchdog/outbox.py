@@ -32,7 +32,7 @@ def _safe(name: str) -> str:
 class DryRunActuator:
     """Renders what would be sent. Opens no sockets and holds no token."""
 
-    def __init__(self, root: str | Path = DEFAULT_OUTBOX, *, run_id: str = "run"):
+    def __init__(self, root: str | Path = DEFAULT_OUTBOX, *, run_id: str = "run") -> None:
         self.root = Path(root) / _safe(run_id)
         self.root.mkdir(parents=True, exist_ok=True)
         self.run_id = run_id
@@ -88,18 +88,24 @@ class DryRunActuator:
         )
         radius = int(corner.get("radiusMeters") or DEFAULT_RADIUS_M)
         paragraphs = [
-            f"In the last five years, San Francisco's own collision record holds "
-            f"{counts.collisions_5y} injury collisions within {radius} meters of {name}. {fatal_line}"
-            f"{severe_line} Over the last three years the city logged {counts.reports_311_3y} "
-            f"street-condition reports in the same {radius} meters: defects, broken lights, blocked "
-            "sidewalks, curb and sign faults. That three year window is this agent's own and is "
-            "longer than the roughly one year figure StreetCred's scoreboard shows, so the two "
-            "numbers are different quantities rather than a disagreement.",
+            (
+                f"In the last five years, San Francisco's own collision record holds "
+                f"{counts.collisions_5y} injury collisions within {radius} meters of {name}. "
+                f"{fatal_line}{severe_line} Over the last three years the city logged "
+                f"{counts.reports_311_3y} street-condition reports in the same {radius} meters: "
+                "defects, broken lights, blocked sidewalks, curb and sign faults. That three "
+                "year window is this agent's own and is longer than the roughly one year figure "
+                "StreetCred's scoreboard shows, so the two numbers are different quantities "
+                "rather than a disagreement."
+            ),
             f"This letter is being redrafted because the record moved. {delta.summary()}",
-            "Every figure above is read from DataSF and is checkable against it. Before a letter "
-            "like this is published, StreetCred recomputes each number from the corner's own "
-            "record and stores its own answer rather than this agent's, so a figure this agent "
-            "got wrong is caught on the other side of the wire rather than printed.",
+            (
+                "Every figure above is read from DataSF and is checkable against it. Before a "
+                "letter like this is published, StreetCred recomputes each number from the "
+                "corner's own record and stores its own answer rather than this agent's, so a "
+                "figure this agent got wrong is caught on the other side of the wire rather "
+                "than printed."
+            ),
         ]
         wrapped = "\n\n".join(textwrap.fill(p, width=88) for p in paragraphs)
         why = textwrap.fill(
@@ -107,7 +113,7 @@ class DryRunActuator:
         )
         body = f"""To: {addressee}
 Re: {name}
-Drafted: {_dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")}
+Drafted: {_dt.datetime.now(_dt.UTC).isoformat(timespec="seconds")}
 Status: DRY RUN. Not sent. Not posted. Rendered locally for review.
 
 {wrapped}
@@ -127,7 +133,7 @@ Filed by the Corner Watchdog, an automated monitor.
 Status: DRY RUN. Not sent. No imagery was fetched and none was analysed.
 
 Corner:    {name} ({slug})
-Requested: {_dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")}
+Requested: {_dt.datetime.now(_dt.UTC).isoformat(timespec="seconds")}
 
 What moved:
   {delta.summary()}
@@ -155,7 +161,7 @@ report, and the absence of one is not a clean bill of health.
             "slug": slug,
             "name": corner.get("name", slug),
             "reason": reason,
-            "raised": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds"),
+            "raised": _dt.datetime.now(_dt.UTC).isoformat(timespec="seconds"),
             "note": "A human is meant to read this. In a dry run nobody is paged.",
             "dry_run": True,
         }
@@ -170,7 +176,7 @@ report, and the absence of one is not a clean bill of health.
         an outbox that was never opened look the same on disk, and only one of
         them means the agent decided to leave everything alone.
         """
-        when = _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")
+        when = _dt.datetime.now(_dt.UTC).isoformat(timespec="seconds")
         listing = "\n".join(f"  {Path(p).name}" for p in sorted(self.written)) or "  (nothing)"
         body = f"""DRY RUN OUTBOX
 run:      {self.run_id}

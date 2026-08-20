@@ -81,7 +81,7 @@ class Actor:
         degraded: str | None = None,
         run_id: str | None = None,
         tokens: TokenBudget | None = None,
-    ):
+    ) -> None:
         self.tokens = tokens or TokenBudget()
         self.run_id = run_id
         self.store = store
@@ -193,4 +193,4 @@ def _merge_cost(tier1_cost: dict[str, Any] | None, tier2: Cost) -> dict[str, Any
 
 
 def _now() -> str:
-    return _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")
+    return _dt.datetime.now(_dt.UTC).isoformat(timespec="seconds")

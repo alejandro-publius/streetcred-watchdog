@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-from pathlib import Path
 
 from watchdog.rehearsal import SCENARIOS, _can_absorb, _lower, rehearse
 from watchdog.schema import Counts, Snapshot

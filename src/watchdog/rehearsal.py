@@ -25,11 +25,11 @@ Four containments keep it from ever being mistaken for an observation:
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from dataclasses import replace
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
-from .observer import Fetcher
 from .runner import run_cycle
 from .schema import Counts, Snapshot
 from .store import LocalJsonStore
@@ -70,7 +70,7 @@ def _can_absorb(snapshot: Snapshot, lower_by: dict[str, int]) -> bool:
 class ReplayFetcher:
     """Returns snapshots already on disk. Opens no sockets."""
 
-    def __init__(self, snapshots: dict[str, Snapshot]):
+    def __init__(self, snapshots: dict[str, Snapshot]) -> None:
         self.snapshots = snapshots
 
     def describe(self) -> str:

@@ -84,7 +84,7 @@ async def fetch_worst(
 
     return {
         "source": f"{origin}/api/city page 1, rows in StreetCred's published order",
-        "fetched_at": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds"),
+        "fetched_at": _dt.datetime.now(_dt.UTC).isoformat(timespec="seconds"),
         "sweep_date": payload.get("sweepDate"),
         "scoreboard_total": payload.get("total"),
         "count": len(corners),

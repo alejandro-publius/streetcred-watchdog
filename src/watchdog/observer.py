@@ -33,8 +33,8 @@ from typing import Any, Protocol
 
 import httpx
 
-from .datasf import DEFAULT_RADIUS_M, fetch_corner_records
 from .budget import Cost, TokenBudget
+from .datasf import DEFAULT_RADIUS_M, fetch_corner_records
 from .delta import diff_snapshots, rule_verdict
 from .ports import Bus, Store, Triage
 from .schema import Basis, Delta, JournalEntry, Snapshot, Tier1Verdict, Trigger
@@ -56,7 +56,7 @@ class Fetcher(Protocol):
 class DataSFFetcher:
     """The real one. Reads San Francisco's open data portal, no credentials."""
 
-    def __init__(self, concurrency: int = MAX_CONCURRENT_CORNERS):
+    def __init__(self, concurrency: int = MAX_CONCURRENT_CORNERS) -> None:
         self.concurrency = concurrency
 
     def describe(self) -> str:
@@ -119,7 +119,7 @@ class Observer:
         provenance: str | None = None,
         run_id: str | None = None,
         tokens: TokenBudget | None = None,
-    ):
+    ) -> None:
         self.tokens = tokens or TokenBudget()
         self.run_id = run_id
         self.store = store
@@ -200,9 +200,20 @@ class Observer:
         result.roster_drops = self.note_roster_drops(corners, trigger=trigger)
         fresh = await self.fetcher.fetch_all(corners)
 
+        # strict on purpose. A fetcher returning fewer results than it was given
+        # corners would otherwise truncate here in silence: the missing corners
+        # get no entry, no error and no mention, and the journal for that morning
+        # is indistinguishable from one where they were fine. Every other guard in
+        # this file exists to stop exactly that, so this one raises instead.
+        if len(fresh) != len(corners):
+            raise RuntimeError(
+                f"{self.fetcher.describe()} returned {len(fresh)} results for "
+                f"{len(corners)} corners. Refusing to sweep a set this does not cover."
+            )
+
         # Fetching is concurrent; deciding is not. Journal order, budget spending
         # and escalation order all need to be reproducible from the same inputs.
-        for corner, snapshot in zip(corners, fresh):
+        for corner, snapshot in zip(corners, fresh, strict=True):
             if isinstance(snapshot, BaseException):
                 # Not a partial failure but a total one. Record it as a corner we
                 # could not look at, which is different from a corner where
@@ -333,4 +344,4 @@ class Observer:
 
 
 def _now() -> str:
-    return _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")
+    return _dt.datetime.now(_dt.UTC).isoformat(timespec="seconds")

@@ -48,7 +48,10 @@ async def _ensure_watched(path: Path, count: int, origin: str) -> list[dict[str,
         corners = doc.get("corners") or []
         if corners:
             problem = watched_mod.verify(doc)
-            _p(f"  watched set: {len(corners)} corners from {path}, roster {doc.get('roster_hash', 'unhashed')}")
+            _p(
+                f"  watched set: {len(corners)} corners from {path}, "
+                f"roster {doc.get('roster_hash', 'unhashed')}"
+            )
             if problem:
                 _p(f"  WARNING: {problem}")
             return corners
@@ -229,7 +232,7 @@ async def _cmd_tick(args: argparse.Namespace) -> int:
 def report_stamp() -> str:
     import datetime as _dt
 
-    return _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    return _dt.datetime.now(_dt.UTC).strftime("%Y%m%dT%H%M%SZ")
 
 
 async def _cmd_schedule(args: argparse.Namespace) -> int:

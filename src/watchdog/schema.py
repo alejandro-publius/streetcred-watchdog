@@ -19,7 +19,8 @@ field that later reads as a fact.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field, asdict
+import math
+from dataclasses import asdict, dataclass, field
 from typing import Any, Literal
 
 SCHEMA_VERSION = "v1"
@@ -57,7 +58,7 @@ def _strict_int(value: Any, field: str) -> int:
         parsed = float(value)
     except (TypeError, ValueError):
         raise MalformedSnapshot(f"{field} is not a number: {value!r}") from None
-    if parsed != parsed or parsed in (float("inf"), float("-inf")):
+    if not math.isfinite(parsed):
         raise MalformedSnapshot(f"{field} is not a finite number: {value!r}")
     return int(parsed)
 
@@ -107,7 +108,7 @@ class Snapshot:
         return _clean(d)
 
     @staticmethod
-    def from_dict(d: dict[str, Any]) -> "Snapshot":
+    def from_dict(d: dict[str, Any]) -> Snapshot:
         """Read a stored document, or raise MalformedSnapshot.
 
         Deliberately strict about numbers and deliberately forgiving about
@@ -171,7 +172,10 @@ class Delta:
         if self.new_fatal:
             bits.append(f"{self.new_fatal} new fatal collision" + ("s" if self.new_fatal != 1 else ""))
         if self.new_severe:
-            bits.append(f"{self.new_severe} new severe injury collision" + ("s" if self.new_severe != 1 else ""))
+            bits.append(
+                f"{self.new_severe} new severe injury collision"
+                + ("s" if self.new_severe != 1 else "")
+            )
         plain = self.new_collisions - self.new_fatal - self.new_severe
         if plain > 0:
             bits.append(f"{plain} new injury collision" + ("s" if plain != 1 else ""))

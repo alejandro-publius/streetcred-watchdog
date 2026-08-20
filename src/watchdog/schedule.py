@@ -25,9 +25,10 @@ import json
 import os
 import socket
 import sys
+import time
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Iterator
 
 LOCK_NAME = "cycle.lock"
 LOCK_LOG = "locks.log"
@@ -60,7 +61,7 @@ def _note(state_dir: Path, message: str) -> None:
     let machine noise inflate the denominator of the restraint rate.
     """
     state_dir.mkdir(parents=True, exist_ok=True)
-    stamp = _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")
+    stamp = _dt.datetime.now(_dt.UTC).isoformat(timespec="seconds")
     with (state_dir / LOCK_LOG).open("a") as fh:
         fh.write(f"{stamp} {message}\n")
 
@@ -92,7 +93,7 @@ def cycle_lock(
     payload = json.dumps(
         {
             "pid": os.getpid(),
-            "started": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds"),
+            "started": _dt.datetime.now(_dt.UTC).isoformat(timespec="seconds"),
             "host": socket.gethostname(),
         }
     )
@@ -105,7 +106,7 @@ def cycle_lock(
         age = _lock_age_seconds(path)
         stale = bool(held.get("corrupt")) or age > stale_after or (pid and not _pid_alive(int(pid)))
         if not stale:
-            raise CycleAlreadyRunning(
+            raise CycleAlreadyRunning(  # noqa: B904 - a held lock is a state, not a wrapped error
                 f"a cycle started at {held.get('started')} by pid {pid} is still running"
             )
         _note(root, f"broke a stale lock held by pid {pid}, age {int(age)}s")
@@ -122,7 +123,10 @@ def cycle_lock(
 
 def _lock_age_seconds(path: Path) -> float:
     try:
-        return max(0.0, _dt.datetime.now().timestamp() - path.stat().st_mtime)
+        # time.time() rather than a naive datetime: this is a duration against a
+        # filesystem mtime, and a local-time clock would jump an hour at a DST
+        # boundary and either wedge the lock or break it early.
+        return max(0.0, time.time() - path.stat().st_mtime)
     except OSError:
         return float("inf")
 

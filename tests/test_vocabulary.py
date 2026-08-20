@@ -19,7 +19,7 @@ import asyncio
 import httpx
 import pytest
 
-from watchdog.datasf import KNOWN_SEVERITY_VALUES, SERVICE_NAMES, SEVERE_VALUES
+from watchdog.datasf import KNOWN_SEVERITY_VALUES, SERVICE_NAMES
 from watchdog.vocabulary import (
     PINNED_SERVICE_NAMES,
     PINNED_SEVERITY,
@@ -38,7 +38,7 @@ LIVE_OK = {
         "Injury (Other Visible)": 18715,
         "Injury (Severe)": 4638,
     },
-    "service_name": {name: 1 for name in SERVICE_NAMES},
+    "service_name": dict.fromkeys(SERVICE_NAMES, 1),
 }
 
 

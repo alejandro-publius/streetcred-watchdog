@@ -68,7 +68,7 @@ async def run_cycle(
     # produces numbers, and a wrong number is worse than a run that stopped.
     assert_pinned()
 
-    started = _dt.datetime.now(_dt.timezone.utc)
+    started = _dt.datetime.now(_dt.UTC)
     run_id = run_id or started.strftime("%Y%m%dT%H%M%SZ")
 
     store = store or LocalJsonStore(state_dir)
@@ -118,5 +118,5 @@ async def run_cycle(
     if callable(manifest):
         manifest()
 
-    report.finished = _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")
+    report.finished = _dt.datetime.now(_dt.UTC).isoformat(timespec="seconds")
     return report

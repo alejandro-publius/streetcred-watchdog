@@ -147,10 +147,10 @@ def _iso_years_ago(years: int, now: _dt.datetime | None = None) -> str:
     here because both sides of any comparison use the same rule, and it is
     recorded in the query fingerprint if it ever changes.
     """
-    now = now or _dt.datetime.now(_dt.timezone.utc)
+    now = now or _dt.datetime.now(_dt.UTC)
     if now.tzinfo is None:
-        now = now.replace(tzinfo=_dt.timezone.utc)
-    return (now.astimezone(_dt.timezone.utc) - _dt.timedelta(days=365 * years)).strftime(
+        now = now.replace(tzinfo=_dt.UTC)
+    return (now.astimezone(_dt.UTC) - _dt.timedelta(days=365 * years)).strftime(
         "%Y-%m-%dT%H:%M:%S"
     )
 
@@ -232,11 +232,17 @@ async def fetch_corner_records(
     collisions = fatal = severe = reports = 0
     district_rows: list[dict] = []
 
-    async def _try(coro, label: str):
+    async def _try(coro: Any, label: str) -> Any:
+        """Await one lane. A failure marks the whole snapshot partial, never raises.
+
+        `label` is unused and kept deliberately: it names the lane at the call
+        site, which is the only place a reader can tell the five near-identical
+        SoQL calls apart.
+        """
         nonlocal complete
         try:
             return await coro
-        except Exception:
+        except Exception:  # noqa: BLE001 - any lane failure marks the snapshot partial
             complete = False
             return None
 
@@ -326,7 +332,7 @@ async def fetch_corner_records(
             reports_311_3y=reports,
             district=district,
         ),
-        fetched_at=_dt.datetime.now(_dt.timezone.utc).isoformat(),
+        fetched_at=_dt.datetime.now(_dt.UTC).isoformat(),
         complete=complete,
         query_fingerprint=query_fingerprint(radius_m),
     )

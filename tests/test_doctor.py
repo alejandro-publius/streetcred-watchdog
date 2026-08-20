@@ -16,13 +16,12 @@ import asyncio
 import json
 
 import httpx
-import pytest
 
+from watchdog.datasf import query_fingerprint
 from watchdog.doctor import FAIL, PASS, WARN, Check, render, run_checks
 from watchdog.roster import roster_hash
 from watchdog.schema import Counts, Snapshot
 from watchdog.store import LocalJsonStore
-from watchdog.datasf import query_fingerprint
 
 
 def by_name(checks, name):

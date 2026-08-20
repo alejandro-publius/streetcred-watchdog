@@ -38,3 +38,38 @@ testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 110
+
+[tool.ruff.lint]
+# Chosen for what they catch in this specific codebase rather than for
+# completeness. Four of them earn their place outright:
+#
+#   B905  zip without strict. The sweep zips corners against fetch results, and a
+#         short result list would silently drop corners from the sweep with no
+#         entry written anywhere. Exactly the invisible failure this repo exists
+#         to prevent.
+#   DTZ   naive datetimes. Every window boundary in this agent is UTC on purpose,
+#         and a naive one would move by an hour twice a year.
+#   BLE   blind excepts. Several are deliberate here, and each of those now
+#         carries a noqa with the reason, which is the point: the rule turns an
+#         invisible habit into a decision somebody wrote down.
+#   RUF   catches the unused unpacked variable that hid a real omission.
+#
+# Formatting is deliberately not enforced. `ruff format` would reflow comment
+# blocks that are laid out to be read, and in this repo the comments are half
+# the artefact.
+select = [
+    "E", "F", "W", "I", "UP", "B", "SIM", "C4", "RET", "TID",
+    "DTZ", "BLE", "ISC", "RUF", "PIE", "ANN204", "PLR0124", "PLR1730",
+]
+ignore = [
+    # Early returns read better than the alternative in the guard-heavy code here.
+    "RET504",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests build deliberately malformed inputs and assert on them.
+"tests/*" = ["B015", "RUF059"]
+# ledger.py is mostly HTML templates inside triple-quoted f-strings. A noqa
+# comment cannot go on a line inside a string literal, and wrapping mid-tag makes
+# the generated markup worse to read than the source it came from.
+"src/watchdog/ledger.py" = ["E501"]

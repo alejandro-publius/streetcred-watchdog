@@ -23,10 +23,14 @@ from typing import Any, NoReturn
 from .schema import Counts, Delta
 
 BLOCKERS = (
-    "WATCHDOG_INGEST_TOKEN is not provisioned, and the matching secret is not set on "
-    "StreetCred's Worker",
-    "StreetCred's /api/agent/report has not been deployed, so there is nothing on the far side "
-    "to recompute the agent's arithmetic and dispute it",
+    (
+        "WATCHDOG_INGEST_TOKEN is not provisioned, and the matching secret is not set on "
+        "StreetCred's Worker"
+    ),
+    (
+        "StreetCred's /api/agent/report has not been deployed, so there is nothing on the far "
+        "side to recompute the agent's arithmetic and dispute it"
+    ),
     "no human has read a full dry-run outbox end to end and agreed with every letter in it",
 )
 

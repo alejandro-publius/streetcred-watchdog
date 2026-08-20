@@ -16,8 +16,6 @@ from __future__ import annotations
 
 import asyncio
 
-import pytest
-
 from watchdog.actor import Actor
 from watchdog.brains import RuleDecider, RuleTriage
 from watchdog.budget import (
@@ -52,7 +50,7 @@ def corner():
 
 
 class Fake:
-    def __init__(self, *snaps):
+    def __init__(self, *snaps) -> None:
         self.q = list(snaps)
 
     def describe(self):

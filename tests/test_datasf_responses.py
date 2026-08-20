@@ -18,14 +18,12 @@ from __future__ import annotations
 
 import asyncio
 import datetime as _dt
-import json
 
 import httpx
 import pytest
 
 from watchdog.datasf import (
     DS_311,
-    DS_CRASHES,
     _as_int,
     _count_value,
     _iso_years_ago,
@@ -33,7 +31,7 @@ from watchdog.datasf import (
     fetch_corner_records,
 )
 
-CORNER = dict(slug="taylor-and-turk", name="Taylor and Turk", lat=37.7835, lon=-122.4110)
+CORNER = {"slug": "taylor-and-turk", "name": "Taylor and Turk", "lat": 37.7835, "lon": -122.4110}
 
 
 def transport(handler):
@@ -303,22 +301,22 @@ def test_sum_value_treats_an_absent_key_as_zero_but_an_absent_row_as_unknown():
 # --------------------------------------------------------------------- the clock
 
 def test_the_window_is_computed_in_utc_whatever_the_local_clock_says():
-    pacific_midnight = _dt.datetime(2026, 8, 20, 7, 0, 0, tzinfo=_dt.timezone.utc)
+    pacific_midnight = _dt.datetime(2026, 8, 20, 7, 0, 0, tzinfo=_dt.UTC)
     assert _iso_years_ago(5, pacific_midnight) == "2021-08-21T07:00:00"
 
 
 def test_one_minute_either_side_of_pacific_midnight_moves_the_window_by_one_minute():
     """It must move smoothly, not jump a day, which is what a local-time anchor does."""
-    before = _dt.datetime(2026, 8, 20, 6, 59, tzinfo=_dt.timezone.utc)
-    after = _dt.datetime(2026, 8, 20, 7, 1, tzinfo=_dt.timezone.utc)
+    before = _dt.datetime(2026, 8, 20, 6, 59, tzinfo=_dt.UTC)
+    after = _dt.datetime(2026, 8, 20, 7, 1, tzinfo=_dt.UTC)
     assert _iso_years_ago(5, before) == "2021-08-21T06:59:00"
     assert _iso_years_ago(5, after) == "2021-08-21T07:01:00"
 
 
 def test_the_spring_dst_transition_does_not_shift_the_window_by_an_hour():
     """2026-03-08 is when Pacific springs forward. UTC does not care, and neither must this."""
-    before = _dt.datetime(2026, 3, 8, 9, 30, tzinfo=_dt.timezone.utc)
-    after = _dt.datetime(2026, 3, 8, 10, 30, tzinfo=_dt.timezone.utc)
+    before = _dt.datetime(2026, 3, 8, 9, 30, tzinfo=_dt.UTC)
+    after = _dt.datetime(2026, 3, 8, 10, 30, tzinfo=_dt.UTC)
     delta = _dt.datetime.fromisoformat(_iso_years_ago(3, after)) - _dt.datetime.fromisoformat(
         _iso_years_ago(3, before)
     )
@@ -326,12 +324,12 @@ def test_the_spring_dst_transition_does_not_shift_the_window_by_an_hour():
 
 
 def test_a_naive_datetime_is_treated_as_utc_rather_than_local():
-    naive = _dt.datetime(2026, 8, 20, 7, 0, 0)
-    aware = _dt.datetime(2026, 8, 20, 7, 0, 0, tzinfo=_dt.timezone.utc)
+    naive = _dt.datetime(2026, 8, 20, 7, 0, 0)  # noqa: DTZ001 - naive is the point of this test
+    aware = _dt.datetime(2026, 8, 20, 7, 0, 0, tzinfo=_dt.UTC)
     assert _iso_years_ago(5, naive) == _iso_years_ago(5, aware)
 
 
 def test_the_window_start_is_always_in_the_past():
-    now = _dt.datetime(2026, 8, 20, 12, 0, tzinfo=_dt.timezone.utc)
+    now = _dt.datetime(2026, 8, 20, 12, 0, tzinfo=_dt.UTC)
     for years in (1, 3, 5, 10):
         assert _dt.datetime.fromisoformat(_iso_years_ago(years, now)) < now.replace(tzinfo=None)

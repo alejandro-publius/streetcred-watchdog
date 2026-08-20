@@ -29,15 +29,14 @@ import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 import httpx
 
 from . import vocabulary
 from .brains import vertex_is_configured
 from .datasf import BASE, DS_311, DS_CRASHES, query_fingerprint
-from .schema import MalformedSnapshot, Snapshot
 from .schedule import read_lock
+from .schema import MalformedSnapshot, Snapshot
 from .store import LocalJsonStore
 from .watched import verify as verify_roster
 
@@ -240,7 +239,7 @@ async def _network_checks(origin: str, client: httpx.AsyncClient | None = None) 
                         f"HTTP {r.status_code} in {took:.2f}s",
                     )
                 )
-            except Exception as e:  # a source being down is a finding, not a crash
+            except Exception as e:  # noqa: BLE001 - a source being down is a finding, not a crash
                 out.append(Check(label, FAIL, f"{type(e).__name__}: {str(e)[:80]}"))
 
         try:
@@ -255,7 +254,7 @@ async def _network_checks(origin: str, client: httpx.AsyncClient | None = None) 
                     "every filtered value present",
                 )
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - the doctor reports failures, never raises them
             out.append(Check("query vocabulary, live", WARN, f"could not check: {type(e).__name__}"))
     finally:
         if owns:

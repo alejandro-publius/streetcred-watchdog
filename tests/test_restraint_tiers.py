@@ -14,12 +14,12 @@ from __future__ import annotations
 
 import asyncio
 
+from watchdog.brains import RuleTriage
 from watchdog.bus import DirectBus
 from watchdog.ledger import render_document, summarise
 from watchdog.observer import Observer
-from watchdog.schema import UNJUDGED_BASES, Calibration, Counts, Delta, Snapshot, Tier1Verdict
+from watchdog.schema import UNJUDGED_BASES, Counts, Snapshot, Tier1Verdict
 from watchdog.store import LocalJsonStore
-from watchdog.brains import RuleTriage
 
 
 def snap(*, collisions=40, fatal=1, severe=3, reports=120, complete=True) -> Snapshot:
@@ -39,7 +39,7 @@ def corner():
 
 
 class Fake:
-    def __init__(self, *snaps):
+    def __init__(self, *snaps) -> None:
         self.q = list(snaps)
 
     def describe(self):

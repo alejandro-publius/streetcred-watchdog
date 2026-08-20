@@ -42,18 +42,15 @@ def test_the_lock_records_who_holds_it(tmp_path):
 
 
 def test_a_second_cycle_is_refused_while_the_first_runs(tmp_path):
-    with cycle_lock(tmp_path):
-        with pytest.raises(CycleAlreadyRunning) as e:
-            with cycle_lock(tmp_path):
-                raise AssertionError("the second cycle should never have got in")
+    with cycle_lock(tmp_path), pytest.raises(CycleAlreadyRunning) as e, cycle_lock(tmp_path):
+        raise AssertionError("the second cycle should never have got in")
     assert "still running" in str(e.value)
 
 
 def test_the_lock_is_released_even_when_the_cycle_raises(tmp_path):
     """A crashed cycle must not wedge the schedule until somebody notices."""
-    with pytest.raises(ValueError):
-        with cycle_lock(tmp_path):
-            raise ValueError("the sweep blew up")
+    with pytest.raises(ValueError), cycle_lock(tmp_path):
+        raise ValueError("the sweep blew up")
     assert not (tmp_path / LOCK_NAME).exists()
 
 

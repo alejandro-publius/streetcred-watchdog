@@ -19,7 +19,6 @@ decided to act and was stopped is not exercising restraint.
 from __future__ import annotations
 
 import asyncio
-import json
 
 import pytest
 
