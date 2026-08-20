@@ -72,6 +72,10 @@ step "adk claims"
 "$PY" tools/check_adk_claims.py
 report $? "documentation matches what src/ imports"
 
+step "copy map"
+"$PY" tools/check_copy_map.py
+report $? "each mapped block is in its one home"
+
 step "prose"
 # The house rule. Checked because it is the kind of thing that creeps back in one
 # paste at a time.

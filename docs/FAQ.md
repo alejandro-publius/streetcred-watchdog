@@ -22,9 +22,8 @@ interesting variable here. Whether you can trust what they wrote down is.
 
 ## Why are the declines the product?
 
-The argument is in the README, under "Why the declines are the product": an agent
-that only publishes its actions is showing you a highlight reel, and the hard part
-is the deciding not to.
+The main argument is in the README, under "Why the declines are the product",
+and is not repeated here.
 
 There is a second reason, less flattering, and it is only here. The failure mode of an automated
 monitor is not silence, it is confident noise. A system that redrafts a letter
