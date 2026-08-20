@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>dev.watchdog.cycle</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/alexvintera/streetcred-watchdog/.venv/bin/python</string>
+    <string>-m</string>
+    <string>watchdog</string>
+    <string>tick</string>
+  </array>
+  <key>WorkingDirectory</key><string>/Users/alexvintera/streetcred-watchdog</string>
+  <key>StartInterval</key><integer>21600</integer>
+  <!-- Deliberately false. A cycle that fires the moment the laptop wakes,
+       every time, turns a schedule into a burst and spends DataSF's
+       goodwill for nothing. Missing a window is fine; the next one
+       compares against the same stored baseline either way. -->
+  <key>RunAtLoad</key><false/>
+  <key>StandardOutPath</key><string>/Users/alexvintera/streetcred-watchdog/state/schedule.out.log</string>
+  <key>StandardErrorPath</key><string>/Users/alexvintera/streetcred-watchdog/state/schedule.err.log</string>
+</dict>
+</plist>

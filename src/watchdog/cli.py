@@ -23,6 +23,7 @@ from typing import Any
 
 from . import ledger as ledger_mod
 from . import roster as roster_mod
+from . import schedule as schedule_mod
 from . import watched as watched_mod
 from .rehearsal import rehearse
 from .runner import run_cycle
@@ -163,6 +164,69 @@ async def _cmd_rehearse(args: argparse.Namespace) -> int:
     )
 
 
+async def _cmd_tick(args: argparse.Namespace) -> int:
+    """One cycle, safe to run from launchd or cron.
+
+    Differs from `run` in exactly two ways that matter to a scheduler: it takes
+    the cycle lock so it can never overlap with another run, and it is terse
+    enough that a log file of these is readable.
+    """
+    try:
+        with schedule_mod.cycle_lock(args.state):
+            corners = await _ensure_watched(Path(args.watched), args.count, args.origin)
+            report = await run_cycle(
+                corners,
+                state_dir=args.state,
+                outbox_dir=args.outbox,
+                run_id=f"tick-{report_stamp()}",
+                trigger="cron",
+            )
+            s, a = report.sweep, report.actor
+            _p(
+                f"{report.finished} looked at {s.looked_at}, escalated {s.escalated}, "
+                f"declined {s.declined}, acted {a.acted}, artefacts {len(a.artefacts)}"
+            )
+            if s.roster_drops:
+                _p(f"{report.finished} no longer watching: {', '.join(s.roster_drops)}")
+            ledger_mod.render_to_file(
+                state_dir=args.state, out_path=args.ledger, rehearsal_dir=args.rehearsal_state
+            )
+        return 0
+    except schedule_mod.CycleAlreadyRunning as e:
+        # Not a failure. The scheduler fired while a cycle was still going, which
+        # is the case the lock exists for.
+        _p(f"skipped, {e}")
+        return 4
+
+
+def report_stamp() -> str:
+    import datetime as _dt
+
+    return _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+
+
+async def _cmd_schedule(args: argparse.Namespace) -> int:
+    repo = Path.cwd()
+    python = schedule_mod.default_python()
+    out = Path(args.schedule_out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(schedule_mod.plist(repo=repo, python=python, hour_interval=args.every_hours))
+
+    _p(f"wrote {out}")
+    _p("")
+    _p("crontab line:")
+    _p(f"  {schedule_mod.crontab_line(repo=repo, python=python, hour_interval=args.every_hours)}")
+    _p("")
+    for line in schedule_mod.install_instructions(plist_path=out):
+        _p(line)
+
+    held = schedule_mod.read_lock(args.state)
+    if held:
+        _p("")
+        _p(f"note: a cycle lock is currently held: {held}")
+    return 0
+
+
 async def _cmd_ledger(args: argparse.Namespace) -> int:
     out = ledger_mod.render_to_file(
         state_dir=args.state, out_path=args.ledger, rehearsal_dir=args.rehearsal_state
@@ -206,6 +270,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="exercise the action path offline against a constructed baseline, kept out of the real journal",
     )
     r.set_defaults(fn=_cmd_rehearse)
+
+    t = sub.add_parser("tick", help="one cycle under the lock, safe for launchd or cron")
+    t.set_defaults(fn=_cmd_tick)
+
+    sc = sub.add_parser(
+        "schedule", help="render the launchd and cron configuration, install nothing"
+    )
+    sc.add_argument("--every-hours", type=int, default=6)
+    sc.add_argument("--schedule-out", default="ops/dev.watchdog.cycle.plist")
+    sc.set_defaults(fn=_cmd_schedule)
 
     lg = sub.add_parser("ledger", help="re-render the ledger from the journal on disk")
     lg.set_defaults(fn=_cmd_ledger)
