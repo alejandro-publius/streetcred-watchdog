@@ -201,10 +201,12 @@ def test_an_entry_with_no_basis_counts_as_observed_never_as_weighed():
     html = render_document([bare] * 4)
     assert "None of these 4 declines involved a judgment call" in html
     assert "basis not recorded, older entry" in html
-    # The stylesheet always defines both classes; what matters is which one an
-    # actual breakdown row carries.
-    assert 'class="split-tag split-judged"' not in html
-    assert 'class="split-tag split-observed"' in html
+    # Scoped to the restraint breakdown: the spend section further down uses the
+    # same tag classes for a different distinction, measured versus projected.
+    import re
+    block = re.search(r'<div class="breakdown breakdown-restraint">.*?</div>', html, re.S).group(0)
+    assert 'class="split-tag split-judged"' not in block
+    assert 'class="split-tag split-observed"' in block
 
 
 def test_an_acted_entry_is_not_counted_as_a_decline():

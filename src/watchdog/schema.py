@@ -203,6 +203,7 @@ Basis = Literal[
     "rule_severe",      # a new severe injury, same
     "triage",           # tier one weighed an ambiguous change
     "triage_defer",     # tier one weighed it and did not trust the evidence
+    "budget_exhausted", # the token budget was spent, so no tier was consulted
 ]
 
 # The bases that a rule settled without any judgment being exercised. Kept as a
@@ -217,6 +218,7 @@ UNJUDGED_BASES = frozenset(
         "methodology",
         "roster_drop",
         "corrupt_baseline",
+        "budget_exhausted",
         # Journal entries written before this field existed. They belong here and
         # not on the other side: a missing field must never be able to inflate
         # the claim that something exercised judgment.
@@ -280,6 +282,9 @@ class JournalEntry:
     # by a calm city.
     intents: list[str] = field(default_factory=list)
     degraded: str | None = None
+    # What consulting the tiers cost, or would have cost. Zero actual on every
+    # entry this repo has written, because no model has ever been called.
+    cost: dict[str, Any] | None = None
     # Which cycle wrote this. Lets the ledger group entries into cycles and say
     # how many of the watched corners a cycle actually reached, which is the
     # difference between a quiet morning and a run that died halfway.
@@ -298,6 +303,7 @@ class JournalEntry:
             "intents": list(self.intents),
             "degraded": self.degraded,
             "runId": self.run_id,
+            "cost": self.cost,
         })
 
     def to_ingest_payload(self) -> dict[str, Any]:

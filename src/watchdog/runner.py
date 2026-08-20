@@ -15,7 +15,7 @@ from typing import Any
 
 from .actor import Actor, ActorResult
 from .brains import select_brains
-from .budget import ActionBudget
+from .budget import ActionBudget, TokenBudget
 from .bus import DirectBus
 from .observer import Fetcher, Observer, SweepResult
 from .outbox import DryRunActuator
@@ -78,12 +78,13 @@ async def run_cycle(
     degraded = " ".join(p for p in (extra_degradation, model_note) if p) or None
     act: Actuator = actuator or DryRunActuator(outbox_dir, run_id=run_id)
     budget = ActionBudget.from_env()
+    tokens = TokenBudget.from_env()
 
     observer = Observer(
         store, bus, triage, fetcher=fetcher, degraded=model_note,
-        provenance=extra_degradation, run_id=run_id
+        provenance=extra_degradation, run_id=run_id, tokens=tokens
     )
-    actor = Actor(store, decider, act, budget, degraded=degraded, run_id=run_id)
+    actor = Actor(store, decider, act, budget, degraded=degraded, run_id=run_id, tokens=tokens)
     bus.subscribe(actor.handle)
 
     report = CycleReport(
@@ -99,6 +100,10 @@ async def run_cycle(
             "decider": decider.describe(),
             "actuator": act.describe(),
             "budget": f"{budget.limit} actions for the day",
+            "tokens": (
+                f"{tokens.limit} projected tokens for the day"
+                if tokens.capped else "no token ceiling set"
+            ),
         },
     )
 

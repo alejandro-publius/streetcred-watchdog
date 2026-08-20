@@ -34,6 +34,7 @@ from typing import Any, Protocol
 import httpx
 
 from .datasf import DEFAULT_RADIUS_M, fetch_corner_records
+from .budget import Cost, TokenBudget
 from .delta import diff_snapshots, rule_verdict
 from .ports import Bus, Store, Triage
 from .schema import Basis, Delta, JournalEntry, Snapshot, Tier1Verdict, Trigger
@@ -90,6 +91,7 @@ class SweepResult:
     first_sightings: int = 0
     roster_drops: list[str] = field(default_factory=list)
     quarantined: list[str] = field(default_factory=list)
+    token_refusals: int = 0
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -101,6 +103,7 @@ class SweepResult:
             "first_sightings": self.first_sightings,
             "roster_drops": self.roster_drops,
             "quarantined": self.quarantined,
+            "token_refusals": self.token_refusals,
         }
 
 
@@ -115,7 +118,9 @@ class Observer:
         degraded: str | None = None,
         provenance: str | None = None,
         run_id: str | None = None,
+        tokens: TokenBudget | None = None,
     ):
+        self.tokens = tokens or TokenBudget()
         self.run_id = run_id
         self.store = store
         self.bus = bus
@@ -259,6 +264,7 @@ class Observer:
                 result.first_sightings += 1
 
             calibration = self.store.get_calibration()
+            cost = Cost()
             ruled = rule_verdict(delta, calibration)
             if ruled is not None:
                 significant, reason = ruled
@@ -269,8 +275,27 @@ class Observer:
                     basis=self._basis(old, delta, by_rule=True),
                 )
             else:
-                judged = await self.triage.judge(delta, corner, calibration)
-                verdict = replace(judged, basis=judged.basis or "triage")
+                # The one place tier one would cost money. Reserve before
+                # consulting, so an exhausted budget produces an entry saying the
+                # tier was not consulted rather than one quietly over the cap.
+                projected = Cost.for_tiers("tier1")
+                if self.tokens.take(projected):
+                    judged = await self.triage.judge(delta, corner, calibration)
+                    verdict = replace(judged, basis=judged.basis or "triage")
+                    cost = projected
+                else:
+                    result.token_refusals += 1
+                    verdict = Tier1Verdict(
+                        significant=False,
+                        reason=(
+                            "The projected token budget for the day is spent, so this change was "
+                            "not sent to triage at all. That is not a judgment that it does not "
+                            "matter; nothing looked at it."
+                        ),
+                        by_rule=True,
+                        basis="budget_exhausted",
+                    )
+                    cost = Cost()
 
             if not verdict.significant:
                 result.declined += 1
@@ -284,6 +309,7 @@ class Observer:
                         tier1=verdict,
                         degraded=self._caveat(verdict.by_rule),
                         run_id=self.run_id,
+                        cost=cost.to_dict(),
                     )
                 )
                 continue
@@ -299,6 +325,7 @@ class Observer:
                     "delta_summary": delta.summary(),
                     "counts": snapshot.counts.to_dict(),
                     "tier1": verdict.to_dict(),
+                    "cost": cost.to_dict(),
                 }
             )
 

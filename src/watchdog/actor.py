@@ -18,7 +18,7 @@ import datetime as _dt
 from dataclasses import dataclass, field
 from typing import Any
 
-from .budget import ActionBudget
+from .budget import ActionBudget, Cost, TokenBudget
 from .ports import Actuator, Decider, Store
 from .schema import Counts, Delta, JournalEntry, Tier1Verdict, Tier2Decision
 
@@ -78,7 +78,9 @@ class Actor:
         *,
         degraded: str | None = None,
         run_id: str | None = None,
+        tokens: TokenBudget | None = None,
     ):
+        self.tokens = tokens or TokenBudget()
         self.run_id = run_id
         self.store = store
         self.decider = decider
@@ -99,6 +101,24 @@ class Actor:
             by_rule=bool(t1.get("byRule")),
             basis=t1.get("basis"),
         )
+
+        projected = Cost.for_tiers("tier2")
+        if not self.tokens.take(projected):
+            # Not deliberated, not declined. Nothing looked at it, and the entry
+            # has to say that rather than let an unspent thought read as restraint.
+            note = self.tokens.exhausted_note("deliberation")
+            self.result.intents.append(note)
+            self.store.append_journal(
+                JournalEntry(
+                    ts=_now(), slug=corner.get("slug"), name=corner.get("name"),
+                    delta=envelope.get("delta_summary") or delta.summary(),
+                    trigger=envelope.get("trigger", "manual"), tier1=tier1,
+                    intents=[note], degraded=self.degraded,
+                    run_id=envelope.get("runId") or self.run_id,
+                    cost=Cost().to_dict(),
+                )
+            )
+            return
 
         self.result.deliberated += 1
         decision: Tier2Decision = await self.decider.decide(delta, corner, counts, tier1.reason)
@@ -134,6 +154,7 @@ class Actor:
                 intents=intents,
                 degraded=self.degraded,
                 run_id=envelope.get("runId") or self.run_id,
+                cost=_merge_cost(envelope.get("cost"), projected),
             )
         )
 
@@ -151,6 +172,18 @@ class Actor:
         # An action the actuator does not implement is a bug in the decider, and
         # silently ignoring it would hide that bug behind a clean-looking run.
         raise ValueError(f"decider returned an action with no actuator verb: {action!r}")
+
+
+def _merge_cost(tier1_cost: dict[str, Any] | None, tier2: Cost) -> dict[str, Any]:
+    """Tier one's projection travels on the envelope; tier two's is added here."""
+    if not tier1_cost:
+        return tier2.to_dict()
+    merged = dict(tier1_cost)
+    merged["projectedPromptTokens"] = merged.get("projectedPromptTokens", 0) + tier2.projected_prompt_tokens
+    merged["projectedOutputTokens"] = merged.get("projectedOutputTokens", 0) + tier2.projected_output_tokens
+    merged["tiersConsulted"] = list(merged.get("tiersConsulted", [])) + list(tier2.tiers_consulted)
+    merged["projectionOnly"] = merged.get("actualTokens", 0) == 0
+    return merged
 
 
 def _now() -> str:
