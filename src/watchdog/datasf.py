@@ -123,7 +123,7 @@ def query_fingerprint(radius_m: int) -> str:
     morning, with reasoning attached, and nothing would have flagged it.
 
     Deliberately human readable rather than a hash, because the journal entry
-    that refuses a comparison prints it, and "r=150m" tells a reader what
+    that refuses a comparison prints it, and "r=80m" tells a reader what
     happened where "a3f19c" does not.
     """
     severe = "+".join(sorted(SEVERE_VALUES))

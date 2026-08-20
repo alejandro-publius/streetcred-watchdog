@@ -67,7 +67,9 @@ both windows, the severity vocabulary and the size of the 311 allow list.
 with the basis `methodology`.
 
 **Rejected:** a hash. The journal entry that refuses a comparison prints the
-fingerprint, and `r=150m` tells a reader what happened where `a3f19c` does not.
+fingerprint, and `r=80m;collisions=5y;...` tells a reader what happened where
+`a3f19c` does not. Worth noting that no entry ever printed `r=150m`: the pre-change
+baselines predated the field, so every refusal reads `not recorded then r=80m...`.
 
 **Verified by running it:** the cycle after the radius change journaled 25 refusals
 and took no action. Each names the new fingerprint and records the old side as
