@@ -13,7 +13,7 @@ build/
 # agent, not by editing a file, so it is not committed. The rendered ledger in
 # docs/ is committed because it is the reviewable output of a run.
 state/
-state-rehearsal/
+state-*/
 outbox/
 # Never let a filled-in credential file near a commit.
 *.key

@@ -57,10 +57,36 @@ DEFAULT_RADIUS_M = 150
 COLLISION_YEARS = 5
 REPORTS_YEARS = 3
 
+# Every value collision_severity actually takes in ubvf-ztfx, read off the
+# dataset itself on 2026-08-19 with:
+#
+#   curl -sG https://data.sfgov.org/resource/ubvf-ztfx.json \
+#     --data-urlencode '$select=collision_severity,count(*)' \
+#     --data-urlencode '$group=collision_severity'
+#
+# Written down because guessing at it is what went wrong. This list is not used
+# to build a query; it exists so a test can assert that the filter below only
+# ever names categories the dataset has.
+KNOWN_SEVERITY_VALUES = (
+    "Fatal",
+    "Injury (Severe)",
+    "Injury (Other Visible)",
+    "Injury (Complaint of Pain)",
+)
+
 # Severity values that count as severe. StreetCred's score weights these
 # separately from visible injuries; the agent needs them because a new severe
 # injury is a rule-level escalation.
-SEVERE_VALUES = ("Severe Injury", "Suspected Serious Injury")
+#
+# This constant was wrong from the first commit until 2026-08-19. It read
+# ("Severe Injury", "Suspected Serious Injury"), which are the CHP SWITRS names
+# for these categories and are not what DataSF publishes. Nothing failed. The
+# query was valid, matched no rows, and returned a clean zero for every corner
+# on every sweep, which made "any new severe injury is significant by rule" a
+# rule that could never fire. A guessed string literal in a WHERE clause is the
+# purest form of the failure this repo is written against: no error, a number,
+# and the number is false.
+SEVERE_VALUES = ("Injury (Severe)",)
 
 
 def _iso_years_ago(years: int) -> str:

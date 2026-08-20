@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import datetime as _dt
 import json
+import textwrap
 from pathlib import Path
 from typing import Any
 
@@ -77,30 +78,39 @@ class DryRunActuator:
         district = counts.district if counts.district is not None else corner.get("district")
         addressee = f"Supervisor, District {district}" if district else "the Board of Supervisors"
         fatal_line = (
-            f"{counts.fatal_5y} of those collisions killed someone. "
+            f"{counts.fatal_5y} of those collisions killed someone."
             if counts.fatal_5y
-            else "None of those collisions killed anyone. "
+            else "None of those collisions killed anyone."
+        )
+        severe_line = (
+            f" {counts.severe_5y} left someone with a severe injury." if counts.severe_5y else ""
+        )
+        paragraphs = [
+            f"In the last five years, San Francisco's own collision record holds "
+            f"{counts.collisions_5y} injury collisions within 150 meters of {name}. {fatal_line}"
+            f"{severe_line} Over the last three years the city logged {counts.reports_311_3y} "
+            "street-condition reports in the same 150 meters: defects, broken lights, blocked "
+            "sidewalks, curb and sign faults.",
+            f"This letter is being redrafted because the record moved. {delta.summary()}",
+            "Every figure above is read from DataSF and is checkable against it. Before a letter "
+            "like this is published, StreetCred recomputes each number from the corner's own "
+            "record and stores its own answer rather than this agent's, so a figure this agent "
+            "got wrong is caught on the other side of the wire rather than printed.",
+        ]
+        wrapped = "\n\n".join(textwrap.fill(p, width=88) for p in paragraphs)
+        why = textwrap.fill(
+            f"Why this corner, in the agent's own words: {reasoning}", width=88
         )
         body = f"""To: {addressee}
 Re: {name}
 Drafted: {_dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")}
 Status: DRY RUN. Not sent. Not posted. Rendered locally for review.
 
-In the last five years, San Francisco's own collision record holds {counts.collisions_5y} injury
-collisions within 150 meters of {name}. {fatal_line}{counts.severe_5y} left someone with a severe
-injury. Over the last three years the city logged {counts.reports_311_3y} street-condition reports
-in the same 150 meters: defects, broken lights, blocked sidewalks, curb and sign faults.
-
-This letter is being redrafted because the record moved. {delta.summary()}
-
-Every figure above is read from DataSF and is checkable against it. Before a letter like this is
-published, StreetCred recomputes each number from the corner's own record and stores its own
-answer rather than this agent's, so a figure this agent got wrong is caught on the other side of
-the wire rather than printed.
+{wrapped}
 
 --
 Filed by the Corner Watchdog, an automated monitor.
-Why this corner, in the agent's own words: {reasoning}
+{why}
 """
         return self._write(f"{_safe(slug)}.letter.txt", body)
 
