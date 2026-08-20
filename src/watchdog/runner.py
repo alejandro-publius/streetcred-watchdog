@@ -80,9 +80,10 @@ async def run_cycle(
     budget = ActionBudget.from_env()
 
     observer = Observer(
-        store, bus, triage, fetcher=fetcher, degraded=model_note, provenance=extra_degradation
+        store, bus, triage, fetcher=fetcher, degraded=model_note,
+        provenance=extra_degradation, run_id=run_id
     )
-    actor = Actor(store, decider, act, budget, degraded=degraded)
+    actor = Actor(store, decider, act, budget, degraded=degraded, run_id=run_id)
     bus.subscribe(actor.handle)
 
     report = CycleReport(

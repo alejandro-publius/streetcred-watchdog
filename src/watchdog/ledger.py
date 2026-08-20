@@ -200,6 +200,93 @@ def _streak_html(st: dict[str, Any]) -> str:
 </section>"""
 
 
+def cycles(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Group entries into the cycles that wrote them, newest last.
+
+    Entries written before run ids existed fall into a single bucket labelled as
+    such, rather than being dropped or silently merged into a real cycle.
+    """
+    order: list[str] = []
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for e in entries:
+        rid = e.get("runId") or "unrecorded"
+        if rid not in grouped:
+            grouped[rid] = []
+            order.append(rid)
+        grouped[rid].append(e)
+
+    out = []
+    for rid in order:
+        group = grouped[rid]
+        slugs = {e.get("slug") for e in group if e.get("slug")}
+        out.append({
+            "run_id": rid,
+            "entries": group,
+            "corners": len(slugs),
+            "started": min(e.get("ts", "") for e in group),
+            "finished": max(e.get("ts", "") for e in group),
+            "acted": sum(1 for e in group if e.get("actions")),
+            "unreadable": sum(
+                1 for e in group
+                if (e.get("tier1") or {}).get("basis") in ("fetch_failed", "unreliable")
+            ),
+        })
+    return out
+
+
+def coverage(entries: list[dict[str, Any]], roster_size: int | None = None) -> dict[str, Any]:
+    """How much of the watched set the most recent cycle actually reached.
+
+    A cycle that died after twelve corners writes twelve entries and looks, in
+    every other respect, exactly like a cycle where thirteen corners had nothing
+    to report. The only thing that distinguishes them is knowing how many corners
+    were supposed to be covered, so that number is carried in rather than
+    inferred from the entries it is meant to check.
+    """
+    runs = cycles(entries)
+    if not runs:
+        return {"has_cycles": False}
+    last = runs[-1]
+    expected = roster_size or max(r["corners"] for r in runs)
+    return {
+        "has_cycles": True,
+        "run_id": last["run_id"],
+        "covered": last["corners"],
+        "expected": expected,
+        "partial": last["corners"] < expected,
+        "missing": max(0, expected - last["corners"]),
+        "unreadable": last["unreadable"],
+        "finished": last["finished"],
+        "total_cycles": len(runs),
+    }
+
+
+def _state_banner(cov: dict[str, Any]) -> str:
+    """The honest header for a run that did not finish, or a source that was down."""
+    if not cov.get("has_cycles"):
+        return ""
+
+    notes = []
+    if cov["partial"]:
+        notes.append(
+            f"<p><strong>The most recent cycle did not finish.</strong> It reached "
+            f"{cov['covered']} of {cov['expected']} watched corners and then stopped. The "
+            f"{cov['missing']} it never reached are not represented below at all, and their absence "
+            f"is not evidence that they were fine. Everything shown is what the cycle managed "
+            f"before it stopped.</p>"
+        )
+    if cov["unreadable"]:
+        notes.append(
+            f"<p><strong>A source was unavailable for {cov['unreadable']} corner"
+            f"{'s' if cov['unreadable'] != 1 else ''}.</strong> Those corners were reached but "
+            f"their records could not be read, so no comparison was attempted and their stored "
+            f"baselines were left untouched. They appear below as refusals, not as quiet corners.</p>"
+        )
+    if not notes:
+        return ""
+    return f'<section class="notice notice-state">{"".join(notes)}</section>'
+
+
 def _breakdown_html(s: dict[str, Any]) -> str:
     """What the restraint rate is actually made of.
 
@@ -603,6 +690,7 @@ body {
 }
 .notice p { margin: 0 0 0.5rem; }
 .notice p:last-child { margin-bottom: 0; }
+.notice-state { border-left-color: var(--acted); }
 .notice strong { font-weight: 600; }
 
 .section-head {
@@ -726,6 +814,7 @@ def render_body(
     *,
     rehearsal: list[dict[str, Any]] | None = None,
     generated_at: str | None = None,
+    roster_size: int | None = None,
 ) -> str:
     rehearsal = rehearsal or []
     s = summarise(entries)
@@ -735,6 +824,7 @@ def render_body(
     acted_pct = 100 - held_pct if s["total"] else 0
     breakdown = _breakdown_html(s)
     streak_html = _streak_html(streak(entries))
+    state_banner = _state_banner(coverage(entries, roster_size))
 
     degradations = sorted({e["degraded"] for e in entries if e.get("degraded")})
     notice = ""
@@ -750,8 +840,12 @@ def render_body(
     entry_html = "".join(_entry_html(e) for e in reversed(entries))
     if not entries:
         entry_html = (
-            '<article class="entry"><p class="delta">The journal is empty. '
-            "Nothing has been evaluated yet.</p></article>"
+            '<article class="entry"><h3>No cycle has run yet</h3>'
+            '<p class="delta">The journal is empty, so there is nothing to show and no '
+            "restraint rate to report. An empty journal is not a claim that the watched corners "
+            "are fine; it is a statement that this agent has not looked at them.</p>"
+            '<p class="says">Run <code>python -m watchdog run</code> to produce the first '
+            "entries.</p></article>"
         )
 
     rehearsal_section = ""
@@ -779,6 +873,8 @@ def render_body(
     the ones that ended in nothing. A monitor that only publishes its actions is showing you a
     highlight reel.</p>
   </header>
+
+  {state_banner}
 
   {streak_html}
 
@@ -835,14 +931,18 @@ def render_body(
 </div>"""
 
 
-def render_fragment(entries, *, rehearsal=None, generated_at=None) -> str:
+def render_fragment(entries, *, rehearsal=None, generated_at=None, roster_size=None) -> str:
     """Head bits and content together, for a host that supplies the skeleton."""
-    return HEAD + "\n" + render_body(entries, rehearsal=rehearsal, generated_at=generated_at)
+    return HEAD + "\n" + render_body(
+        entries, rehearsal=rehearsal, generated_at=generated_at, roster_size=roster_size
+    )
 
 
-def render_document(entries, *, rehearsal=None, generated_at=None) -> str:
+def render_document(entries, *, rehearsal=None, generated_at=None, roster_size=None) -> str:
     """A standalone file, openable straight from disk."""
-    body = render_body(entries, rehearsal=rehearsal, generated_at=generated_at)
+    body = render_body(
+        entries, rehearsal=rehearsal, generated_at=generated_at, roster_size=roster_size
+    )
     return (
         '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
@@ -850,11 +950,27 @@ def render_document(entries, *, rehearsal=None, generated_at=None) -> str:
     )
 
 
+def roster_size_from(path: str | Path = "data/watched.json") -> int | None:
+    """How many corners a complete cycle is supposed to cover.
+
+    Carried in rather than inferred from the entries, because the entries are
+    exactly what it is meant to check: a cycle that died after twelve corners
+    cannot be told from a complete cycle of twelve by looking at its own output.
+    """
+    try:
+        doc = json.loads(Path(path).read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+    corners = doc.get("corners") or []
+    return len(corners) or None
+
+
 def render_to_file(
     *,
     state_dir: str | Path = "state",
     out_path: str | Path = "docs/ledger.html",
     rehearsal_dir: str | Path | None = "state-rehearsal",
+    watched_path: str | Path = "data/watched.json",
 ) -> Path:
     entries = LocalJsonStore(state_dir).read_journal()
     rehearsal: list[dict[str, Any]] = []
@@ -863,5 +979,7 @@ def render_to_file(
 
     out = Path(out_path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(render_document(entries, rehearsal=rehearsal))
+    out.write_text(
+        render_document(entries, rehearsal=rehearsal, roster_size=roster_size_from(watched_path))
+    )
     return out

@@ -280,6 +280,10 @@ class JournalEntry:
     # by a calm city.
     intents: list[str] = field(default_factory=list)
     degraded: str | None = None
+    # Which cycle wrote this. Lets the ledger group entries into cycles and say
+    # how many of the watched corners a cycle actually reached, which is the
+    # difference between a quiet morning and a run that died halfway.
+    run_id: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return _clean({
@@ -293,6 +297,7 @@ class JournalEntry:
             "actions": list(self.actions),
             "intents": list(self.intents),
             "degraded": self.degraded,
+            "runId": self.run_id,
         })
 
     def to_ingest_payload(self) -> dict[str, Any]:

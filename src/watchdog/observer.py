@@ -114,7 +114,9 @@ class Observer:
         fetcher: Fetcher | None = None,
         degraded: str | None = None,
         provenance: str | None = None,
+        run_id: str | None = None,
     ):
+        self.run_id = run_id
         self.store = store
         self.bus = bus
         self.triage = triage
@@ -222,6 +224,7 @@ class Observer:
                         degraded=" ".join(
                             p for p in (self.provenance, f"Read failed: {type(snapshot).__name__}.") if p
                         ),
+                        run_id=self.run_id,
                     )
                 )
                 continue
@@ -280,6 +283,7 @@ class Observer:
                         trigger=trigger,
                         tier1=verdict,
                         degraded=self._caveat(verdict.by_rule),
+                        run_id=self.run_id,
                     )
                 )
                 continue
@@ -288,6 +292,7 @@ class Observer:
             await self.bus.publish(
                 {
                     "ts": _now(),
+                    "runId": self.run_id,
                     "trigger": trigger,
                     "corner": corner,
                     "delta": delta.to_dict(),

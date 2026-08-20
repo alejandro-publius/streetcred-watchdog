@@ -114,7 +114,8 @@ async def _cmd_run(args: argparse.Namespace) -> int:
 
     if not args.no_ledger:
         out = ledger_mod.render_to_file(
-            state_dir=args.state, out_path=args.ledger, rehearsal_dir=args.rehearsal_state
+            state_dir=args.state, out_path=args.ledger,
+            rehearsal_dir=args.rehearsal_state, watched_path=args.watched,
         )
         _p("")
         _p(f"ledger written to {out}")
@@ -189,7 +190,8 @@ async def _cmd_tick(args: argparse.Namespace) -> int:
             if s.roster_drops:
                 _p(f"{report.finished} no longer watching: {', '.join(s.roster_drops)}")
             ledger_mod.render_to_file(
-                state_dir=args.state, out_path=args.ledger, rehearsal_dir=args.rehearsal_state
+                state_dir=args.state, out_path=args.ledger,
+                rehearsal_dir=args.rehearsal_state, watched_path=args.watched,
             )
         return 0
     except schedule_mod.CycleAlreadyRunning as e:
@@ -229,7 +231,8 @@ async def _cmd_schedule(args: argparse.Namespace) -> int:
 
 async def _cmd_ledger(args: argparse.Namespace) -> int:
     out = ledger_mod.render_to_file(
-        state_dir=args.state, out_path=args.ledger, rehearsal_dir=args.rehearsal_state
+        state_dir=args.state, out_path=args.ledger,
+        rehearsal_dir=args.rehearsal_state, watched_path=args.watched,
     )
     _p(f"ledger written to {out}")
     return 0

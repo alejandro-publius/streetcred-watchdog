@@ -77,7 +77,9 @@ class Actor:
         budget: ActionBudget,
         *,
         degraded: str | None = None,
+        run_id: str | None = None,
     ):
+        self.run_id = run_id
         self.store = store
         self.decider = decider
         self.actuator = actuator
@@ -131,6 +133,7 @@ class Actor:
                 actions=taken,  # type: ignore[arg-type]
                 intents=intents,
                 degraded=self.degraded,
+                run_id=envelope.get("runId") or self.run_id,
             )
         )
 
