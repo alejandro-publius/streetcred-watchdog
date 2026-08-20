@@ -1,9 +1,10 @@
 {
   "source": "https://streetcred.thealexschroeder.workers.dev/api/city page 1, rows in StreetCred's published order",
-  "fetched_at": "2026-08-20T05:46:16+00:00",
+  "fetched_at": "2026-08-20T05:51:35+00:00",
   "sweep_date": "2026-08-18",
   "scoreboard_total": 7355,
   "count": 25,
+  "roster_hash": "640fe69829dc",
   "dropped_for_missing_coordinates": [],
   "corners": [
     {

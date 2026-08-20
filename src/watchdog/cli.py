@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Any
 
 from . import ledger as ledger_mod
+from . import roster as roster_mod
 from . import watched as watched_mod
 from .rehearsal import rehearse
 from .runner import run_cycle
@@ -32,15 +33,26 @@ def _p(msg: str = "") -> None:
 
 
 async def _ensure_watched(path: Path, count: int, origin: str) -> list[dict[str, Any]]:
+    """Load the pinned watched set, or fetch one if there is none.
+
+    Deliberately never refreshes an existing roster. A roster that refetched
+    itself between runs would mean yesterday's baselines belong to a different
+    set of corners than today's, with nothing saying so. Refreshing is an
+    explicit act: `watchdog watched`.
+    """
     if path.exists():
-        corners = watched_mod.load(path)
+        doc = watched_mod.load_doc(path)
+        corners = doc.get("corners") or []
         if corners:
-            _p(f"  watched set: {len(corners)} corners from {path}")
+            problem = watched_mod.verify(doc)
+            _p(f"  watched set: {len(corners)} corners from {path}, roster {doc.get('roster_hash', 'unhashed')}")
+            if problem:
+                _p(f"  WARNING: {problem}")
             return corners
     _p(f"  watched set missing, fetching the worst {count} from StreetCred's public scoreboard")
     doc = await watched_mod.fetch_worst(count, origin=origin)
     watched_mod.save(doc, path)
-    _p(f"  wrote {doc['count']} corners to {path}")
+    _p(f"  wrote {doc['count']} corners to {path}, roster {doc['roster_hash']}")
     return doc["corners"]
 
 
@@ -53,6 +65,8 @@ def _print_report(report, index: int, total: int) -> None:
         _p(f"  {s.unreliable} comparison(s) refused as unreliable")
     if s.incomplete_fetches:
         _p(f"  baseline kept untouched for: {', '.join(s.incomplete_fetches)}")
+    if s.roster_drops:
+        _p(f"  no longer watching, journaled: {', '.join(s.roster_drops)}")
     _p(f"  deliberated on {a.deliberated}, acted on {a.acted}, declined after deliberation {a.declined}")
     if a.actions_taken:
         _p(f"  actions: {', '.join(a.actions_taken)}")
@@ -107,14 +121,36 @@ async def _cmd_run(args: argparse.Namespace) -> int:
 
 
 async def _cmd_watched(args: argparse.Namespace) -> int:
-    doc = await watched_mod.fetch_worst(args.count, origin=args.origin)
-    path = watched_mod.save(doc, args.watched)
-    _p(f"wrote {doc['count']} corners to {path}")
-    _p(f"source: {doc['source']}")
-    for c in doc["corners"]:
+    path = Path(args.watched)
+    fresh = await watched_mod.fetch_worst(args.count, origin=args.origin)
+
+    existing = watched_mod.load_doc(path) if path.exists() else None
+    if existing:
+        d = roster_mod.drift(
+            [c["slug"] for c in existing.get("corners") or []],
+            [c["slug"] for c in fresh["corners"]],
+        )
+        _p(f"pinned roster:  {existing.get('roster_hash', 'unhashed')} from {existing.get('fetched_at')}")
+        _p(f"scoreboard now: {fresh['roster_hash']}")
+        for line in roster_mod.describe(d):
+            _p(line)
+        if d["membership_changed"] and not args.accept_drift:
+            _p("")
+            _p("Refusing to overwrite the pinned watched set.")
+            _p("Every stored baseline belongs to the roster that produced it, so replacing")
+            _p("the roster silently would leave yesterday's snapshots describing a different")
+            _p("set of corners than today's. Re-run with --accept-drift to take the new one.")
+            _p("Corners that leave the roster are journaled on the next cycle rather than")
+            _p("simply disappearing.")
+            return 3
+
+    watched_mod.save(fresh, path)
+    _p(f"wrote {fresh['count']} corners to {path}, roster {fresh['roster_hash']}")
+    _p(f"source: {fresh['source']}")
+    for c in fresh["corners"]:
         _p(f"  {c['scoreboard_rank']:>2}. {c['points']:>6}  {c['grade']}  {c['name']}")
-    if doc["dropped_for_missing_coordinates"]:
-        _p(f"dropped for missing coordinates: {doc['dropped_for_missing_coordinates']}")
+    if fresh["dropped_for_missing_coordinates"]:
+        _p(f"dropped for missing coordinates: {fresh['dropped_for_missing_coordinates']}")
     return 0
 
 
@@ -158,6 +194,11 @@ def build_parser() -> argparse.ArgumentParser:
     run.set_defaults(fn=_cmd_run)
 
     w = sub.add_parser("watched", help="refetch the worst corners from StreetCred's public scoreboard")
+    w.add_argument(
+        "--accept-drift",
+        action="store_true",
+        help="overwrite the pinned roster even though its membership changed",
+    )
     w.set_defaults(fn=_cmd_watched)
 
     r = sub.add_parser(

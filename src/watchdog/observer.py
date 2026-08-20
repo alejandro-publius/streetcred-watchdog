@@ -88,6 +88,7 @@ class SweepResult:
     unreliable: int = 0
     incomplete_fetches: list[str] = field(default_factory=list)
     first_sightings: int = 0
+    roster_drops: list[str] = field(default_factory=list)
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -97,6 +98,7 @@ class SweepResult:
             "unreliable": self.unreliable,
             "incomplete_fetches": self.incomplete_fetches,
             "first_sightings": self.first_sightings,
+            "roster_drops": self.roster_drops,
         }
 
 
@@ -146,8 +148,43 @@ class Observer:
             return "rule_severe"
         return "no_change"
 
+    def note_roster_drops(self, corners: list[dict[str, Any]], *, trigger: Trigger = "manual") -> list[str]:
+        """Journal every corner we hold a baseline for but are no longer watching.
+
+        Without this the agent simply stops looking and the journal is silent
+        about it, which is indistinguishable from a morning where that corner was
+        fine. The baseline is deliberately left on disk: if the corner returns to
+        the roster the comparison should resume, not restart.
+        """
+        watching = {c.get("slug") for c in corners}
+        dropped = [s.slug for s in self.store.all_snapshots() if s.slug not in watching]
+        for slug in sorted(dropped):
+            self.store.append_journal(
+                JournalEntry(
+                    ts=_now(),
+                    slug=slug,
+                    name=slug,
+                    delta=f"No longer watching {slug}.",
+                    trigger=trigger,
+                    tier1=Tier1Verdict(
+                        significant=False,
+                        reason=(
+                            "This corner left the watched set, so the agent stopped looking at it. "
+                            "That is not a statement that the corner improved. Its stored baseline "
+                            "is kept, so if it returns to the roster the comparison picks up rather "
+                            "than starting over."
+                        ),
+                        by_rule=True,
+                        basis="roster_drop",
+                    ),
+                    degraded=self.provenance,
+                )
+            )
+        return sorted(dropped)
+
     async def sweep(self, corners: list[dict[str, Any]], *, trigger: Trigger = "manual") -> SweepResult:
         result = SweepResult()
+        result.roster_drops = self.note_roster_drops(corners, trigger=trigger)
         fresh = await self.fetcher.fetch_all(corners)
 
         # Fetching is concurrent; deciding is not. Journal order, budget spending

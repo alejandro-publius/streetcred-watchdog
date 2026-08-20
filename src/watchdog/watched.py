@@ -25,6 +25,7 @@ from typing import Any
 import httpx
 
 from .datasf import DEFAULT_RADIUS_M
+from .roster import roster_hash
 
 DEFAULT_ORIGIN = "https://streetcred.thealexschroeder.workers.dev"
 DEFAULT_PATH = Path("data/watched.json")
@@ -87,9 +88,33 @@ async def fetch_worst(
         "sweep_date": payload.get("sweepDate"),
         "scoreboard_total": payload.get("total"),
         "count": len(corners),
+        # Membership only, insensitive to ordering. The scoreboard reorders
+        # constantly, and a hash that changed every morning would train whoever
+        # reads it to ignore the one signal it exists to send.
+        "roster_hash": roster_hash([c["slug"] for c in corners]),
         "dropped_for_missing_coordinates": dropped,
         "corners": corners,
     }
+
+
+def load_doc(path: str | Path = DEFAULT_PATH) -> dict[str, Any]:
+    return json.loads(Path(path).read_text())
+
+
+def verify(doc: dict[str, Any]) -> str | None:
+    """Whether the file's contents still match the hash it was saved with.
+
+    Returns None when it does, or a sentence naming the problem. A hand edit to
+    the roster is a legitimate thing to do; doing it without anyone noticing is
+    not, because every stored baseline belongs to the roster that produced it.
+    """
+    recorded = doc.get("roster_hash")
+    if not recorded:
+        return "this watched set predates roster hashing, so drift cannot be detected"
+    actual = roster_hash([c["slug"] for c in doc.get("corners") or []])
+    if actual != recorded:
+        return f"the watched set was edited after it was saved: recorded {recorded}, actual {actual}"
+    return None
 
 
 def save(doc: dict[str, Any], path: str | Path = DEFAULT_PATH) -> Path:

@@ -160,6 +160,7 @@ Basis = Literal[
     "unreliable",       # a snapshot on one side was incomplete
     "fetch_failed",     # the read did not come back at all
     "methodology",      # the query itself changed, so the arithmetic is meaningless
+    "roster_drop",      # the corner left the watched set, so we stopped looking
     "rule_fatal",       # a new fatality, escalated before any tier is consulted
     "rule_severe",      # a new severe injury, same
     "triage",           # tier one weighed an ambiguous change
@@ -175,6 +176,7 @@ UNJUDGED_BASES = frozenset(
         "unreliable",
         "fetch_failed",
         "methodology",
+        "roster_drop",
         # Journal entries written before this field existed. They belong here and
         # not on the other side: a missing field must never be able to inflate
         # the claim that something exercised judgment.
