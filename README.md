@@ -100,6 +100,7 @@ expensive half of the loop never runs. To exercise it:
 
 ```bash
 python -m watchdog rehearse      # constructed baselines, kept out of the real journal
+python -m watchdog doctor        # 19 checks: environment, sources, vocabulary, stored state
 python -m watchdog schedule      # renders launchd and cron config, installs nothing
 python -m watchdog ledger --corner 6th-and-mission
 ```

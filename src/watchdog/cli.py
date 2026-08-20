@@ -21,6 +21,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from . import doctor as doctor_mod
 from . import ledger as ledger_mod
 from . import roster as roster_mod
 from . import schedule as schedule_mod
@@ -229,6 +230,16 @@ async def _cmd_schedule(args: argparse.Namespace) -> int:
     return 0
 
 
+async def _cmd_doctor(args: argparse.Namespace) -> int:
+    _p("The Corner Watchdog, checking what has to be true before a cycle is worth running.")
+    _p("")
+    checks = await doctor_mod.run_checks(
+        state_dir=args.state, watched_path=args.watched,
+        origin=args.origin, offline=args.offline,
+    )
+    return doctor_mod.render(checks, printer=_p)
+
+
 async def _cmd_ledger(args: argparse.Namespace) -> int:
     if args.corner:
         out = ledger_mod.render_corner_to_file(
@@ -296,6 +307,10 @@ def build_parser() -> argparse.ArgumentParser:
     sc.add_argument("--every-hours", type=int, default=6)
     sc.add_argument("--schedule-out", default="ops/dev.watchdog.cycle.plist")
     sc.set_defaults(fn=_cmd_schedule)
+
+    d = sub.add_parser("doctor", help="check environment, sources, vocabulary and stored state")
+    d.add_argument("--offline", action="store_true", help="skip the checks that need network")
+    d.set_defaults(fn=_cmd_doctor)
 
     lg = sub.add_parser("ledger", help="re-render the ledger from the journal on disk")
     lg.add_argument(
