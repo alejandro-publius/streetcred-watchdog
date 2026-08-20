@@ -2,166 +2,212 @@
 
 An autonomous agent that reads San Francisco's street data every morning, compares it to
 what it saw yesterday, and decides on its own whether anything changed enough to act on.
-Cheap triage looks at every change; expensive deliberation runs only on what triage
-escalates. Most mornings it decides to do nothing, and it publishes those mornings too,
-with the reasoning attached.
+Most mornings it decides to do nothing. It publishes those mornings too, with the
+reasoning attached.
 
-**The live diary: [streetcred.thealexschroeder.workers.dev/watchdog](https://streetcred.thealexschroeder.workers.dev/watchdog)**
+I moved to the Bay Area and ended up spending a lot of time thinking about the
+intersections I walk through. This is what came of that: a machine that watches the
+twenty five worst corners in the city, on its own schedule, and tells you what it decided
+not to do.
 
-## Origin disclosure
+**The ledger: [`docs/ledger.html`](docs/ledger.html)** &middot;
+**[Architecture](docs/architecture.md)** &middot;
+**[Decisions and rejections](DECISIONS.md)** &middot;
+**[What went wrong](LOG.md)**
 
-StreetCred, the display surface this agent publishes to, **predates this hackathon** and was
-built at a prior Build Club event. The Corner Watchdog, meaning this repository and every
-line in it, is **entirely new work** built for All Things Agentic. The only change made to
-StreetCred for this project is one authenticated ingest endpoint and one page that renders
-what the agent decided.
+---
 
-## Why the declines are the product
+## Disclosure
 
-An agent that only publishes its actions is showing you a highlight reel. Anyone can build
-something that fires on every change; the hard part, and the part that makes an agent
-trustworthy enough to leave unsupervised, is the deciding not to. So the restraint rate is
-the headline number on the public page, every decline is journaled with its reasoning as a
-first-class entry, and no number anywhere is inflated to make a funnel look busier.
+Read this before the rest.
 
-## Architecture
+- **StreetCred, the display surface this agent publishes to, predates this hackathon.**
+  It was built at a prior Build Club event. The Corner Watchdog, meaning this repository
+  and every line in it, is entirely new work built for All Things Agentic.
+- **None of the Google Cloud integration is wired.** Not Vertex, not Gemini, not Gemma,
+  not Firestore, not Pub/Sub, not Cloud Run. Every one of them sits behind an adapter with
+  a working local stand-in, and **no Google Cloud account has been created, authenticated
+  to, or touched at any point in this project.** The plan for wiring them is
+  [`docs/GEMINI_WIRING.md`](docs/GEMINI_WIRING.md).
+- **The agent has never posted anything anywhere.** The live path exists, implements the
+  interface, and refuses on every verb.
+- **Nothing in this repo has ever observed a real change at a watched corner.** The city
+  was quiet for the whole build. Every number below reflects that.
 
-```
-Cloud Scheduler  (06:40 PT daily, plus an hourly light tick)
-      |
-      v
-OBSERVER  (ADK agent, Cloud Run)
-      reads DataSF -> diffs against Firestore snapshots
-      GEMMA triage per delta: significant or not          <- the reflex tier
-      publishes significant deltas to Pub/Sub
-      journals every evaluation, NOT-significant included
-      |
-      v  (Pub/Sub push)
-ACTOR  (ADK agent, Cloud Run)
-      GEMINI 3.7 deliberation per delta                   <- the judgment tier
-      acts: rescore / re-audit / regenerate letter / flag
-      or DECLINES with reasoning, journaled identically
-      |
-      v
-Firestore: snapshots, decision journal, calibration state
-StreetCred: POST /api/agent/report  (bearer token, the one trust boundary)
-            GET  /watchdog          (the public diary)
-```
+## What it does
 
-**Two-tier cognition is the architecture, not a bolt-on.** Gemma is cheap enough to run on
-every delta including the empty ones. Gemini is expensive and only ever sees what Gemma
-escalated. Underneath both sits a deterministic floor in `delta.py`: any new fatal or severe
-collision is significant **by rule**, decided before either model is consulted, so no model
-can be talked out of escalating a death. The models only adjudicate the ambiguous middle.
+- **Watches 25 corners** taken from StreetCred's public scoreboard, pinned so the roster
+  cannot drift silently, and journals a corner the moment it stops watching it.
+- **Reads the city's own record**, 5,905 collision and street-condition records across the
+  watched set, in 125 unauthenticated queries per sweep.
+- **Diffs against yesterday** with a deterministic engine that refuses to compare a partial
+  fetch, a corrupted baseline, or two readings taken under different queries.
+- **Routes by cost.** A cheap tier sees every change; an expensive tier only ever sees what
+  the cheap one escalated. Deaths and severe injuries never reach either: they escalate by
+  rule, before any model is consulted.
+- **Acts into a local outbox** in dry run, rendering the actual letter with the corner's
+  actual figures rather than a log line saying a letter would have been written.
+- **Publishes every decision**, including and especially the ones that ended in nothing,
+  with the reasoning verbatim and a link to the raw journal record.
+- **Says when it is degraded.** Every entry written while a stand-in was wired carries a
+  line naming which tier was not a model.
 
-## The honesty rails
+## The numbers
 
-The agent does not get to mark its own homework.
+All measured from this repository, on 2026-08-20.
 
-- Every number in an agent-written letter is checked against the corner's own DataSF record
-  **by StreetCred, not by the agent**, before the letter is stored. The agent sends its own
-  `verified` claim; StreetCred recomputes it, stores its own answer, and records the
-  disagreement as `selfReportDisputed`.
-- A letter for a corner StreetCred has never resolved is rejected with a 409 rather than
-  checked against some other corner's record.
-- Snapshots that failed a fetch are marked incomplete, and the delta engine **refuses to
-  compare them**. A DataSF timeout returning zero rows looks exactly like a corner with no
-  collisions, and that is the most expensive way this system could be wrong.
-- An exhausted action budget converts an action into a journaled **intent** ("would have
-  re-audited, budget reached") rather than a silent skip, so a quiet night caused by a spent
-  budget cannot be mistaken for a quiet night caused by a calm city.
-- Calibration adjusts thresholds from logged outcomes within hard bounds. **This is threshold
-  and rule calibration from logged outcomes, not model retraining.** The public page says
-  exactly that sentence and never claims otherwise.
+| | |
+| --- | --- |
+| Agents | 2, an observer and an actor, separated by a bus |
+| Cognition tiers | 2, plus a deterministic rule floor beneath both |
+| Corners watched | 25 |
+| City records covered per sweep | 5,905 (1,136 collision, 4,769 street-condition) |
+| Fatalities in the watched set's five year record | 12 |
+| Severe injuries in the same record | 129 |
+| DataSF queries per sweep | 125, unauthenticated |
+| Evaluations journaled | 125 |
+| Actions taken | 0 |
+| Restraint rate | 100 percent, and the ledger explains why that number is not yet impressive |
+| Tests | 371, offline, no credentials, 0.74s |
+| Runtime dependencies | 1 (`httpx`) |
+| Google Cloud accounts touched | 0 |
 
-## Run the whole thing locally
+The restraint rate is 100 percent and the ledger says, on its own front page, that this is
+currently a measurement of a quiet city rather than of a careful agent, because every one
+of those declines was settled by a rule rather than weighed by a tier. A number that
+flatters the system is worth less than one that explains itself.
 
-No Google Cloud project, no service account, no emulator, no keys. One command runs
-the entire loop: observe, diff, triage, deliberate, act into a local outbox in dry run,
-journal every decision, render the ledger.
+## Quick start
+
+Verified in a clean clone and a fresh virtual environment on 2026-08-20: 15 packages
+installed including pip itself and the project, none of them Google, 371 tests green in
+0.74 seconds.
 
 ```bash
 git clone https://github.com/alejandro-publius/streetcred-watchdog
 cd streetcred-watchdog
 
 python3 -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"   # one runtime dependency: httpx
+pip install -e ".[dev]"          # one runtime dependency: httpx
 
-pytest -q                              # 76 tests, no network, no credentials
-python -m watchdog run --cycles 2      # the loop, twice, against live DataSF
-open docs/ledger.html                  # the decision journal, restraint rate on top
+pytest -q                        # 371 tests, no network, no credentials
+python -m watchdog run --cycles 2  # the whole loop, twice, against live DataSF
+open docs/ledger.html            # every decision, restraint rate on top
 ```
 
-The only two networks it touches are San Francisco's open data portal and StreetCred's
-public scoreboard, both unauthenticated reads. Nothing is posted anywhere; `--live` is a
-stub that refuses and tells you what is missing.
-
-Two cycles minutes apart will find that nothing changed, which is the honest result and
-also means the expensive half of the loop never runs. To exercise it:
+Two cycles minutes apart will correctly find that nothing changed, which means the
+expensive half of the loop never runs. To exercise it:
 
 ```bash
-python -m watchdog rehearse   # constructed baselines, kept out of the real journal
+python -m watchdog rehearse      # constructed baselines, kept out of the real journal
+python -m watchdog schedule      # renders launchd and cron config, installs nothing
+python -m watchdog ledger --corner 6th-and-mission
 ```
 
-### Every cloud dependency is behind an adapter
+## Patterns
 
-| Seam | Local today | Deployed later |
+Named in the vocabulary the Agent Development Kit uses, with an honest column for whether
+they are built.
+
+| Pattern | How it appears here | Status |
 | --- | --- | --- |
-| Snapshots, journal, calibration | `LocalJsonStore`, files under `state/` | Firestore |
-| Observer to actor | `DirectBus`, a function call through a JSON round trip | Pub/Sub |
-| Tier one triage | `RuleTriage`, deterministic thresholds | Gemma on Vertex |
-| Tier two deliberation | `RuleDecider`, deterministic policy | Gemini on Vertex |
-| Acting | `DryRunActuator`, renders artefacts to `outbox/` | POST to StreetCred |
+| Event-driven fan-out | The observer publishes escalations to a bus; the actor subscribes and never reads the observer's state. Locally the bus is an in-process call that round-trips through JSON, so a payload Pub/Sub could not carry fails here rather than in production. | built |
+| Cost-routed cascade | A deterministic floor answers most deltas for free, a cheap tier takes the ambiguous middle, and an expensive tier only ever sees escalations. Across 125 real evaluations, the number that would have reached a model is zero. | built |
+| Human-in-the-loop | `flag` is a first-class action, mandatory alongside any redraft on a new fatality. The live path additionally refuses to send until a human has read a full dry-run outbox and agreed with every letter in it. | built as a gate |
+| Decline queue | Declines are journaled by the observer at the moment they are made, never routed through the expensive tier, and rendered at the same visual weight as actions. | built |
+| Review and critique verifier | StreetCred recomputes every figure in an agent-written letter from the corner's own record and stores its own answer, recording disagreement as `selfReportDisputed`. The agent does not get to mark its own homework. | planned, not deployed |
+| Bounded self-calibration | Thresholds move from logged outcomes inside hard floors and ceilings, with every adjustment journaled with its before and after. This is threshold nudging, not model retraining, and the public page says exactly that. | schema and bounds built, nothing adjusts them yet |
 
-The stand-ins do not pretend to be models. Every journal entry written while one is
-wired carries a line naming which tier was not a model, because an agent that degrades
-quietly produces output indistinguishable from one that did not.
+## Why the declines are the product
 
-### To deploy
+An agent that only publishes its actions is showing you a highlight reel. Anyone can build
+something that fires on every change. The hard part, and the part that makes an agent
+trustworthy enough to leave unsupervised, is the deciding not to.
 
-The deployed path is not built. `watchdog/server.py` does not exist yet, so the
-Dockerfile below would not boot. `DECISIONS.md` lists what is missing.
+So the restraint rate is the headline number, every decline is a first-class entry with its
+reasoning attached, and the page breaks that number down into what was actually weighed
+versus what a rule merely observed, because those are different events and adding them
+together produces a number that describes a quiet city while reading as a careful agent.
 
-```bash
-cp .env.example .env      # fill in project, location and the ingest token
-# The ingest token is the one credential shared with StreetCred. Generate it with:
-#   openssl rand -hex 32
-# then set the SAME value as a Cloudflare Worker secret on StreetCred:
-#   printf '%s' 'THE_TOKEN' | npx wrangler secret put WATCHDOG_INGEST_TOKEN
-# and in this project's Secret Manager.
+## What went wrong
 
-pip install -e ".[cloud]"
-gcloud run deploy watchdog-observer --source . --set-env-vars SERVICE=observer
-gcloud run deploy watchdog-actor    --source . --set-env-vars SERVICE=actor
-```
+**A filter that matched nothing, for the entire life of the project.**
+
+`SEVERE_VALUES` held `("Severe Injury", "Suspected Serious Injury")` from the first commit.
+Those are CHP's category names. DataSF publishes `Injury (Severe)`. The query was valid
+SoQL, matched zero rows, and returned a clean zero for every corner on every sweep, which
+made the rule "any new severe injury is significant" a rule that could never fire.
+
+Nothing failed. Nothing could fail. A filter matching nothing is indistinguishable from a
+corner where nothing happened. It was found by running the loop against live data and
+noticing that all 25 corners reported zero severe injuries while StreetCred's own board
+showed 9 at one of them.
+
+Two things came out of it that are worth more than the fix. Every enumerated value the code
+puts in a WHERE clause is now pinned against the live vocabulary with the row count carried
+alongside, and a cycle refuses to start if they disagree. And the same class of bug turned
+up twice more once I knew to look: a `count(*)` alias rename parsing as zero, and a tie in
+the district group-by resolving to whatever order the API returned, so a tied corner would
+flip district between sweeps and journal it as a real change.
+
+**Then fixing a different bug nearly caused the exact failure this repo exists to prevent.**
+Measuring against StreetCred's published figures showed the radius should be 80 metres, not
+150. Changing it would have made the next sweep subtract 80 metre counts from 150 metre
+counts and report a 40 percent collapse in collisions at all 25 corners on the same
+morning, with confident reasoning attached. Snapshots now carry a fingerprint of the query
+that produced them and the delta engine refuses to subtract across a change in it. The
+cycle after the change journaled 25 refusals naming both fingerprints and took no action.
+
+Full evidence in [`LOG.md`](LOG.md).
 
 ## Requirements coverage
 
-This table describes the deployed design. None of it is wired in this build; the
-adapters above are what runs today, and the loop degrades to them out loud.
+Honest column first.
 
-| Requirement | How | Built |
+| Criterion | Where it lives | Wired |
 | --- | --- | --- |
-| Gemini 3 or newer via Vertex AI | `gemini-3.7-flash` for tier-two deliberation | No, `RuleDecider` stands in |
-| Agent Development Kit | Both services are ADK agents with registered tools | No |
-| Google Cloud services (one required) | Cloud Run, Firestore, Pub/Sub, Cloud Scheduler, Secret Manager | No, all five behind adapters |
-| Additional Google model (bonus) | Gemma for tier-one triage, structurally not decoratively | No, `RuleTriage` stands in |
+| Gemini 3 or newer via Vertex AI | `src/prompts/deliberation.md`, `contract.py`, `brains.select_brains()` | **no**, `RuleDecider` stands in |
+| Agent Development Kit | not built | **no** |
+| Google Cloud services | all behind `ports.py`, plan in `docs/GEMINI_WIRING.md` | **no**, five local stand-ins |
+| Additional Google model | `src/prompts/triage.md`, tier one | **no**, `RuleTriage` stands in |
+| Autonomous operation | `schedule.py`, `watchdog tick` under a lock | yes, locally |
+| Persistent memory | `store.py`, `state/journal.jsonl`, append only | yes, locally |
+| Observability | `ledger.py`, `docs/ledger.html`, `docs/states/` | yes |
+| Safety and restraint | `delta.py` rule floor, `live.py` refusal, `budget.py` intents | yes |
+
+## Considered and rejected
+
+Fuller versions in [`DECISIONS.md`](DECISIONS.md).
+
+- **Calling a small local model so the demo could say a model ran.** Buys a sentence in a
+  pitch, costs the one property this project is about.
+- **Mutating real snapshots to force an interesting delta for the demo.** The rehearsal
+  constructs the *past* instead, never the present, and every entry it writes says so.
+- **A hash for the query fingerprint.** The journal entry that refuses a comparison prints
+  it, and `r=150m` tells a reader what happened where `a3f19c` does not.
+- **Coercing a corrupted stored count to zero.** That is the SEVERE_VALUES failure with a
+  different mask. It refuses to load and the file is quarantined instead.
+- **Leaving the live path unwritten, or callable behind a flag.** Unwritten hides whether
+  the interface fits until the worst moment; callable is how a dry run becomes a live send
+  by way of one wrong argument.
+- **Quoting Vertex prices from memory in the cost estimate.** Token counts are measured;
+  the rates are left blank with the arithmetic beside them.
 
 ## Repository map
 
 | Path | What it holds |
 | --- | --- |
-| `src/watchdog/schema.py` | Firestore's shape as typed dataclasses. The schema doc is half the architecture writeup, so it lives in code. |
-| `src/watchdog/delta.py` | `diff_snapshots` and the rule floor. Deterministic, no model, no network. |
-| `src/watchdog/datasf.py` | DataSF reads, copied query-for-query from StreetCred so the two systems can never disagree about a count. |
-| `src/watchdog/prompts.py` | Both prompts, versioned. The split between them is the architecture. |
-| `src/watchdog/ingest.py` | Posting to StreetCred. Decides nothing, swallows nothing. Unimported by the local loop, and a test keeps it that way. |
 | `src/watchdog/ports.py` | Every cloud dependency, named as a protocol. The seams. |
+| `src/watchdog/delta.py` | `diff_snapshots` and the rule floor. Deterministic, no model, no network. |
+| `src/watchdog/datasf.py` | DataSF reads, and the constants that were wrong for a fortnight. |
+| `src/watchdog/vocabulary.py` | Guards on every enumerated value that goes into a query. |
 | `src/watchdog/observer.py` | The sweep: look, compare, triage, escalate or decline. |
 | `src/watchdog/actor.py` | Deliberate on what was escalated, then act or decline. |
-| `src/watchdog/live.py` | The live path. It implements the interface and refuses. |
-| `src/watchdog/ledger.py` | The journal as a page, restraint rate on top. |
-| `tests/` | The cases where a naive diff produces a confident lie. |
+| `src/watchdog/contract.py` | The decision schema both tiers must answer in, with a validator. |
+| `src/prompts/` | Both prompts in full, with ten worked examples the test suite parses. |
+| `src/watchdog/live.py` | The live path. Implements the interface, refuses every verb. |
+| `src/watchdog/ledger.py` | The journal as a page, restraint rate on top, declines at full size. |
+| `tests/` | 371 of them. The cases where a naive implementation produces a confident lie. |
 | `LOG.md`, `DECISIONS.md` | What was found by running it, and what was decided and rejected. |
 
 ## A note on the radius
@@ -169,19 +215,13 @@ adapters above are what runs today, and the loop degrades to them out loud.
 This repo used 150 metres until 2026-08-20, on the strength of reading StreetCred's source
 rather than measuring its output. That was wrong.
 
-Querying DataSF at **80 metres over five years** reproduces StreetCred's published scoreboard
-counts exactly, in all four severity categories, for six of six corners probed. 150 metres does
-not reproduce them and is not close. Across the whole watched set, 80 metres agrees with
-StreetCred on fatalities at 25 of 25 corners, severe injuries at 24 of 25, and total injury
-collisions at 23 of 25.
+Querying DataSF at **80 metres over five years** reproduces StreetCred's published
+scoreboard counts exactly, in all four severity categories, for six of six corners probed.
+Across the whole watched set, 80 metres agrees with StreetCred on fatalities at 25 of 25
+corners, severe injuries at 24 of 25, and total injury collisions at 23 of 25.
 
-Two corners still disagree. `gough-and-haight` matches at roughly 90 metres rather than 80, so
-StreetCred's corner geometry is not a uniform circle and the exact rule is not known. The 311
-window could not be pinned at all: the published figure sits within one or two records of a one
-year window and matches exactly at none of the seven window lengths tried. The agent therefore
-keeps its own three year 311 window and says so in every letter, so the two figures are openly
-different quantities rather than two claims about the same thing that disagree.
-
-Changing the radius invalidated every stored baseline, so snapshots now carry a
-`query_fingerprint` and the delta engine refuses to compare across a change in it. Full evidence
-and the residuals are in `DECISIONS.md`.
+Two corners still disagree. `gough-and-haight` matches at roughly 90 metres rather than 80,
+so StreetCred's corner geometry is not a uniform circle and the exact rule is not known.
+The 311 window could not be pinned at all. The agent keeps its own three year window and
+says so in every letter, so the two figures are openly different quantities rather than two
+claims about the same thing that disagree.
