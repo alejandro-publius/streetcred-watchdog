@@ -950,6 +950,150 @@ def render_document(entries, *, rehearsal=None, generated_at=None, roster_size=N
     )
 
 
+def corner_history(entries: list[dict[str, Any]], slug: str) -> list[dict[str, Any]]:
+    """Everything this agent ever recorded about one corner, oldest first.
+
+    Oldest first, unlike the main ledger, because this page is a history rather
+    than a feed. A reader wants to know what happened to this corner in the
+    order it happened, and the most interesting thing a history can show is a
+    long run of nothing followed by something.
+    """
+    return sorted(
+        (e for e in entries if e.get("slug") == slug),
+        key=lambda e: e.get("ts", ""),
+    )
+
+
+def render_corner_body(
+    slug: str,
+    history: list[dict[str, Any]],
+    *,
+    corner: dict[str, Any] | None = None,
+    snapshot: dict[str, Any] | None = None,
+    generated_at: str | None = None,
+) -> str:
+    corner = corner or {}
+    name = corner.get("name") or (history[0].get("name") if history else slug) or slug
+    generated_at = generated_at or _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")
+
+    if not history:
+        body = (
+            '<article class="entry"><h3>Nothing recorded</h3><p class="delta">This agent has no '
+            f"journal entries for {_e(slug)}. That means it has never evaluated this corner, not "
+            "that the corner is fine.</p></article>"
+        )
+        stats_html = ""
+    else:
+        looked = len(history)
+        acted = sum(1 for e in history if e.get("actions"))
+        held = looked - acted
+        runs = len({e.get("runId") for e in history if e.get("runId")})
+        # Zero here means "written before run ids existed", not "no cycles ran",
+        # and printing a bare 0 would state the second while meaning the first.
+        runs_cell = (
+            f'<div class="count"><span class="n">{runs}</span><span class="k">cycles</span></div>'
+            if runs
+            else '<div class="count"><span class="n">&mdash;</span>'
+            '<span class="k">cycles not recorded</span></div>'
+        )
+        stats_html = f"""<section class="counts">
+    <div class="count"><span class="n">{looked}</span><span class="k">evaluations</span></div>
+    <div class="count"><span class="n">{held}</span><span class="k">ended in nothing</span></div>
+    <div class="count"><span class="n">{acted}</span><span class="k">ended in action</span></div>
+    {runs_cell}
+  </section>"""
+        body = "".join(_entry_html(e) for e in history)
+
+    record_html = ""
+    if snapshot:
+        c = snapshot.get("counts") or {}
+        record_html = f"""<section class="counts">
+    <div class="count"><span class="n">{_e(c.get("collisions_5y", 0))}</span><span class="k">injury collisions, 5y</span></div>
+    <div class="count"><span class="n">{_e(c.get("fatal_5y", 0))}</span><span class="k">of those, fatal</span></div>
+    <div class="count"><span class="n">{_e(c.get("severe_5y", 0))}</span><span class="k">of those, severe</span></div>
+    <div class="count"><span class="n">{_e(c.get("reports_311_3y", 0))}</span><span class="k">311 reports, 3y</span></div>
+  </section>
+  <p class="definition">The city's record as this agent last read it, within
+  {_e(corner.get("radiusMeters", 80))} metres, on {_e(snapshot.get("fetched_at", "an unrecorded date"))}.
+  Query: <code>{_e(snapshot.get("query_fingerprint", "not recorded"))}</code>.</p>"""
+
+    grade = corner.get("grade")
+    index = corner.get("index")
+    standfirst = (
+        f"Grade {_e(grade)}, Danger Index {_e(index)} on StreetCred's public scoreboard. "
+        if grade
+        else ""
+    )
+
+    return f"""<div class="wrap">
+  <header class="masthead">
+    <p class="eyebrow">The Corner Watchdog &middot; one corner, in order</p>
+    <h1>{_e(name)}</h1>
+    <p class="standfirst">{standfirst}Everything this agent has recorded about this corner,
+    oldest first, including every morning it looked and found nothing.</p>
+  </header>
+
+  {record_html}
+
+  {stats_html}
+
+  <section>
+    <div class="section-head">
+      <p class="eyebrow">Oldest first</p>
+      <h2>What happened here</h2>
+      <p>A history reads forward. The most interesting thing this page can show is a long
+      run of nothing followed by something, and that shape is invisible in reverse.</p>
+    </div>
+    <div class="entries">{body}</div>
+  </section>
+
+  <footer class="colophon">
+    <p>Rendered {_e(generated_at)} from <code>state/journal.jsonl</code>, filtered to
+    <code>{_e(slug)}</code>. Static page, no scripts, nothing fetched at view time.</p>
+  </footer>
+</div>"""
+
+
+def render_corner_document(slug, history, *, corner=None, snapshot=None, generated_at=None) -> str:
+    body = render_corner_body(
+        slug, history, corner=corner, snapshot=snapshot, generated_at=generated_at
+    )
+    head = HEAD.replace(f"<title>{TITLE}</title>", f"<title>{TITLE}: one corner</title>", 1)
+    return (
+        '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
+        '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
+        f"{head}\n</head>\n<body>\n{body}\n</body>\n</html>\n"
+    )
+
+
+def render_corner_to_file(
+    slug: str,
+    *,
+    state_dir: str | Path = "state",
+    out_path: str | Path | None = None,
+    watched_path: str | Path = "data/watched.json",
+) -> Path:
+    store = LocalJsonStore(state_dir)
+    history = corner_history(store.read_journal(), slug)
+
+    corner = None
+    try:
+        doc = json.loads(Path(watched_path).read_text())
+        corner = next((c for c in doc.get("corners") or [] if c.get("slug") == slug), None)
+    except (OSError, json.JSONDecodeError):
+        corner = None
+
+    snap = store.get_snapshot(slug)
+    out = Path(out_path) if out_path else Path("docs") / "corners" / f"{slug}.html"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(
+        render_corner_document(
+            slug, history, corner=corner, snapshot=snap.to_dict() if snap else None
+        )
+    )
+    return out
+
+
 def roster_size_from(path: str | Path = "data/watched.json") -> int | None:
     """How many corners a complete cycle is supposed to cover.
 

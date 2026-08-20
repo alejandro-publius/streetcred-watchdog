@@ -230,6 +230,19 @@ async def _cmd_schedule(args: argparse.Namespace) -> int:
 
 
 async def _cmd_ledger(args: argparse.Namespace) -> int:
+    if args.corner:
+        out = ledger_mod.render_corner_to_file(
+            args.corner, state_dir=args.state, watched_path=args.watched
+        )
+        entries = ledger_mod.corner_history(
+            ledger_mod.LocalJsonStore(args.state).read_journal(), args.corner
+        )
+        _p(f"corner history written to {out} ({len(entries)} entries)")
+        if not entries:
+            _p("that corner has no journal entries, which means it has never been evaluated,")
+            _p("not that it is fine")
+        return 0
+
     out = ledger_mod.render_to_file(
         state_dir=args.state, out_path=args.ledger,
         rehearsal_dir=args.rehearsal_state, watched_path=args.watched,
@@ -285,6 +298,10 @@ def build_parser() -> argparse.ArgumentParser:
     sc.set_defaults(fn=_cmd_schedule)
 
     lg = sub.add_parser("ledger", help="re-render the ledger from the journal on disk")
+    lg.add_argument(
+        "--corner",
+        help="render one corner's full history instead, oldest first, to docs/corners/<slug>.html",
+    )
     lg.set_defaults(fn=_cmd_ledger)
     return p
 

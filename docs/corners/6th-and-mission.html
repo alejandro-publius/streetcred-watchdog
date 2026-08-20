@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Restraint Ledger</title>
+<title>The Restraint Ledger: one corner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@400;600&family=Public+Sans:wght@400;500;600&display=swap">
@@ -387,68 +387,208 @@ body {
 </style>
 </head>
 <body>
-<div class="wrap"><section class="notice"><p><strong>Fixture: No cycle has run yet.</strong> This page is a rendered fixture, not a record of anything that happened. The corner names and their counts are real, read from this repo's snapshots on 2026-08-20. The failures are constructed to force the state so it can be looked at before it happens for real.</p></section>
+<div class="wrap">
   <header class="masthead">
-    <p class="eyebrow">The Corner Watchdog &middot; decision journal</p>
-    <h1>Most of what this agent decided was to leave things alone</h1>
-    <p class="standfirst">Every evaluation it made is below, in full, including and especially
-    the ones that ended in nothing. A monitor that only publishes its actions is showing you a
-    highlight reel.</p>
+    <p class="eyebrow">The Corner Watchdog &middot; one corner, in order</p>
+    <h1>6th and Mission</h1>
+    <p class="standfirst">Grade F, Danger Index 99 on StreetCred's public scoreboard. Everything this agent has recorded about this corner,
+    oldest first, including every morning it looked and found nothing.</p>
   </header>
 
-  
-
-  
-
-  <section class="headline">
-    <div class="rate">
-      <span class="figure">0</span><span class="unit">%</span>
-      <span class="what">restraint rate</span>
-    </div>
-    <div class="bar" role="img" aria-label="0 percent held, 0 percent acted">
-      <span class="seg-held" style="width: 0.00%"></span>
-      <span class="seg-acted" style="width: 0.00%"></span>
-    </div>
-    <p class="definition">0 of 0 evaluations ended in no action. That is the
-    whole definition: every entry in the journal is the denominator, nothing is filtered out,
-    and the 0 that did end in action are shown below with the same weight as the rest.</p>
-    
+  <section class="counts">
+    <div class="count"><span class="n">62</span><span class="k">injury collisions, 5y</span></div>
+    <div class="count"><span class="n">0</span><span class="k">of those, fatal</span></div>
+    <div class="count"><span class="n">9</span><span class="k">of those, severe</span></div>
+    <div class="count"><span class="n">239</span><span class="k">311 reports, 3y</span></div>
   </section>
+  <p class="definition">The city's record as this agent last read it, within
+  80 metres, on 2026-08-20T06:18:27.138842+00:00.
+  Query: <code>r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9</code>.</p>
 
   <section class="counts">
-    <div class="count"><span class="n">0</span><span class="k">corners watched</span></div>
-    <div class="count"><span class="n">0</span><span class="k">evaluations</span></div>
-    <div class="count"><span class="n">0</span><span class="k">settled by rule</span></div>
-    <div class="count"><span class="n">0</span><span class="k">sent to deliberation</span></div>
-    <div class="count"><span class="n">0</span><span class="k">actions taken</span></div>
-    <div class="count"><span class="n">0</span><span class="k">refused by budget</span></div>
+    <div class="count"><span class="n">5</span><span class="k">evaluations</span></div>
+    <div class="count"><span class="n">5</span><span class="k">ended in nothing</span></div>
+    <div class="count"><span class="n">0</span><span class="k">ended in action</span></div>
+    <div class="count"><span class="n">1</span><span class="k">cycles</span></div>
   </section>
-
-  
 
   <section>
     <div class="section-head">
-      <p class="eyebrow">Newest first</p>
-      <h2>The journal</h2>
-      <p>A decline is rendered at the same size as an action, with its reasoning attached.
-      Nothing here is collapsed or greyed out.</p>
+      <p class="eyebrow">Oldest first</p>
+      <h2>What happened here</h2>
+      <p>A history reads forward. The most interesting thing this page can show is a long
+      run of nothing followed by something, and that shape is invisible in reverse.</p>
     </div>
-    <div class="entries"><article class="entry"><h3>No cycle has run yet</h3><p class="delta">The journal is empty, so there is nothing to show and no restraint rate to report. An empty journal is not a claim that the watched corners are fine; it is a statement that this agent has not looked at them.</p><p class="says">Run <code>python -m watchdog run</code> to produce the first entries.</p></article></div>
+    <div class="entries"><article class="entry entry-held">
+  <header class="entry-head">
+    <h3>6th and Mission</h3>
+    <span class="badge badge-held">Held</span>
+  </header>
+  <p class="delta">No change at 6th and Mission.</p>
+  <div class="reason"><span class="who">Rule floor</span><p class="says">Nothing changed at this corner since the last look.</p></div>
+  <p class="outcome outcome-held">No action taken.</p>
+  
+  
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 6th and Mission.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Mission&quot;,
+  &quot;slug&quot;: &quot;6th-and-mission&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:19+00:00&quot;
+}</pre></details>
+  <footer class="entry-foot">
+    <span class="meta-bit">2026-08-20T05:22:19+00:00</span>
+    <span class="meta-bit">6th-and-mission</span>
+    <span class="meta-bit">decided by rule floor</span>
+    
+    <span class="meta-bit">trigger manual</span>
+    
+  </footer>
+</article><article class="entry entry-held">
+  <header class="entry-head">
+    <h3>6th and Mission</h3>
+    <span class="badge badge-held">Held</span>
+  </header>
+  <p class="delta">No change at 6th and Mission.</p>
+  <div class="reason"><span class="who">Rule floor</span><p class="says">Nothing changed at this corner since the last look.</p></div>
+  <p class="outcome outcome-held">No action taken.</p>
+  
+  
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 6th and Mission.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Mission&quot;,
+  &quot;slug&quot;: &quot;6th-and-mission&quot;,
+  &quot;tier1&quot;: {
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:22:25+00:00&quot;
+}</pre></details>
+  <footer class="entry-foot">
+    <span class="meta-bit">2026-08-20T05:22:25+00:00</span>
+    <span class="meta-bit">6th-and-mission</span>
+    <span class="meta-bit">decided by rule floor</span>
+    
+    <span class="meta-bit">trigger manual</span>
+    
+  </footer>
+</article><article class="entry entry-held">
+  <header class="entry-head">
+    <h3>6th and Mission</h3>
+    <span class="badge badge-held">Held</span>
+  </header>
+  <p class="delta">Comparison unreliable at 6th and Mission: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9</p>
+  <div class="reason"><span class="who">Rule floor</span><p class="says">The comparison was unreliable, so there is nothing to judge yet.</p></div>
+  <p class="outcome outcome-held">No action taken.</p>
+  
+  
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;Comparison unreliable at 6th and Mission: the query changed between these two looks, so the arithmetic is meaningless: not recorded then r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Mission&quot;,
+  &quot;slug&quot;: &quot;6th-and-mission&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;methodology&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;The comparison was unreliable, so there is nothing to judge yet.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;manual&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:46:22+00:00&quot;
+}</pre></details>
+  <footer class="entry-foot">
+    <span class="meta-bit">2026-08-20T05:46:22+00:00</span>
+    <span class="meta-bit">6th-and-mission</span>
+    <span class="meta-bit">decided by rule floor</span>
+    <span class="meta-bit">the query itself changed</span>
+    <span class="meta-bit">trigger manual</span>
+    
+  </footer>
+</article><article class="entry entry-held">
+  <header class="entry-head">
+    <h3>6th and Mission</h3>
+    <span class="badge badge-held">Held</span>
+  </header>
+  <p class="delta">No change at 6th and Mission.</p>
+  <div class="reason"><span class="who">Rule floor</span><p class="says">Nothing changed at this corner since the last look.</p></div>
+  <p class="outcome outcome-held">No action taken.</p>
+  
+  
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 6th and Mission.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Mission&quot;,
+  &quot;slug&quot;: &quot;6th-and-mission&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T05:53:49+00:00&quot;
+}</pre></details>
+  <footer class="entry-foot">
+    <span class="meta-bit">2026-08-20T05:53:49+00:00</span>
+    <span class="meta-bit">6th-and-mission</span>
+    <span class="meta-bit">decided by rule floor</span>
+    <span class="meta-bit">nothing changed</span>
+    <span class="meta-bit">trigger cron</span>
+    
+  </footer>
+</article><article class="entry entry-held">
+  <header class="entry-head">
+    <h3>6th and Mission</h3>
+    <span class="badge badge-held">Held</span>
+  </header>
+  <p class="delta">No change at 6th and Mission.</p>
+  <div class="reason"><span class="who">Rule floor</span><p class="says">Nothing changed at this corner since the last look.</p></div>
+  <p class="outcome outcome-held">No action taken.</p>
+  
+  
+  <details class="trace"><summary>The full journal record</summary><pre>{
+  &quot;actions&quot;: [],
+  &quot;delta&quot;: &quot;No change at 6th and Mission.&quot;,
+  &quot;intents&quot;: [],
+  &quot;name&quot;: &quot;6th and Mission&quot;,
+  &quot;runId&quot;: &quot;tick-20260820T061824Z&quot;,
+  &quot;slug&quot;: &quot;6th-and-mission&quot;,
+  &quot;tier1&quot;: {
+    &quot;basis&quot;: &quot;no_change&quot;,
+    &quot;byRule&quot;: true,
+    &quot;reason&quot;: &quot;Nothing changed at this corner since the last look.&quot;,
+    &quot;significant&quot;: false
+  },
+  &quot;trigger&quot;: &quot;cron&quot;,
+  &quot;ts&quot;: &quot;2026-08-20T06:18:33+00:00&quot;
+}</pre></details>
+  <footer class="entry-foot">
+    <span class="meta-bit">2026-08-20T06:18:33+00:00</span>
+    <span class="meta-bit">6th-and-mission</span>
+    <span class="meta-bit">decided by rule floor</span>
+    <span class="meta-bit">nothing changed</span>
+    <span class="meta-bit">trigger cron</span>
+    
+  </footer>
+</article></div>
   </section>
 
-  
-
   <footer class="colophon">
-    <p>Rendered 2026-08-20T06:18:44+00:00 from <code>state/journal.jsonl</code>. Static page, no
-    scripts, no analytics, nothing fetched at view time.</p>
-    <p>Counts come from San Francisco's open data portal within 80 metres of each corner:
-    injury collisions over five years, filtered street-condition 311 reports over three.
-    80 metres is the radius that reproduces StreetCred's published scoreboard figures exactly,
-    measured across six corners rather than assumed. The three year 311 window is this agent's
-    own and is longer than the scoreboard's, so those two figures are different quantities
-    rather than a disagreement. The watched set is the worst 25 corners on that scoreboard.</p>
-    <p>This run posted nothing anywhere. Every action shown was rendered to a local outbox
-    and read by nobody but the person who ran it.</p>
+    <p>Rendered 2026-08-20T06:18:33+00:00 from <code>state/journal.jsonl</code>, filtered to
+    <code>6th-and-mission</code>. Static page, no scripts, nothing fetched at view time.</p>
   </footer>
 </div>
 </body>
