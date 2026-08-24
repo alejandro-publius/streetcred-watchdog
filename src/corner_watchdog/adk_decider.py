@@ -416,9 +416,6 @@ class AdkDecider:
         that the record is now written at the moment of the signature rather than
         after a round trip.
         """
-        if self.guardrails.journal is None or self.request is None:
-            return None
-
         record = tool_context.state.get(DECISION_KEY)
         if not record:
             return None
@@ -430,11 +427,18 @@ class AdkDecider:
             # rejects would put an unvalidated record in an append-only file.
             return None
 
+        # The outcome is recorded whether or not anybody asked for a journal
+        # entry, because it is this decider's own account of what it just did.
+        # Only the write below is conditional, and `journaled` says which
+        # happened, so the actor knows whether it still owes an entry.
         taken, intents = self._spend(list(decision.actions))
         tier2 = decision.to_tier2_decision()
         self.outcome.decision = tier2
         self.outcome.taken = taken
         self.outcome.intents = intents
+
+        if self.guardrails.journal is None or self.request is None:
+            return None
         self.outcome.journaled = True
 
         r = self.request
