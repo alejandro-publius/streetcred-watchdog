@@ -34,23 +34,32 @@ to a decline) applies here without being restated.
 
 from __future__ import annotations
 
+import datetime as _dt
 import uuid
+from collections.abc import Callable
+from dataclasses import dataclass, field
 from typing import Any
 
 from google.adk.agents import LlmAgent
+from google.adk.agents.callback_context import CallbackContext
+from google.adk.models.llm_request import LlmRequest
+from google.adk.models.llm_response import LlmResponse
 from google.adk.runners import InMemoryRunner
 from google.adk.tools import ToolContext
+from google.adk.tools.base_tool import BaseTool
 from google.genai import types
 
+from .budget import ActionBudget
 from .config import deliberation_model
 from .contract import ContractViolation, parse_deliberation
-from .ports import DeliberationError
+from .guardrails import budget_note, screen_all
+from .ports import DeliberationError, DeliberationRequest
 from .prompts import (
     DELIBERATION_TOOL_INSTRUCTION,
     DELIBERATION_TOOL_VERSION,
     deliberation_case,
 )
-from .schema import Counts, Delta, Tier2Decision
+from .schema import Counts, Delta, JournalEntry, Tier2Decision
 
 APP_NAME = "corner-watchdog"
 
@@ -82,8 +91,40 @@ __all__ = [
     "TOOL_TO_ACTION",
     "AdkDecider",
     "DeliberationError",
+    "DeliberationOutcome",
+    "DeliberationRequest",
+    "Guardrails",
     "build_decider_agent",
 ]
+
+# Set by the before-model gates when they stop a deliberation reaching the model.
+SHORT_CIRCUIT_KEY = "short_circuit"
+
+
+@dataclass
+class DeliberationOutcome:
+    """What actually happened, for the actor to finish and for tests to read."""
+
+    decision: Tier2Decision | None = None
+    taken: list[str] = field(default_factory=list)
+    intents: list[str] = field(default_factory=list)
+    journaled: bool = False
+    model_reached: bool = False
+    short_circuit: str | None = None
+
+
+@dataclass
+class Guardrails:
+    """The gates the callbacks enforce, and where the journal entry lands.
+
+    Optional as a whole. Without it the decider is a plain `Decider` that decides
+    and returns, which is what the eval harness and most of the tests want. With
+    it, the daily action budget, the injection screen and the journal write all
+    move inside the ADK invocation, which is what production runs on.
+    """
+
+    action_budget: ActionBudget | None = None
+    journal: Callable[[JournalEntry], None] | None = None
 
 
 def _resolve_actions(primary: str, also: list[str] | None) -> list[str]:
@@ -274,17 +315,186 @@ def build_decider_agent(*, model: str | Any | None = None, name: str = "corner_w
 class AdkDecider:
     """Tier two, run as an ADK agent. Satisfies the same protocol as RuleDecider."""
 
-    def __init__(self, *, model: str | Any | None = None, why_degraded: str | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        model: str | Any | None = None,
+        why_degraded: str | None = None,
+        guardrails: Guardrails | None = None,
+    ) -> None:
         self._model_name = (
             model if isinstance(model, str) or model is None
             else getattr(model, "model", str(model))
         )
         self._why = why_degraded
-        self.agent = build_decider_agent(model=model)
-        self._runner = InMemoryRunner(agent=self.agent, app_name=APP_NAME)
-        # What the last deliberation actually did, for the actor and the tests.
-        # Deciding is sequential by construction, see observer.sweep.
+        self.guardrails = guardrails or Guardrails()
+        # What the actor handed over for the deliberation now in flight, and what
+        # came out of it. Deciding is sequential by construction, see the comment
+        # in observer.sweep: fetching is concurrent, deciding is not, because
+        # journal order and budget spending have to be reproducible.
+        self.request: DeliberationRequest | None = None
+        self.outcome = DeliberationOutcome()
         self.last_signatures: list[str] = []
+
+        self.agent = build_decider_agent(model=model)
+        self.agent.before_model_callback = [self._gate_budget, self._gate_injection]
+        self.agent.after_tool_callback = self._write_journal
+        self._runner = InMemoryRunner(agent=self.agent, app_name=APP_NAME)
+
+    # ------------------------------------------------------------- the handshake
+
+    def begin(self, request: DeliberationRequest) -> None:
+        """Accept the journal context for the deliberation about to run."""
+        self.request = request
+        self.outcome = DeliberationOutcome()
+
+    # -------------------------------------------------------- before the model
+
+    def _gate_budget(
+        self, callback_context: CallbackContext, llm_request: LlmRequest
+    ) -> LlmResponse | None:
+        """The daily action budget, checked before a token is spent thinking.
+
+        Returning a response here means the model is never called. That is the
+        property worth having: an exhausted budget produces an entry saying
+        nothing looked at this corner, rather than a deliberation whose
+        conclusions are then thrown away, which costs money to reach a foregone
+        conclusion and reads in the journal as though a decision was made.
+        """
+        budget = self.guardrails.action_budget
+        if budget is None or budget.remaining > 0:
+            return None
+
+        note = budget_note(budget.spent, budget.limit)
+        callback_context.state[SHORT_CIRCUIT_KEY] = {"kind": "budget", "note": note}
+        self._journal_short_circuit(intents=[note])
+        return LlmResponse(
+            content=types.Content(
+                role="model",
+                parts=[types.Part(text="Not deliberated: the daily action budget is spent.")],
+            )
+        )
+
+    def _gate_injection(
+        self, callback_context: CallbackContext, llm_request: LlmRequest
+    ) -> LlmResponse | None:
+        """The prompt-injection screen, on text that arrived from a public API.
+
+        Runs against the request the model is actually about to receive rather
+        than against the delta the actor was handed, because those are only the
+        same thing while nothing in between edits it, and a screen that checks a
+        different string than the one that gets sent is not a screen.
+        """
+        finding = screen_all(_request_text(llm_request))
+        if not finding:
+            return None
+
+        callback_context.state[SHORT_CIRCUIT_KEY] = {"kind": "screened", "note": str(finding)}
+        self._journal_short_circuit(intents=[str(finding)])
+        return LlmResponse(
+            content=types.Content(
+                role="model",
+                parts=[types.Part(text="Not deliberated: the input was screened.")],
+            )
+        )
+
+    # ---------------------------------------------------------- after the tool
+
+    def _write_journal(
+        self,
+        tool: BaseTool,
+        args: dict[str, Any],
+        tool_context: ToolContext,
+        tool_response: dict[str, Any],
+    ) -> dict[str, Any] | None:
+        """The journal entry, written where the decision was signed.
+
+        The action budget is spent here too, one unit per action, so that the
+        entry records what was actually carried out and what the budget refused.
+        The actor then runs the actuator verbs for the actions this allowed. That
+        ordering is the same one the actor used to run itself; what changed is
+        that the record is now written at the moment of the signature rather than
+        after a round trip.
+        """
+        if self.guardrails.journal is None or self.request is None:
+            return None
+
+        record = tool_context.state.get(DECISION_KEY)
+        if not record:
+            return None
+
+        try:
+            decision = parse_deliberation(dict(record))
+        except ContractViolation:
+            # Left for decide() to raise on. Journaling a decision the contract
+            # rejects would put an unvalidated record in an append-only file.
+            return None
+
+        taken, intents = self._spend(list(decision.actions))
+        tier2 = decision.to_tier2_decision()
+        self.outcome.decision = tier2
+        self.outcome.taken = taken
+        self.outcome.intents = intents
+        self.outcome.journaled = True
+
+        r = self.request
+        self.guardrails.journal(
+            JournalEntry(
+                ts=_now(),
+                slug=r.slug,
+                name=r.name,
+                delta=r.delta_summary,
+                trigger=r.trigger,  # type: ignore[arg-type]
+                tier1=r.tier1,
+                tier2=tier2,
+                actions=taken,  # type: ignore[arg-type]
+                intents=intents,
+                degraded=r.degraded,
+                run_id=r.run_id,
+                cost=r.cost,
+            )
+        )
+        return None
+
+    def _spend(self, actions: list[str]) -> tuple[list[str], list[str]]:
+        budget = self.guardrails.action_budget
+        if budget is None:
+            return actions, []
+        taken: list[str] = []
+        intents: list[str] = []
+        for action in actions:
+            if budget.take(action):
+                taken.append(action)
+            else:
+                intents.append(ActionBudget.intent_for(action))
+        return taken, intents
+
+    def _journal_short_circuit(self, *, intents: list[str]) -> None:
+        """An entry for a deliberation that never happened. Never a decline.
+
+        No tier two, so the ledger sees an entry with intents and no actions,
+        which `_wanted_to_act` already keeps out of the restraint rate.
+        """
+        self.outcome.intents = list(intents)
+        self.outcome.short_circuit = intents[0] if intents else None
+        if self.guardrails.journal is None or self.request is None:
+            return
+        r = self.request
+        self.guardrails.journal(
+            JournalEntry(
+                ts=_now(),
+                slug=r.slug,
+                name=r.name,
+                delta=r.delta_summary,
+                trigger=r.trigger,  # type: ignore[arg-type]
+                tier1=r.tier1,
+                intents=list(intents),
+                degraded=r.degraded,
+                run_id=r.run_id,
+                cost=r.cost,
+            )
+        )
+        self.outcome.journaled = True
 
     def describe(self) -> str:
         return (
@@ -317,6 +527,12 @@ class AdkDecider:
         record, signatures = await self._run(case)
         self.last_signatures = signatures
 
+        if record is None:
+            # A gate stopped this before the model. Already journaled as an
+            # intent by the callback that stopped it, and not a decision, so
+            # there is nothing here for the contract to validate.
+            return Tier2Decision(reasoning=self.outcome.short_circuit or "", actions=[])
+
         try:
             decision = parse_deliberation(record)
         except ContractViolation as e:
@@ -324,10 +540,12 @@ class AdkDecider:
                 f"the agent signed {signatures} but the result does not satisfy the decision "
                 f"contract: {e}"
             ) from e
-        return decision.to_tier2_decision()
+        decided = decision.to_tier2_decision()
+        self.outcome.decision = self.outcome.decision or decided
+        return decided
 
-    async def _run(self, case: str) -> tuple[dict[str, Any], list[str]]:
-        """One deliberation. Returns the signed record and which tools signed it."""
+    async def _run(self, case: str) -> tuple[dict[str, Any] | None, list[str]]:
+        """One deliberation. Returns the signed record, or None if a gate stopped it."""
         session = await self._runner.session_service.create_session(
             app_name=APP_NAME, user_id="watchdog", session_id=uuid.uuid4().hex,
         )
@@ -344,6 +562,14 @@ class AdkDecider:
         state = dict(finished.state) if finished else {}
         signatures = list(state.get("signatures") or [])
         record = state.get(DECISION_KEY)
+
+        stopped = state.get(SHORT_CIRCUIT_KEY)
+        if stopped:
+            # A gate refused this before the model. Not an error and not a
+            # decline: nothing was asked and nothing answered.
+            self.outcome.model_reached = False
+            return None, signatures
+        self.outcome.model_reached = True
 
         # Exactly one. Both directions are errors and neither is a decline.
         if not signatures or not record:
@@ -366,3 +592,30 @@ class AdkDecider:
 
     async def aclose(self) -> None:
         await self._runner.close()
+
+
+def _request_text(llm_request: LlmRequest) -> dict[str, str]:
+    """The text of a model request, by where it came from.
+
+    The system instruction is this repository's own prose and is screened anyway.
+    A screen that trusts one field because of who is believed to have written it
+    is a screen with a hole in it shaped like whoever gets to write that field.
+    """
+    fields: dict[str, str] = {}
+    config = getattr(llm_request, "config", None)
+    instruction = getattr(config, "system_instruction", None)
+    if isinstance(instruction, str):
+        fields["the agent instruction"] = instruction
+
+    parts: list[str] = []
+    for content in llm_request.contents or []:
+        for part in content.parts or []:
+            if part.text:
+                parts.append(part.text)
+    if parts:
+        fields["the delta text"] = "\n".join(parts)
+    return fields
+
+
+def _now() -> str:
+    return _dt.datetime.now(_dt.UTC).isoformat(timespec="seconds")

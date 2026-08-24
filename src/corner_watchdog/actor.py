@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .budget import ActionBudget, Cost, TokenBudget
-from .ports import Actuator, Decider, DeliberationError, Store
+from .ports import Actuator, Decider, DeliberationError, DeliberationRequest, Store
 from .schema import Counts, Delta, JournalEntry, Tier1Verdict, Tier2Decision
 
 
@@ -129,6 +129,28 @@ class Actor:
             return
 
         self.result.deliberated += 1
+
+        # The ADK decider enforces the daily action budget and the injection
+        # screen inside its own callbacks, and writes the journal entry where the
+        # decision is signed. It needs the corner, the trigger and tier one's
+        # verdict to do that, none of which the Decider protocol carries, so they
+        # are handed over here rather than by widening the protocol and dragging
+        # the ADK's shape onto the deterministic stand-in.
+        handshake = getattr(self.decider, "begin", None)
+        if callable(handshake):
+            handshake(
+                DeliberationRequest(
+                    slug=corner.get("slug"),
+                    name=corner.get("name"),
+                    delta_summary=envelope.get("delta_summary") or delta.summary(),
+                    trigger=envelope.get("trigger", "manual"),
+                    tier1=tier1,
+                    degraded=self.degraded,
+                    run_id=envelope.get("runId") or self.run_id,
+                    cost=_merge_cost(envelope.get("cost"), projected),
+                )
+            )
+
         try:
             decision: Tier2Decision = await self.decider.decide(delta, corner, counts, tier1.reason)
         except DeliberationError as e:
@@ -154,27 +176,48 @@ class Actor:
             )
             return
 
-        taken: list[str] = []
-        intents: list[str] = []
-        for action in decision.actions:
-            if not self.budget.take(action):
-                intents.append(ActionBudget.intent_for(action))
-                continue
-            artefact = await self._run(action, corner, counts, delta, decision.reasoning)
-            taken.append(action)
-            if artefact:
-                self.result.artefacts.append(artefact)
+        outcome = getattr(self.decider, "outcome", None)
+        guarded = bool(getattr(outcome, "journaled", False))
+
+        if guarded:
+            # The callbacks already spent the budget and wrote the entry. Running
+            # the budget again here would charge twice for one decision, and
+            # writing again would put two records in an append-only file for one
+            # deliberation.
+            taken = list(outcome.taken)
+            intents = list(outcome.intents)
+            for action in taken:
+                artefact = await self._run(action, corner, counts, delta, decision.reasoning)
+                if artefact:
+                    self.result.artefacts.append(artefact)
+        else:
+            taken = []
+            intents = []
+            for action in decision.actions:
+                if not self.budget.take(action):
+                    intents.append(ActionBudget.intent_for(action))
+                    continue
+                artefact = await self._run(action, corner, counts, delta, decision.reasoning)
+                taken.append(action)
+                if artefact:
+                    self.result.artefacts.append(artefact)
 
         if taken:
             self.result.acted += 1
+        elif intents:
+            # It chose to act, or wanted to think, and a budget refused. Counting
+            # either as a decline would let an exhausted budget inflate the
+            # restraint rate.
+            self.result.blocked += 1
         elif decision.actions:
-            # It chose to act and the budget refused. Counting this as a decline
-            # would let an exhausted budget inflate the restraint rate.
             self.result.blocked += 1
         else:
             self.result.declined += 1
         self.result.actions_taken.extend(taken)
         self.result.intents.extend(intents)
+
+        if guarded:
+            return
 
         self.store.append_journal(
             JournalEntry(

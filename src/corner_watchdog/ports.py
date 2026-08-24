@@ -24,6 +24,7 @@ because the output looks identical either way.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Any, Protocol, runtime_checkable
 
 from .schema import Calibration, Counts, Delta, JournalEntry, Snapshot, Tier1Verdict, Tier2Decision
@@ -88,6 +89,31 @@ class DeliberationError(RuntimeError):
     failure of the agent into the numerator of the number this project asks to
     be judged on.
     """
+
+
+@dataclass(frozen=True)
+class DeliberationRequest:
+    """What the actor knows about one deliberation, for a decider that journals.
+
+    The `Decider` protocol passes the delta, the corner, the counts and the
+    reason it was escalated, which is everything needed to decide and nothing
+    needed to write the record of having decided. A decider that keeps its own
+    guardrails and writes its own journal entry needs the trigger, the run and
+    tier one's verdict as well.
+
+    It is handed over through an optional `begin()` rather than widened into
+    `decide()`, so the deterministic stand-in is not made to carry the shape of
+    the implementation that happens to need it.
+    """
+
+    slug: str | None
+    name: str | None
+    delta_summary: str
+    trigger: str
+    tier1: Tier1Verdict
+    degraded: str | None = None
+    run_id: str | None = None
+    cost: dict[str, Any] | None = None
 
 
 @runtime_checkable
