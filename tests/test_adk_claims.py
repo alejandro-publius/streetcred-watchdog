@@ -193,11 +193,16 @@ def test_the_real_repository_passes_right_now():
 
     result = subprocess.run([sys.executable, str(TOOL)], capture_output=True, text=True, cwd=REPO)
     assert result.returncode == 0, result.stdout + result.stderr
-    assert "NOT IN USE" in result.stdout
+    # This assertion read NOT IN USE until adk_decider.py landed. The guard was
+    # written to invert on its own and it did; the change here is the prose
+    # catching up, which is the whole mechanism working rather than a fix.
+    assert "state: IN USE" in result.stdout
 
 
-def test_the_real_repository_has_no_adk_import():
-    assert load_tool(REPO).adk_importers() == []
+def test_the_real_repository_now_imports_the_adk():
+    importers = load_tool(REPO).adk_importers()
+    assert importers, "the requirements row claims the ADK is wired, so something must import it"
+    assert any("adk_decider" in line for line in importers)
 
 
 def test_the_scaffold_readme_would_have_failed_this_guard(tmp_path):

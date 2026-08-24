@@ -26,6 +26,7 @@ from __future__ import annotations
 import os
 from typing import Any
 
+from .config import decider_name, deliberation_model
 from .prompts import DELIBERATION_PROMPT_VERSION, TRIAGE_PROMPT_VERSION, deliberation_prompt, triage_prompt
 from .schema import Calibration, Counts, Delta, Tier1Verdict, Tier2Decision
 
@@ -220,23 +221,47 @@ class RuleDecider:
         return Tier2Decision(reasoning=" ".join(because), actions=ordered)  # type: ignore[arg-type]
 
 
-def select_brains() -> tuple[RuleTriage, RuleDecider, str | None]:
+def select_brains() -> tuple[RuleTriage, Any, str | None]:
     """Wire the tiers, and say plainly which ones are real.
 
     Returns the two tiers plus a single degradation line for the journal, or
-    None when both tiers were genuinely models. Today it is always the former,
-    and the day a Vertex project exists this is the one function that changes.
+    None when both tiers were genuinely models.
+
+    `DECIDER` chooses tier two. The default is the ADK judgment agent; `rule`
+    keeps the deterministic stand-in selectable so the two can be compared on
+    the same journal. An unrecognised value raises rather than falling back,
+    which is `config.py`'s rule and the reason it exists.
+
+    There is one fallback here and it is loud. `DECIDER=adk` on a machine with no
+    Vertex project cannot call a model, so it runs the stand-in and says so on
+    every entry it writes. That is the same admission this module has always
+    made; what it must never become is silence, because an agent that quietly
+    degrades produces output indistinguishable from the real thing.
     """
+    wanted = decider_name()
     ok, why = vertex_is_configured()
     triage = RuleTriage(why)
-    decider = RuleDecider(why)
-    if ok:
-        # Configuration exists but the model clients are not wired yet. Say that
-        # rather than implying the models ran.
+
+    if wanted == "rule":
+        decider = RuleDecider(why)
         note = (
-            "Vertex configuration is present but no model client is wired in this build, so both tiers "
-            "ran as deterministic stand-ins."
+            f"{triage.degraded} Tier two ran as deterministic policy because DECIDER=rule was "
+            "selected, not because a model was unavailable."
         )
-    else:
-        note = f"{triage.degraded} {decider.degraded}"
-    return triage, decider, note
+        return triage, decider, note
+
+    if not ok:
+        decider = RuleDecider(why)
+        note = (
+            f"{triage.degraded} DECIDER=adk was requested but no model could be called: {why}. "
+            "Tier two ran as deterministic policy instead. Nothing on this entry was decided by "
+            "a model."
+        )
+        return triage, decider, note
+
+    from .adk_decider import AdkDecider
+
+    decider = AdkDecider(model=deliberation_model())
+    # Tier one is still not a model. Tier two now is, so the note names only the
+    # tier that is actually standing in.
+    return triage, decider, triage.degraded

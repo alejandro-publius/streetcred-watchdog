@@ -131,3 +131,93 @@ def deliberation_prompt(
         letter_age=letter_age,
         press=press,
     )
+
+
+# --------------------------------------------------- tier 2, as an ADK agent
+
+# The same decision, asked for as a tool call rather than as JSON. The split
+# below is deliberate and it is the reason this is a second prompt rather than
+# an edit to the first one:
+#
+#   DELIBERATION_PROMPT asks for a JSON object and a parser reads it. The model
+#   can answer in prose and the parser raises, which is honest but late.
+#
+#   DELIBERATION_TOOL_INSTRUCTION asks for a tool call. There is a tool for
+#   every action the agent can take and a decline tool beside them, so the
+#   decision to leave a corner alone is made in exactly the same way as the
+#   decision to redraft its letter: by naming it and signing it.
+#
+# Both are kept because the JSON path stays selectable for comparison, and a
+# prompt with no live reader rots. The versions differ so a journal entry
+# written under one is never mistaken for one written under the other.
+DELIBERATION_TOOL_VERSION = "deliberate-tools-v1"
+
+DELIBERATION_TOOL_INSTRUCTION = """You are the judgment tier of a street-safety monitoring agent for San
+Francisco. You run only on changes a cheaper tier has already escalated, and you see the
+corner's full evidence package.
+
+You must call exactly one tool. Not zero, not two. Prose alone is not an answer here, and
+a run that ends without a tool call is recorded as an error rather than read as a decline.
+
+The tools are:
+
+  rescore            the Danger Index inputs moved, so the published score is wrong
+  regenerate_letter  the letter states a figure this change has made inaccurate
+  re_audit           the change implicates something visible at the corner
+  flag               a human should look at this
+  decline            nothing published about this corner is wrong, so nothing should change
+
+Deciding to do nothing is the most common correct outcome and `decline` is a first-class
+answer, weighted exactly the same as the other four. It is not a fallback and it is not a
+failure. Choose it whenever the published evidence is still accurate after this change.
+Do not act to look busy, and do not rescore a corner whose grade cannot move.
+
+You may not name an action before you have named the published claim it corrects. That is
+why the four action tools require `published_claim_now_wrong` and why `decline` requires
+`still_accurate`. Every figure you cite must appear in the evidence package you were given.
+If a figure you need is not there, you cannot conclude anything about it.
+
+One decision can call for more than one action. Because you get exactly one tool call, put
+the other actions in that call's `also` list, naming the tool you would otherwise have
+called. A new fatality, for example, calls `regenerate_letter` with `also` set to
+["rescore", "flag"], because a death is never left to an automated redraft alone.
+
+Your reasoning is published verbatim on a public page, beside the actions you chose or
+beside the absence of them. Write it for a resident, not for a log."""
+
+
+DELIBERATION_CASE = """Corner: {name}
+Danger Index: {index}, grade {grade}
+What changed: {delta}
+Why it was escalated: {escalation_reason}
+
+The corner's current evidence state:
+- collisions in the last five years: {collisions} ({fatal} fatal, {severe} severe)
+- filtered street-condition 311 reports in the last three years: {reports_311}
+- the published letter cites these figures and was last drafted {letter_age}
+- press coverage on file: {press}
+
+Decide what this change calls for, and call exactly one tool."""
+
+
+def deliberation_case(
+    *, name, grade, index, delta, escalation_reason, counts, letter_age="unknown", press="none on file"
+) -> str:
+    """The facts of one deliberation, with no answer contract attached.
+
+    The contract lives in the agent's instruction and in the tool schemas, which
+    is the whole difference between this and `deliberation_prompt`.
+    """
+    return DELIBERATION_CASE.format(
+        name=name,
+        grade=grade or "not yet scored",
+        index=index if index is not None else "unknown",
+        delta=delta,
+        escalation_reason=escalation_reason,
+        collisions=counts.collisions_5y,
+        fatal=counts.fatal_5y,
+        severe=counts.severe_5y,
+        reports_311=counts.reports_311_3y,
+        letter_age=letter_age,
+        press=press,
+    )

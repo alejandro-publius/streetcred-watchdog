@@ -57,8 +57,8 @@ FULL_README = (
     "the deciding not to.\n\n"
     "StreetCred predates this hackathon. It was built at a prior Build Club event. "
     "The Corner Watchdog is entirely new work.\n\n"
-    "The Agent Development Kit port is planned build-window work: `google-adk` is "
-    "staged in the `cloud` extra.\n"
+    "The Agent Development Kit is now genuinely in use: tier two is an `LlmAgent` "
+    "with five registered tools.\n"
 )
 
 
@@ -112,7 +112,7 @@ def test_the_origin_disclosure_is_guarded_too(tmp_path):
 def test_the_adk_status_allows_no_restatement_anywhere(tmp_path):
     root = build(tmp_path, readme=FULL_README, faq=POINTER,
                  extra={"docs/GCP_PRECONDITIONS.md":
-                        "The port is planned build-window work.\n"})
+                        "Tier two is an `LlmAgent` with five registered tools.\n"})
     problems, _ = load(root).check()
     assert any("ADK status" in p for p in problems)
 

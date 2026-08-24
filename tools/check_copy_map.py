@@ -74,7 +74,10 @@ BLOCKS: dict[str, tuple[str, tuple[str, ...], int]] = {
     ),
     "ADK status": (
         "README.md",
-        ("port is planned build-window work", "staged in the `cloud` extra"),
+        # Repointed when the ADK stopped being planned work and started being
+        # tier two. The block did not move; what it says inverted, and a guard
+        # still pinning the old sentence would pass by matching nothing.
+        ("Agent Development Kit is now genuinely in use", "an `LlmAgent` with five registered tools"),
         0,
     ),
 }

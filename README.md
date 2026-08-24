@@ -30,7 +30,7 @@ Read this before the rest.
   to, or touched at any point in this project.** The plan for wiring them is
   [`docs/GEMINI_WIRING.md`](docs/GEMINI_WIRING.md).
   Cloud setup is a ten minute operator task: see [`docs/GCP_PRECONDITIONS.md`](docs/GCP_PRECONDITIONS.md), then [`scripts/preflight_gcp.sh`](scripts/preflight_gcp.sh) to verify.
-  The Agent Development Kit port is planned build-window work: `google-adk` is staged in the `cloud` extra and imported by nothing, and `tools/check_adk_claims.py` fails the build if this page ever says otherwise.
+  **The Agent Development Kit is now genuinely in use**, which is a change from every earlier version of this page. Tier two is an `LlmAgent` with five registered tools in `src/corner_watchdog/adk_decider.py`, `google-adk` has moved out of the `cloud` extra into the runtime dependencies, and `tools/check_adk_claims.py` flipped itself to its IN USE state the moment the first import landed. Nothing else on this list has moved.
 - **The agent has never posted anything anywhere.** The live path exists, implements the
   interface, and refuses on every verb.
 - **Nothing in this repo has ever observed a real change at a watched corner.** The city
@@ -72,8 +72,8 @@ All measured from this repository, on 2026-08-20.
 | Evaluations journaled | 175 |
 | Actions taken | 0 |
 | Restraint rate | 100 percent, and the ledger explains why that number is not yet impressive |
-| Tests | 503, offline, no credentials, under a second |
-| Runtime dependencies | 1 (`httpx`) |
+| Tests | 530, offline, no credentials, under a second |
+| Runtime dependencies | 2 (`httpx`, `google-adk`) |
 | Google Cloud accounts touched | 0 |
 
 The restraint rate is 100 percent and the ledger says, on its own front page, what that is
@@ -85,17 +85,23 @@ that flatters the system is worth less than one that explains itself.
 
 ## Quick start
 
-Verified in a clean clone and a fresh virtual environment on 2026-08-20: 15 packages
-installed including pip itself and the project, none of them Google, all 503 tests green.
+Verified in a fresh virtual environment on 2026-08-24: 63 packages installed including pip
+itself and the project, three of them Google (`google-adk`, and `google-genai` and
+`google-auth` beneath it), all 530 tests green with no network and no credentials.
+
+That count was 15, and none of them were Google, until tier two became an ADK agent. The
+jump is what adopting a framework actually costs, and it is stated here rather than
+absorbed quietly, because the previous number was used on this page as evidence that the
+project had kept its dependencies honest.
 
 ```bash
 git clone https://github.com/alejandro-publius/streetcred-watchdog
 cd streetcred-watchdog
 
 python3 -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"          # one runtime dependency: httpx
+pip install -e ".[dev]"          # two runtime dependencies: httpx and google-adk
 
-pytest -q                        # 503 tests, no network, no credentials
+pytest -q                        # 530 tests, no network, no credentials
 python -m corner_watchdog run --cycles 2  # the whole loop, twice, against live DataSF
 open docs/ledger.html            # every decision, restraint rate on top
 ```
@@ -173,7 +179,7 @@ Honest column first.
 | Criterion | Where it lives | Wired |
 | --- | --- | --- |
 | Gemini 3 or newer via Vertex AI | `src/prompts/deliberation.md`, `contract.py`, `brains.select_brains()` | **no**, `RuleDecider` stands in |
-| Agent Development Kit | not built | **no** |
+| Agent Development Kit | `adk_decider.py`, an `LlmAgent` with five tools | yes |
 | Google Cloud services | all behind `ports.py`, plan in `docs/GEMINI_WIRING.md` | **no**, five local stand-ins |
 | Additional Google model | `src/prompts/triage.md`, tier one | **no**, `RuleTriage` stands in |
 | Autonomous operation | `schedule.py`, `watchdog tick` under a lock | yes, locally |
@@ -215,7 +221,7 @@ Fuller versions in [`DECISIONS.md`](DECISIONS.md).
 | `src/prompts/` | Both prompts in full, with ten worked examples the test suite parses. |
 | `src/corner_watchdog/live.py` | The live path. Implements the interface, refuses every verb. |
 | `src/corner_watchdog/ledger.py` | The journal as a page, restraint rate on top, declines at full size. |
-| `tests/` | 503 of them. The cases where a naive implementation produces a confident lie. |
+| `tests/` | 530 of them. The cases where a naive implementation produces a confident lie. |
 | `LOG.md`, `DECISIONS.md` | What was found by running it, and what was decided and rejected. |
 
 ## A note on the radius
