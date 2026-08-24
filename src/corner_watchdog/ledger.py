@@ -85,8 +85,17 @@ def _wanted_to_act(entry: dict[str, Any]) -> bool:
 def summarise(entries: list[dict[str, Any]]) -> dict[str, Any]:
     total = len(entries)
     blocked = [e for e in entries if _wanted_to_act(e)]
-    held = [e for e in entries if not e.get("actions") and not _wanted_to_act(e)]
-    acted = total - len(held) - len(blocked)
+    # An entry that broke has an empty actions list and so looks exactly like a
+    # decline to every other line in this function. It is pulled out first, ahead
+    # of `held`, because a deliberation that failed is not restraint, and putting
+    # it in the numerator would let the agent's own bugs raise the one number
+    # this project asks to be judged on.
+    errored = [e for e in entries if e.get("error")]
+    held = [
+        e for e in entries
+        if not e.get("actions") and not _wanted_to_act(e) and not e.get("error")
+    ]
+    acted = total - len(held) - len(blocked) - len(errored)
     escalated = sum(1 for e in entries if e.get("tier2"))
     by_rule = sum(1 for e in entries if (e.get("tier1") or {}).get("byRule"))
     intents = sum(len(e.get("intents") or []) for e in entries)
@@ -117,6 +126,7 @@ def summarise(entries: list[dict[str, Any]]) -> dict[str, Any]:
         "actions": actions,
         "corners": len(corners),
         "blocked": len(blocked),
+        "errored": len(errored),
         "restraint": (len(held) / total * 100) if total else 0.0,
         "bases": bases,
         "unjudged_declines": unjudged,
@@ -411,10 +421,14 @@ def _entry_html(entry: dict[str, Any]) -> str:
     t2 = entry.get("tier2") or {}
     actions = entry.get("actions") or []
     intents = entry.get("intents") or []
-    held = not actions
+    error = entry.get("error")
+    held = not actions and not error
     decided = _decided_by(entry)
 
-    if held:
+    if error:
+        badge = "Errored"
+        tone = "errored"
+    elif held:
         badge = "Held"
         tone = "held"
     else:
@@ -434,7 +448,14 @@ def _entry_html(entry: dict[str, Any]) -> str:
         for who, text in reasons
     )
 
-    if actions:
+    if error:
+        # Said in the open rather than folded into the trace. This is the one
+        # outcome the page must not let a reader skim past as a quiet morning.
+        outcome = (
+            '<p class="outcome outcome-errored">No decision was reached. This is not a '
+            f'decline and it is not counted as one: {_e(error)}</p>'
+        )
+    elif actions:
         taken = ", ".join(ACTION_WORDS.get(a, a) for a in actions)
         outcome = f'<p class="outcome outcome-acted">Acted: {_e(taken)}.</p>'
     else:
@@ -814,6 +835,7 @@ body {
 }
 .badge-held { background: var(--held-wash); color: var(--held); }
 .badge-acted { background: var(--acted-wash); color: var(--acted); }
+.badge-errored { background: #fde8e8; color: #8a1c1c; }
 
 .delta { margin: 0; font-weight: 500; }
 
@@ -830,6 +852,7 @@ body {
 .outcome { margin: 0; font-weight: 500; }
 .outcome-held { color: var(--held); }
 .outcome-acted { color: var(--acted); }
+.outcome-errored { color: #8a1c1c; }
 
 .intents { display: flex; flex-direction: column; gap: 0.2rem; }
 .intents ul { margin: 0; padding-left: 1.1rem; }

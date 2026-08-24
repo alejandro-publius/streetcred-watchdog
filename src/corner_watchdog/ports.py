@@ -75,6 +75,21 @@ class Triage(Protocol):
     async def judge(self, delta: Delta, corner: dict[str, Any], calibration: Calibration) -> Tier1Verdict: ...
 
 
+class DeliberationError(RuntimeError):
+    """A Decider did not produce a decision this system can act on.
+
+    Lives here rather than beside the ADK implementation because it belongs to
+    the protocol: any tier two that cannot answer has to fail this way, and the
+    actor has to be able to catch it without importing a framework.
+
+    Raised rather than converted into a decline. A deliberation that returned
+    prose, or signed itself twice, has not declined. Nothing weighed the change
+    and nothing signed anything, and recording it as restraint would put a
+    failure of the agent into the numerator of the number this project asks to
+    be judged on.
+    """
+
+
 @runtime_checkable
 class Decider(Protocol):
     """Tier two. Expensive, only ever sees what tier one escalated."""

@@ -44,6 +44,7 @@ from google.genai import types
 
 from .config import deliberation_model
 from .contract import ContractViolation, parse_deliberation
+from .ports import DeliberationError
 from .prompts import (
     DELIBERATION_TOOL_INSTRUCTION,
     DELIBERATION_TOOL_VERSION,
@@ -75,14 +76,14 @@ DECLINE_TOOL = "decline"
 ALL_TOOLS = (*ACTION_TOOLS, DECLINE_TOOL)
 
 
-class DeliberationError(RuntimeError):
-    """The agent did not produce a decision this system can act on.
-
-    Raised rather than converted into a decline. A run that returned prose has
-    not declined; nothing weighed the change and nothing signed anything, and
-    recording it as restraint would put a failure of the agent into the numerator
-    of the number this project asks to be judged on.
-    """
+__all__ = [
+    "ACTION_TOOLS",
+    "ALL_TOOLS",
+    "TOOL_TO_ACTION",
+    "AdkDecider",
+    "DeliberationError",
+    "build_decider_agent",
+]
 
 
 def _resolve_actions(primary: str, also: list[str] | None) -> list[str]:
@@ -344,10 +345,22 @@ class AdkDecider:
         signatures = list(state.get("signatures") or [])
         record = state.get(DECISION_KEY)
 
-        if not record:
+        # Exactly one. Both directions are errors and neither is a decline.
+        if not signatures or not record:
             raise DeliberationError(
                 "the deliberation ended without a tool call. Prose is not a decision here: "
-                "nothing was signed, so there is nothing to journal and nothing to act on."
+                "nothing was signed, so there is nothing to journal and nothing to act on. "
+                "Recording this as a decline would put a failure of the agent into the "
+                "numerator of the restraint rate."
+            )
+        if len(signatures) > 1:
+            # The state holds whichever ran last, so acting on it would be acting
+            # on an arbitrary one of several conflicting decisions.
+            raise DeliberationError(
+                f"the deliberation signed {len(signatures)} tools ({', '.join(signatures)}) "
+                "and exactly one is allowed. A decision that names itself more than once is "
+                "not a decision, and the last one to run is not the right one by virtue of "
+                "having run last."
             )
         return dict(record), signatures
 

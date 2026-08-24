@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .budget import ActionBudget, Cost, TokenBudget
-from .ports import Actuator, Decider, Store
+from .ports import Actuator, Decider, DeliberationError, Store
 from .schema import Counts, Delta, JournalEntry, Tier1Verdict, Tier2Decision
 
 
@@ -29,6 +29,11 @@ class ActorResult:
     acted: int = 0
     declined: int = 0
     blocked: int = 0
+    # Deliberations that produced no decision at all. Kept apart from `declined`
+    # for the same reason the ledger keeps them apart: an agent that broke and an
+    # agent that chose to do nothing both end with an empty actions list, and
+    # only one of them is restraint.
+    errored: int = 0
     actions_taken: list[str] = field(default_factory=list)
     intents: list[str] = field(default_factory=list)
     artefacts: list[str] = field(default_factory=list)
@@ -39,6 +44,7 @@ class ActorResult:
             "acted": self.acted,
             "declined": self.declined,
             "blocked": self.blocked,
+            "errored": self.errored,
             "actions_taken": self.actions_taken,
             "intents": self.intents,
             "artefacts": self.artefacts,
@@ -123,7 +129,30 @@ class Actor:
             return
 
         self.result.deliberated += 1
-        decision: Tier2Decision = await self.decider.decide(delta, corner, counts, tier1.reason)
+        try:
+            decision: Tier2Decision = await self.decider.decide(delta, corner, counts, tier1.reason)
+        except DeliberationError as e:
+            # Journaled, not swallowed and not converted. The entry carries an
+            # `error` field, which is what keeps the ledger from counting it as a
+            # decline, and it is written here rather than raised out of the sweep
+            # because one broken deliberation must not end the morning for the
+            # other twenty four corners.
+            self.result.errored += 1
+            self.store.append_journal(
+                JournalEntry(
+                    ts=_now(),
+                    slug=corner.get("slug"),
+                    name=corner.get("name"),
+                    delta=envelope.get("delta_summary") or delta.summary(),
+                    trigger=envelope.get("trigger", "manual"),
+                    tier1=tier1,
+                    degraded=self.degraded,
+                    run_id=envelope.get("runId") or self.run_id,
+                    cost=_merge_cost(envelope.get("cost"), projected),
+                    error=str(e),
+                )
+            )
+            return
 
         taken: list[str] = []
         intents: list[str] = []

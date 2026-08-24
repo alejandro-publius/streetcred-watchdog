@@ -299,6 +299,15 @@ class JournalEntry:
     # how many of the watched corners a cycle actually reached, which is the
     # difference between a quiet morning and a run that died halfway.
     run_id: str | None = None
+    # Set when the deliberation failed to produce a decision at all: the agent
+    # returned prose, or signed twice, or signed something the contract rejects.
+    #
+    # This field exists so that such an entry cannot be counted as restraint. An
+    # entry with no actions and no error is an agent that looked and chose to do
+    # nothing. An entry with no actions and an error is an agent that broke. They
+    # are opposite events, and the only thing they have in common is an empty
+    # actions list, which is exactly what the ledger's headline number reads.
+    error: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return _clean({
@@ -314,6 +323,7 @@ class JournalEntry:
             "degraded": self.degraded,
             "runId": self.run_id,
             "cost": self.cost,
+            "error": self.error,
         })
 
     def to_ingest_payload(self) -> dict[str, Any]:
