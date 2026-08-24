@@ -22,7 +22,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 
-from watchdog.ledger import render_document  # noqa: E402
+from corner_watchdog.ledger import render_document  # noqa: E402
 
 OUT = REPO / "docs" / "states"
 

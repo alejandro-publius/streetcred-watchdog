@@ -37,13 +37,13 @@ def load_tool(repo_root: Path):
 
 def build(tmp_path: Path, *, imports_adk: bool, readme: str, pyproject: str) -> Path:
     root = tmp_path / "repo"
-    (root / "src" / "watchdog").mkdir(parents=True)
+    (root / "src" / "corner_watchdog").mkdir(parents=True)
     (root / "docs").mkdir(parents=True)
     (root / "README.md").write_text(readme)
     (root / "pyproject.toml").write_text(pyproject)
 
     body = "import google.adk\n" if imports_adk else "# no framework here\n"
-    (root / "src" / "watchdog" / "server.py").write_text(body)
+    (root / "src" / "corner_watchdog" / "server.py").write_text(body)
     return root
 
 
@@ -160,7 +160,7 @@ def test_importing_without_declaring_the_dependency_fails(tmp_path):
                                        "from google.adk.agents import LlmAgent"])
 def test_every_import_form_is_detected(tmp_path, statement):
     root = build(tmp_path, imports_adk=False, readme=BUILT_ROW, pyproject=UNSTAGED)
-    (root / "src" / "watchdog" / "server.py").write_text(statement + "\n")
+    (root / "src" / "corner_watchdog" / "server.py").write_text(statement + "\n")
     assert load_tool(root).adk_importers(), statement
 
 
@@ -169,7 +169,7 @@ def test_every_import_form_is_detected(tmp_path, statement):
 def test_a_docstring_saying_it_is_not_imported_does_not_count_as_an_import(tmp_path):
     """This repository literally contains that sentence. A grep would invert the state."""
     root = build(tmp_path, imports_adk=False, readme=PLANNED + NOT_BUILT_ROW, pyproject=STAGED)
-    (root / "src" / "watchdog" / "notes.py").write_text(
+    (root / "src" / "corner_watchdog" / "notes.py").write_text(
         '"""google-adk is in the cloud extra and nothing imports google.adk."""\n'
     )
     tool = load_tool(root)

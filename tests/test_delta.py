@@ -6,8 +6,8 @@ false. That is the failure mode this whole repo is built to avoid, so these are
 the tests that matter most.
 """
 
-from watchdog.delta import diff_snapshots, rule_verdict
-from watchdog.schema import Calibration, Counts, Snapshot
+from corner_watchdog.delta import diff_snapshots, rule_verdict
+from corner_watchdog.schema import Calibration, Counts, Snapshot
 
 
 def snap(slug="turk-taylor", name="Turk and Taylor", *, collisions=0, fatal=0, severe=0,

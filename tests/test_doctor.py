@@ -17,11 +17,11 @@ import json
 
 import httpx
 
-from watchdog.datasf import query_fingerprint
-from watchdog.doctor import FAIL, PASS, WARN, Check, render, run_checks
-from watchdog.roster import roster_hash
-from watchdog.schema import Counts, Snapshot
-from watchdog.store import LocalJsonStore
+from corner_watchdog.datasf import query_fingerprint
+from corner_watchdog.doctor import FAIL, PASS, WARN, Check, render, run_checks
+from corner_watchdog.roster import roster_hash
+from corner_watchdog.schema import Counts, Snapshot
+from corner_watchdog.store import LocalJsonStore
 
 
 def by_name(checks, name):
@@ -124,7 +124,7 @@ def test_an_empty_journal_warns_rather_than_failing(tmp_path):
 
 
 def test_a_held_cycle_lock_warns(tmp_path):
-    from watchdog.schedule import cycle_lock
+    from corner_watchdog.schedule import cycle_lock
 
     state, watched = healthy(tmp_path)
     with cycle_lock(state):
@@ -155,7 +155,7 @@ def test_a_torn_journal_line_warns_and_reports_how_many(tmp_path):
 
 def test_a_drifted_vocabulary_fails(tmp_path, monkeypatch):
     """Nothing downstream can tell the numbers are wrong. That is the line."""
-    monkeypatch.setattr("watchdog.vocabulary.SEVERE_VALUES", ("Severe Injury",))
+    monkeypatch.setattr("corner_watchdog.vocabulary.SEVERE_VALUES", ("Severe Injury",))
     c = by_name(check(tmp_path), "query vocabulary, pinned")
     assert c.status == FAIL
     assert "Severe Injury" in c.detail
@@ -274,7 +274,7 @@ def test_the_doctor_states_that_nothing_posts(tmp_path):
 
 
 def test_the_cli_exposes_doctor_and_returns_its_code(tmp_path, capsys):
-    from watchdog.cli import main
+    from corner_watchdog.cli import main
 
     state, watched = healthy(tmp_path)
     code = main(["--state", str(state), "--watched", str(watched), "doctor", "--offline"])

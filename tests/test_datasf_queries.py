@@ -12,7 +12,7 @@ documented step rather than an act of memory.
 
 from __future__ import annotations
 
-from watchdog.datasf import (
+from corner_watchdog.datasf import (
     KNOWN_SEVERITY_VALUES,
     SERVICE_NAMES,
     SEVERE_VALUES,

@@ -14,9 +14,9 @@ as a collapse in collisions at all twenty five corners at once.
 
 from __future__ import annotations
 
-from watchdog.datasf import COLLISION_YEARS, DEFAULT_RADIUS_M, REPORTS_YEARS, query_fingerprint
-from watchdog.delta import diff_snapshots, rule_verdict
-from watchdog.schema import Calibration, Counts, Snapshot
+from corner_watchdog.datasf import COLLISION_YEARS, DEFAULT_RADIUS_M, REPORTS_YEARS, query_fingerprint
+from corner_watchdog.delta import diff_snapshots, rule_verdict
+from corner_watchdog.schema import Calibration, Counts, Snapshot
 
 
 def snap(*, collisions=40, fatal=1, severe=3, reports=120, fingerprint="r=80m") -> Snapshot:

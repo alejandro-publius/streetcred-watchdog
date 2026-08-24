@@ -14,12 +14,12 @@ from __future__ import annotations
 
 import asyncio
 
-from watchdog.brains import RuleTriage
-from watchdog.bus import DirectBus
-from watchdog.ledger import render_document, summarise
-from watchdog.observer import Observer
-from watchdog.schema import UNJUDGED_BASES, Counts, Snapshot, Tier1Verdict
-from watchdog.store import LocalJsonStore
+from corner_watchdog.brains import RuleTriage
+from corner_watchdog.bus import DirectBus
+from corner_watchdog.ledger import render_document, summarise
+from corner_watchdog.observer import Observer
+from corner_watchdog.schema import UNJUDGED_BASES, Counts, Snapshot, Tier1Verdict
+from corner_watchdog.store import LocalJsonStore
 
 
 def snap(*, collisions=40, fatal=1, severe=3, reports=120, complete=True) -> Snapshot:

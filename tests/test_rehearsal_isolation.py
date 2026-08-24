@@ -20,10 +20,10 @@ import asyncio
 import json
 from pathlib import Path
 
-from watchdog.ledger import summarise
-from watchdog.rehearsal import BASELINE_NOTE, rehearse
-from watchdog.schema import Counts, Snapshot
-from watchdog.store import LocalJsonStore
+from corner_watchdog.ledger import summarise
+from corner_watchdog.rehearsal import BASELINE_NOTE, rehearse
+from corner_watchdog.schema import Counts, Snapshot
+from corner_watchdog.store import LocalJsonStore
 
 
 def snap(slug, name) -> Snapshot:
@@ -180,7 +180,7 @@ def test_the_headline_numbers_are_untouched_by_rehearsal_entries(tmp_path):
 
 
 def test_the_ledger_renders_rehearsal_in_its_own_section_excluded_from_the_rate(tmp_path):
-    from watchdog.ledger import render_document
+    from corner_watchdog.ledger import render_document
 
     real, watched = setup(tmp_path)
     run(tmp_path, real, watched)

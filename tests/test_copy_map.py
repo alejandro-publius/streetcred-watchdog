@@ -35,7 +35,7 @@ def load(repo_root: Path):
 def build(tmp_path: Path, *, readme: str, faq: str = "", extra: dict[str, str] | None = None):
     root = tmp_path / "repo"
     (root / "docs").mkdir(parents=True)
-    (root / "src" / "watchdog").mkdir(parents=True)
+    (root / "src" / "corner_watchdog").mkdir(parents=True)
     (root / "README.md").write_text(readme)
     (root / "docs" / "FAQ.md").write_text(faq)
     (root / "docs" / "COPY_MAP.md").write_text("# Copy map\n")
@@ -44,7 +44,7 @@ def build(tmp_path: Path, *, readme: str, faq: str = "", extra: dict[str, str] |
         "the caveat attached only to entries a tier had weighed, and "
         "every entry had been settled by a rule.\n"
     )
-    (root / "src" / "watchdog" / "ledger.py").write_text('X = "nothing here"\n')
+    (root / "src" / "corner_watchdog" / "ledger.py").write_text('X = "nothing here"\n')
     for name, body in (extra or {}).items():
         path = root / name
         path.parent.mkdir(parents=True, exist_ok=True)

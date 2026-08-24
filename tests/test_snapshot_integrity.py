@@ -18,11 +18,11 @@ from __future__ import annotations
 import asyncio
 import json
 
-from watchdog.brains import RuleTriage
-from watchdog.bus import DirectBus
-from watchdog.observer import Observer
-from watchdog.schema import Counts, Snapshot
-from watchdog.store import LocalJsonStore
+from corner_watchdog.brains import RuleTriage
+from corner_watchdog.bus import DirectBus
+from corner_watchdog.observer import Observer
+from corner_watchdog.schema import Counts, Snapshot
+from corner_watchdog.store import LocalJsonStore
 
 FP = "r=80m;collisions=5y"
 

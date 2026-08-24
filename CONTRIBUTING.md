@@ -18,9 +18,9 @@ it passes on your machine it passes on mine.
 To watch the thing actually work:
 
 ```bash
-python -m watchdog doctor            # 19 checks before you trust any output
-python -m watchdog run --cycles 1    # a real sweep against live DataSF
-python -m watchdog rehearse          # exercises the half a quiet city never does
+python -m corner_watchdog doctor            # 19 checks before you trust any output
+python -m corner_watchdog run --cycles 1    # a real sweep against live DataSF
+python -m corner_watchdog rehearse          # exercises the half a quiet city never does
 open docs/ledger.html
 ```
 

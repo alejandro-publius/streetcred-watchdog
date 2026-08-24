@@ -22,21 +22,21 @@ import asyncio
 
 import pytest
 
-from watchdog.actor import Actor
-from watchdog.brains import RuleDecider
-from watchdog.budget import ActionBudget, TokenBudget
-from watchdog.inject import (
+from corner_watchdog.actor import Actor
+from corner_watchdog.brains import RuleDecider
+from corner_watchdog.budget import ActionBudget, TokenBudget
+from corner_watchdog.inject import (
     FailingFetcher,
     InjectedOutage,
     PartialFetcher,
     available,
     build,
 )
-from watchdog.ledger import render_document, summarise
-from watchdog.outbox import DryRunActuator
-from watchdog.runner import run_cycle
-from watchdog.schema import Counts, Snapshot
-from watchdog.store import LocalJsonStore
+from corner_watchdog.ledger import render_document, summarise
+from corner_watchdog.outbox import DryRunActuator
+from corner_watchdog.runner import run_cycle
+from corner_watchdog.schema import Counts, Snapshot
+from corner_watchdog.store import LocalJsonStore
 
 
 def snap(slug="a", *, collisions=40) -> Snapshot:
@@ -180,7 +180,7 @@ def test_an_injected_run_can_be_pointed_at_its_own_state(tmp_path):
 
 
 def test_the_cli_defaults_injected_runs_to_a_separate_state_dir():
-    from watchdog.cli import build_parser
+    from corner_watchdog.cli import build_parser
 
     args = build_parser().parse_args(["run", "--inject", "datasf_down"])
     assert args.inject_state == "state-injected"
@@ -188,7 +188,7 @@ def test_the_cli_defaults_injected_runs_to_a_separate_state_dir():
 
 
 def test_the_cli_refuses_an_injection_it_does_not_know():
-    from watchdog.cli import build_parser
+    from corner_watchdog.cli import build_parser
 
     with pytest.raises(SystemExit):
         build_parser().parse_args(["run", "--inject", "nonsense"])

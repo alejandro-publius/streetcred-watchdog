@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import re
 
-from watchdog.ledger import render_document, summarise
+from corner_watchdog.ledger import render_document, summarise
 
 
 def entry(*, name="Taylor and Turk", slug="taylor-and-turk", actions=None, reason="nothing moved",

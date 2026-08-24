@@ -1,7 +1,7 @@
 # Tier one: triage
 
 **Model:** Gemma, on Vertex AI. **Prompt version:** `triage-v1`.
-**Decision contract:** `src/watchdog/contract.py`, `parse_triage`.
+**Decision contract:** `src/corner_watchdog/contract.py`, `parse_triage`.
 
 This prompt runs on every delta the sweep produces, including the empty ones. It
 is cheap on purpose so that nothing has to be filtered out before it. It never

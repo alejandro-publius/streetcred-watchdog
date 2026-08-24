@@ -49,7 +49,7 @@ the end reads as a hedge; a caveat at the start reads as the frame.
 **On screen, 0:24:** `cat ops/dev.watchdog.cycle.plist | head -20`, the launchd
 job, `StartInterval` 21600 visible.
 
-**On screen, 0:32:** `python -m watchdog doctor` running. Let the 19 checks
+**On screen, 0:32:** `python -m corner_watchdog doctor` running. Let the 19 checks
 scroll. Do not cut. The single `WARN` line about Vertex configuration should be
 readable.
 
@@ -65,7 +65,7 @@ readable.
 
 ## 0:50 to 1:28 &middot; Reality responds
 
-**On screen, 0:50:** `python -m watchdog run --cycles 1`, running live against
+**On screen, 0:50:** `python -m corner_watchdog run --cycles 1`, running live against
 DataSF. Let the real network latency show.
 
 **Say:**
@@ -101,7 +101,7 @@ Decide before you record which dependency dies. **Kill DataSF**, because it is
 the one the whole system depends on and the one whose failure is most
 dangerous.
 
-**On screen, 1:28:** `python -m watchdog run --inject datasf_down --cycles 1`
+**On screen, 1:28:** `python -m corner_watchdog run --inject datasf_down --cycles 1`
 
 **Say while it runs:**
 
@@ -170,9 +170,9 @@ record` disclosure, show the raw JSON.
 ## Setup checklist, before you hit record
 
 ```bash
-python -m watchdog doctor            # expect 18 pass, 1 warn, 0 fail
+python -m corner_watchdog doctor            # expect 18 pass, 1 warn, 0 fail
 rm -rf state-injected                # so the kill test starts clean on camera
-python -m watchdog ledger            # regenerate the page from the real journal
+python -m corner_watchdog ledger            # regenerate the page from the real journal
 ```
 
 - Terminal at 16pt or larger. A judge is watching this in a browser tab.

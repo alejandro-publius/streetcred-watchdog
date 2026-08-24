@@ -38,7 +38,7 @@ If you can, run this and paste the output. It is the first thing anyone
 investigating will do.
 
 ```bash
-python -m watchdog doctor
+python -m corner_watchdog doctor
 ```
 
 The `query fingerprint` line names the radius and windows the figure was computed

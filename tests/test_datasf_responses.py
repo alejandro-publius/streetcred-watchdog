@@ -22,7 +22,7 @@ import datetime as _dt
 import httpx
 import pytest
 
-from watchdog.datasf import (
+from corner_watchdog.datasf import (
     DS_311,
     _as_int,
     _count_value,

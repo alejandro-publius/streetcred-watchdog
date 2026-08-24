@@ -15,8 +15,8 @@ from pathlib import Path
 
 import pytest
 
-from watchdog.cli import main as cli_main
-from watchdog.schedule import (
+from corner_watchdog.cli import main as cli_main
+from corner_watchdog.schedule import (
     LOCK_NAME,
     CycleAlreadyRunning,
     crontab_line,
@@ -137,7 +137,7 @@ def test_a_hand_started_run_also_takes_the_lock(tmp_path, capsys):
     interesting collision: somebody running this while the six-hourly job is
     mid-sweep.
     """
-    from watchdog.cli import main
+    from corner_watchdog.cli import main
 
     with cycle_lock(tmp_path):
         code = main(["--state", str(tmp_path), "run", "--cycles", "1"])
@@ -151,14 +151,14 @@ def test_both_entrypoints_use_the_same_lock_file(tmp_path):
     """One lock, or the guarantee is only about whichever ran second."""
     import inspect
 
-    from watchdog import cli
+    from corner_watchdog import cli
 
     for fn in (cli._cmd_run, cli._cmd_tick):
         assert "cycle_lock" in inspect.getsource(fn), f"{fn.__name__} does not take the lock"
 
 
 def test_a_run_releases_the_lock_so_the_next_one_can_start(tmp_path, monkeypatch, capsys):
-    from watchdog.cli import main
+    from corner_watchdog.cli import main
 
     watched = tmp_path / "watched.json"
     watched.write_text(json.dumps({"roster_hash": "x", "corners": []}))

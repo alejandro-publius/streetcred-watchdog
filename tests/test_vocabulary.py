@@ -19,8 +19,8 @@ import asyncio
 import httpx
 import pytest
 
-from watchdog.datasf import KNOWN_SEVERITY_VALUES, SERVICE_NAMES
-from watchdog.vocabulary import (
+from corner_watchdog.datasf import KNOWN_SEVERITY_VALUES, SERVICE_NAMES
+from corner_watchdog.vocabulary import (
     PINNED_SERVICE_NAMES,
     PINNED_SEVERITY,
     VocabularyDrift,
@@ -64,7 +64,7 @@ def test_every_known_severity_is_pinned():
 def test_the_original_bug_would_now_fail_loudly(monkeypatch):
     """The exact wrong tuple that shipped in the first commit."""
     monkeypatch.setattr(
-        "watchdog.vocabulary.SEVERE_VALUES", ("Severe Injury", "Suspected Serious Injury")
+        "corner_watchdog.vocabulary.SEVERE_VALUES", ("Severe Injury", "Suspected Serious Injury")
     )
     problems = check_against_pinned()
     assert len(problems) == 2
@@ -73,19 +73,19 @@ def test_the_original_bug_would_now_fail_loudly(monkeypatch):
 
 
 def test_an_unverified_311_category_fails_loudly(monkeypatch):
-    monkeypatch.setattr("watchdog.vocabulary.SERVICE_NAMES", [*SERVICE_NAMES, "Potholes"])
+    monkeypatch.setattr("corner_watchdog.vocabulary.SERVICE_NAMES", [*SERVICE_NAMES, "Potholes"])
     problems = check_against_pinned()
     assert any("Potholes" in p and "silent zero" in p for p in problems)
 
 
 def test_an_empty_severity_filter_is_caught(monkeypatch):
     """An empty tuple builds `in()` and takes every severe count to zero."""
-    monkeypatch.setattr("watchdog.vocabulary.SEVERE_VALUES", ())
+    monkeypatch.setattr("corner_watchdog.vocabulary.SEVERE_VALUES", ())
     assert any("matches nothing" in p for p in check_against_pinned())
 
 
 def test_assert_pinned_raises_a_named_error(monkeypatch):
-    monkeypatch.setattr("watchdog.vocabulary.SEVERE_VALUES", ("Made Up Category",))
+    monkeypatch.setattr("corner_watchdog.vocabulary.SEVERE_VALUES", ("Made Up Category",))
     with pytest.raises(VocabularyDrift) as e:
         assert_pinned()
     assert "does not match the recorded evidence" in str(e.value)
@@ -94,9 +94,9 @@ def test_assert_pinned_raises_a_named_error(monkeypatch):
 
 def test_a_cycle_refuses_to_run_on_an_unverified_filter(monkeypatch, tmp_path):
     """Numbers from an unverified filter are worse than no numbers."""
-    from watchdog.runner import run_cycle
+    from corner_watchdog.runner import run_cycle
 
-    monkeypatch.setattr("watchdog.vocabulary.SEVERE_VALUES", ("Made Up Category",))
+    monkeypatch.setattr("corner_watchdog.vocabulary.SEVERE_VALUES", ("Made Up Category",))
     with pytest.raises(VocabularyDrift):
         asyncio.run(run_cycle([], state_dir=tmp_path, outbox_dir=tmp_path / "out"))
 

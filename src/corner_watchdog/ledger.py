@@ -932,7 +932,7 @@ def render_body(
             '<p class="delta">The journal is empty, so there is nothing to show and no '
             "restraint rate to report. An empty journal is not a claim that the watched corners "
             "are fine; it is a statement that this agent has not looked at them.</p>"
-            '<p class="says">Run <code>python -m watchdog run</code> to produce the first '
+            '<p class="says">Run <code>python -m corner_watchdog run</code> to produce the first '
             "entries.</p></article>"
         )
 

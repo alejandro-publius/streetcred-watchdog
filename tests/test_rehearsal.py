@@ -14,9 +14,9 @@ from __future__ import annotations
 import asyncio
 import json
 
-from watchdog.rehearsal import SCENARIOS, _can_absorb, _lower, rehearse
-from watchdog.schema import Counts, Snapshot
-from watchdog.store import LocalJsonStore
+from corner_watchdog.rehearsal import SCENARIOS, _can_absorb, _lower, rehearse
+from corner_watchdog.schema import Counts, Snapshot
+from corner_watchdog.store import LocalJsonStore
 
 
 def snap(slug, name, *, collisions, fatal, severe, reports) -> Snapshot:

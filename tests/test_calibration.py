@@ -3,7 +3,7 @@ the README says so in those words, and these tests pin the bounds that keep one
 unusual week from swinging the agent into ignoring everything.
 """
 
-from watchdog.schema import Calibration, JournalEntry, Tier1Verdict, Tier2Decision
+from corner_watchdog.schema import Calibration, JournalEntry, Tier1Verdict, Tier2Decision
 
 
 def test_adjustment_is_recorded_with_before_and_after():

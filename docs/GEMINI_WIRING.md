@@ -14,7 +14,7 @@ this repo at any point.
 There is exactly one function to change:
 
 ```
-src/watchdog/brains.py :: select_brains()
+src/corner_watchdog/brains.py :: select_brains()
 ```
 
 Everything above it is written against the `Triage` and `Decider` protocols in
@@ -24,7 +24,7 @@ returns `RuleTriage` and `RuleDecider` plus a sentence explaining that they are
 stand-ins. Wiring the models means returning `VertexTriage` and
 `VertexDecider` plus `None`.
 
-The two new classes go in a new file, `src/watchdog/vertex.py`, and must
+The two new classes go in a new file, `src/corner_watchdog/vertex.py`, and must
 implement exactly:
 
 ```python
@@ -180,7 +180,7 @@ death.
 1. `gcloud auth application-default login`, confirm `vertex_is_configured()`
    flips to True.
 2. Confirm both model ids exist in the project's Vertex model list.
-3. Write `src/watchdog/vertex.py` against the two protocols.
+3. Write `src/corner_watchdog/vertex.py` against the two protocols.
 4. Test it against the ten worked examples in `src/prompts/`: feed each example
    input, assert the reply parses. Do not assert it matches the example answer;
    the examples teach judgment, they are not a regression fixture.

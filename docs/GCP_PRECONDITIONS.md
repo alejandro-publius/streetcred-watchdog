@@ -204,7 +204,7 @@ statement of intent rather than an observation of running code.
 
 | API | Needed by | Evidence in the repo |
 | --- | --- | --- |
-| `run.googleapis.com` | Both services. The observer sweep and the actor. | `Dockerfile` boots `uvicorn watchdog.server:app` and switches on `SERVICE=observer` or `actor`; `fastapi` and `uvicorn` are in the `cloud` extra. **`watchdog/server.py` does not exist yet**, so nothing is deployable today. |
+| `run.googleapis.com` | Both services. The observer sweep and the actor. | `Dockerfile` boots `uvicorn corner_watchdog.server:app` and switches on `SERVICE=observer` or `actor`; `fastapi` and `uvicorn` are in the `cloud` extra. **`corner_watchdog/server.py` does not exist yet**, so nothing is deployable today. |
 | `firestore.googleapis.com` | The `Store` protocol in `ports.py`, today `LocalJsonStore` | `google-cloud-firestore` in the `cloud` extra; `store.py` docstring names the three collections it stands in for |
 | `pubsub.googleapis.com` | The `Bus` protocol, today `DirectBus` | `google-cloud-pubsub` in the `cloud` extra; `bus.py` round-trips payloads through JSON precisely so Pub/Sub can carry them |
 | `secretmanager.googleapis.com` | `ingest.py`, which reads `WATCHDOG_INGEST_TOKEN` from the environment | `google-cloud-secret-manager` in the `cloud` extra; `ingest.py:48` |
@@ -232,7 +232,7 @@ There is one database per project and the location cannot be changed afterwards.
 `us-central1` matches the Vertex region in `.env.example`, which keeps the
 Firestore and model calls in the same region.
 
-The schema is already written down, in `src/watchdog/schema.py`: three
+The schema is already written down, in `src/corner_watchdog/schema.py`: three
 collections, `snapshots/{slug}`, `journal/{entry_id}` and `calibration/state`.
 Nothing needs creating; Firestore makes collections on first write.
 
@@ -457,7 +457,7 @@ gcloud scheduler jobs create http watchdog-hourly \
 daylight saving. The window arithmetic inside the agent is UTC regardless, which
 is deliberate and tested.
 
-The paths `/sweep` and `/tick` are **assumed**. `watchdog/server.py` does not
+The paths `/sweep` and `/tick` are **assumed**. `corner_watchdog/server.py` does not
 exist, so no route is defined anywhere in the repository. Whoever writes it
 decides these, and these two commands change to match.
 
@@ -515,8 +515,8 @@ asked for, and least privilege is the entire point of step 5.
 Finishing this runbook makes the project deployable. It does not make it
 deployed, and two things block that:
 
-1. **`src/watchdog/server.py` does not exist.** The `Dockerfile` boots
-   `uvicorn watchdog.server:app`. There is no FastAPI app, no `/sweep` route, no
+1. **`src/corner_watchdog/server.py` does not exist.** The `Dockerfile` boots
+   `uvicorn corner_watchdog.server:app`. There is no FastAPI app, no `/sweep` route, no
    `/tick` route, and no push handler. `gcloud run deploy` will build an image
    that crashes on start.
 2. **No Vertex client is written.** `select_brains()` returns the deterministic

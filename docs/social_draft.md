@@ -4,7 +4,7 @@
 posted by anyone but the author.**
 
 Both are written against the state of the repo on 2026-08-20. Every number in
-them is measured. Before posting either, re-run `python -m watchdog doctor` and
+them is measured. Before posting either, re-run `python -m corner_watchdog doctor` and
 check the figures still hold, because a post is harder to correct than a page.
 
 ---

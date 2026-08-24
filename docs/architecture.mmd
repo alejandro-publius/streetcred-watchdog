@@ -14,7 +14,7 @@ flowchart TB
     subgraph TONIGHT["TONIGHT: ran locally, zero cloud accounts touched"]
         direction TB
         SCHED_L["launchd or cron<br/><i>timed trigger</i>"]
-        OBS_L["Observer sweep, python -m watchdog<br/><i>runtime</i>"]
+        OBS_L["Observer sweep, python -m corner_watchdog<br/><i>runtime</i>"]
         FLOOR["Rule floor, delta.py<br/><b>no model, no network, no cloud</b><br/><i>a new death escalates before any model is consulted</i>"]
         TRIAGE_L["RuleTriage<br/><i>cost-routed triage</i>"]
         BUS_L["DirectBus<br/><i>decoupled trigger</i>"]

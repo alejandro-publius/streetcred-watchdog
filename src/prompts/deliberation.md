@@ -1,7 +1,7 @@
 # Tier two: deliberation
 
 **Model:** Gemini on Vertex AI. **Prompt version:** `deliberate-v1`.
-**Decision contract:** `src/watchdog/contract.py`, `parse_deliberation`.
+**Decision contract:** `src/corner_watchdog/contract.py`, `parse_deliberation`.
 
 This prompt runs only on what tier one escalated. It is expensive and it sees
 everything. Most of what reaches it should still end in no action, and this

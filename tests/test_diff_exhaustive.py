@@ -15,10 +15,10 @@ import asyncio
 
 import pytest
 
-from watchdog.brains import RuleTriage
-from watchdog.datasf import query_fingerprint
-from watchdog.delta import diff_snapshots, rule_verdict
-from watchdog.schema import Calibration, Counts, Delta, MalformedSnapshot, Snapshot
+from corner_watchdog.brains import RuleTriage
+from corner_watchdog.datasf import query_fingerprint
+from corner_watchdog.delta import diff_snapshots, rule_verdict
+from corner_watchdog.schema import Calibration, Counts, Delta, MalformedSnapshot, Snapshot
 
 FP = query_fingerprint(80)
 

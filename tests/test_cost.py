@@ -16,9 +16,9 @@ from __future__ import annotations
 
 import asyncio
 
-from watchdog.actor import Actor
-from watchdog.brains import RuleDecider, RuleTriage
-from watchdog.budget import (
+from corner_watchdog.actor import Actor
+from corner_watchdog.brains import RuleDecider, RuleTriage
+from corner_watchdog.budget import (
     TIER1_OUTPUT_TOKENS,
     TIER1_PROMPT_TOKENS,
     TIER2_OUTPUT_TOKENS,
@@ -27,12 +27,12 @@ from watchdog.budget import (
     Cost,
     TokenBudget,
 )
-from watchdog.bus import DirectBus
-from watchdog.ledger import render_document, spend
-from watchdog.observer import Observer
-from watchdog.outbox import DryRunActuator
-from watchdog.schema import Counts, Snapshot
-from watchdog.store import LocalJsonStore
+from corner_watchdog.bus import DirectBus
+from corner_watchdog.ledger import render_document, spend
+from corner_watchdog.observer import Observer
+from corner_watchdog.outbox import DryRunActuator
+from corner_watchdog.schema import Counts, Snapshot
+from corner_watchdog.store import LocalJsonStore
 
 
 def snap(*, collisions=40, fatal=1, severe=3, reports=120) -> Snapshot:
@@ -149,7 +149,7 @@ def test_an_exhausted_token_budget_means_triage_is_not_consulted(tmp_path):
 
 
 def test_a_budget_exhausted_entry_never_counts_as_restraint():
-    from watchdog.schema import UNJUDGED_BASES
+    from corner_watchdog.schema import UNJUDGED_BASES
 
     assert "budget_exhausted" in UNJUDGED_BASES
 

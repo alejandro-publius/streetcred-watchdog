@@ -72,7 +72,7 @@ All measured from this repository, on 2026-08-20.
 | Evaluations journaled | 175 |
 | Actions taken | 0 |
 | Restraint rate | 100 percent, and the ledger explains why that number is not yet impressive |
-| Tests | 499, offline, no credentials, under a second |
+| Tests | 503, offline, no credentials, under a second |
 | Runtime dependencies | 1 (`httpx`) |
 | Google Cloud accounts touched | 0 |
 
@@ -86,7 +86,7 @@ that flatters the system is worth less than one that explains itself.
 ## Quick start
 
 Verified in a clean clone and a fresh virtual environment on 2026-08-20: 15 packages
-installed including pip itself and the project, none of them Google, all 499 tests green.
+installed including pip itself and the project, none of them Google, all 503 tests green.
 
 ```bash
 git clone https://github.com/alejandro-publius/streetcred-watchdog
@@ -95,8 +95,8 @@ cd streetcred-watchdog
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"          # one runtime dependency: httpx
 
-pytest -q                        # 499 tests, no network, no credentials
-python -m watchdog run --cycles 2  # the whole loop, twice, against live DataSF
+pytest -q                        # 503 tests, no network, no credentials
+python -m corner_watchdog run --cycles 2  # the whole loop, twice, against live DataSF
 open docs/ledger.html            # every decision, restraint rate on top
 ```
 
@@ -104,10 +104,10 @@ Two cycles minutes apart will correctly find that nothing changed, which means t
 expensive half of the loop never runs. To exercise it:
 
 ```bash
-python -m watchdog rehearse      # constructed baselines, kept out of the real journal
-python -m watchdog doctor        # 19 checks: environment, sources, vocabulary, stored state
-python -m watchdog schedule      # renders launchd and cron config, installs nothing
-python -m watchdog ledger --corner 6th-and-mission
+python -m corner_watchdog rehearse      # constructed baselines, kept out of the real journal
+python -m corner_watchdog doctor        # 19 checks: environment, sources, vocabulary, stored state
+python -m corner_watchdog schedule      # renders launchd and cron config, installs nothing
+python -m corner_watchdog ledger --corner 6th-and-mission
 ```
 
 ## Patterns
@@ -205,17 +205,17 @@ Fuller versions in [`DECISIONS.md`](DECISIONS.md).
 
 | Path | What it holds |
 | --- | --- |
-| `src/watchdog/ports.py` | Every cloud dependency, named as a protocol. The seams. |
-| `src/watchdog/delta.py` | `diff_snapshots` and the rule floor. Deterministic, no model, no network. |
-| `src/watchdog/datasf.py` | DataSF reads, and the constants that were wrong for a fortnight. |
-| `src/watchdog/vocabulary.py` | Guards on every enumerated value that goes into a query. |
-| `src/watchdog/observer.py` | The sweep: look, compare, triage, escalate or decline. |
-| `src/watchdog/actor.py` | Deliberate on what was escalated, then act or decline. |
-| `src/watchdog/contract.py` | The decision schema both tiers must answer in, with a validator. |
+| `src/corner_watchdog/ports.py` | Every cloud dependency, named as a protocol. The seams. |
+| `src/corner_watchdog/delta.py` | `diff_snapshots` and the rule floor. Deterministic, no model, no network. |
+| `src/corner_watchdog/datasf.py` | DataSF reads, and the constants that were wrong for a fortnight. |
+| `src/corner_watchdog/vocabulary.py` | Guards on every enumerated value that goes into a query. |
+| `src/corner_watchdog/observer.py` | The sweep: look, compare, triage, escalate or decline. |
+| `src/corner_watchdog/actor.py` | Deliberate on what was escalated, then act or decline. |
+| `src/corner_watchdog/contract.py` | The decision schema both tiers must answer in, with a validator. |
 | `src/prompts/` | Both prompts in full, with ten worked examples the test suite parses. |
-| `src/watchdog/live.py` | The live path. Implements the interface, refuses every verb. |
-| `src/watchdog/ledger.py` | The journal as a page, restraint rate on top, declines at full size. |
-| `tests/` | 499 of them. The cases where a naive implementation produces a confident lie. |
+| `src/corner_watchdog/live.py` | The live path. Implements the interface, refuses every verb. |
+| `src/corner_watchdog/ledger.py` | The journal as a page, restraint rate on top, declines at full size. |
+| `tests/` | 503 of them. The cases where a naive implementation produces a confident lie. |
 | `LOG.md`, `DECISIONS.md` | What was found by running it, and what was decided and rejected. |
 
 ## A note on the radius

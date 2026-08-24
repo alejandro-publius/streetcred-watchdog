@@ -8,7 +8,7 @@
   <array>
     <string>/Users/alexvintera/streetcred-watchdog/.venv/bin/python</string>
     <string>-m</string>
-    <string>watchdog</string>
+    <string>corner_watchdog</string>
     <string>tick</string>
   </array>
   <key>WorkingDirectory</key><string>/Users/alexvintera/streetcred-watchdog</string>

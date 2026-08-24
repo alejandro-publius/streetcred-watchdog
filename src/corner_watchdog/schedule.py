@@ -147,7 +147,7 @@ def plist(
   <array>
     <string>{python}</string>
     <string>-m</string>
-    <string>watchdog</string>
+    <string>corner_watchdog</string>
     <string>tick</string>
   </array>
   <key>WorkingDirectory</key><string>{repo}</string>

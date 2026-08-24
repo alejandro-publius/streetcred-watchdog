@@ -13,7 +13,7 @@ counter incremented.
 
 from __future__ import annotations
 
-from watchdog.ledger import render_document, streak
+from corner_watchdog.ledger import render_document, streak
 
 
 def entry(ts, *, actions=None):

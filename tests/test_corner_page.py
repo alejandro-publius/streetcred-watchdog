@@ -14,9 +14,9 @@ from __future__ import annotations
 
 import json
 
-from watchdog.ledger import corner_history, render_corner_document, render_corner_to_file
-from watchdog.schema import Counts, Snapshot
-from watchdog.store import LocalJsonStore
+from corner_watchdog.ledger import corner_history, render_corner_document, render_corner_to_file
+from corner_watchdog.schema import Counts, Snapshot
+from corner_watchdog.store import LocalJsonStore
 
 
 def entry(slug="6th-and-mission", *, ts, run_id=None, actions=None, delta=None, name="6th and Mission"):

@@ -1,6 +1,6 @@
 """One command, the whole loop.
 
-    python -m watchdog run --cycles 2
+    python -m corner_watchdog run --cycles 2
 
 Fetches the watched set if it is missing, then for each cycle: reads the city's
 current record for every watched corner, diffs it against the stored snapshot,

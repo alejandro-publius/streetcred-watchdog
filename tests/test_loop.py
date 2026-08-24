@@ -18,16 +18,16 @@ from pathlib import Path
 
 import pytest
 
-from watchdog.actor import Actor
-from watchdog.brains import RuleDecider, RuleTriage
-from watchdog.budget import ActionBudget
-from watchdog.bus import DirectBus
-from watchdog.cli import main as cli_main
-from watchdog.observer import Observer
-from watchdog.outbox import DryRunActuator
-from watchdog.runner import run_cycle
-from watchdog.schema import Calibration, Counts, Delta, JournalEntry, Snapshot, Tier1Verdict
-from watchdog.store import LocalJsonStore
+from corner_watchdog.actor import Actor
+from corner_watchdog.brains import RuleDecider, RuleTriage
+from corner_watchdog.budget import ActionBudget
+from corner_watchdog.bus import DirectBus
+from corner_watchdog.cli import main as cli_main
+from corner_watchdog.observer import Observer
+from corner_watchdog.outbox import DryRunActuator
+from corner_watchdog.runner import run_cycle
+from corner_watchdog.schema import Calibration, Counts, Delta, JournalEntry, Snapshot, Tier1Verdict
+from corner_watchdog.store import LocalJsonStore
 
 
 def snap(slug="taylor-and-turk", name="Taylor and Turk", *, collisions=40, fatal=1, severe=3,
@@ -397,10 +397,10 @@ def test_the_live_flag_refuses_and_does_not_fall_through_to_dry(capsys):
 
 def test_nothing_in_the_local_loop_imports_the_streetcred_poster():
     """ingest.py holds the only code that can POST. The local loop must not reach it."""
-    import watchdog.actor as a
-    import watchdog.observer as o
-    import watchdog.outbox as ob
-    import watchdog.runner as r
+    import corner_watchdog.actor as a
+    import corner_watchdog.observer as o
+    import corner_watchdog.outbox as ob
+    import corner_watchdog.runner as r
 
     for mod in (a, o, ob, r):
         src = Path(mod.__file__).read_text()
@@ -409,7 +409,7 @@ def test_nothing_in_the_local_loop_imports_the_streetcred_poster():
 
 def test_the_live_actuator_refuses_every_verb():
     """It implements the protocol so the seam keeps type checking. It sends nothing."""
-    from watchdog.live import LiveActuator, LivePathRefused
+    from corner_watchdog.live import LiveActuator, LivePathRefused
 
     live = LiveActuator()
     assert live.is_live is True
@@ -429,7 +429,7 @@ def test_the_live_actuator_refuses_every_verb():
 
 def test_the_live_actuator_never_reads_the_token():
     """A module that reads a credential in order to refuse is one edit from using it."""
-    from watchdog import live
+    from corner_watchdog import live
 
     src = Path(live.__file__).read_text()
     assert "environ" not in src

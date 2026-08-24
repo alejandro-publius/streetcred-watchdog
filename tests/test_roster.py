@@ -12,13 +12,13 @@ from __future__ import annotations
 import asyncio
 import json
 
-from watchdog.brains import RuleTriage
-from watchdog.bus import DirectBus
-from watchdog.observer import Observer
-from watchdog.roster import describe, drift, roster_hash
-from watchdog.schema import UNJUDGED_BASES, Counts, Snapshot
-from watchdog.store import LocalJsonStore
-from watchdog.watched import verify
+from corner_watchdog.brains import RuleTriage
+from corner_watchdog.bus import DirectBus
+from corner_watchdog.observer import Observer
+from corner_watchdog.roster import describe, drift, roster_hash
+from corner_watchdog.schema import UNJUDGED_BASES, Counts, Snapshot
+from corner_watchdog.store import LocalJsonStore
+from corner_watchdog.watched import verify
 
 
 def snap(slug, name=None) -> Snapshot:
@@ -159,7 +159,7 @@ def test_nothing_is_journaled_when_the_roster_is_intact(tmp_path):
 # ------------------------------------------------------------------ the pinning
 
 def test_refetch_refuses_to_overwrite_a_changed_roster(tmp_path, monkeypatch, capsys):
-    from watchdog import cli
+    from corner_watchdog import cli
 
     path = tmp_path / "watched.json"
     path.write_text(json.dumps({
@@ -187,7 +187,7 @@ def test_refetch_refuses_to_overwrite_a_changed_roster(tmp_path, monkeypatch, ca
 
 
 def test_accept_drift_takes_the_new_roster(tmp_path, monkeypatch, capsys):
-    from watchdog import cli
+    from corner_watchdog import cli
 
     path = tmp_path / "watched.json"
     path.write_text(json.dumps({

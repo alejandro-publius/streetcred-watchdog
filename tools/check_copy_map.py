@@ -40,7 +40,7 @@ TRAVERSED = [
     "docs/GEMINI_WIRING.md",
     "docs/GCP_PRECONDITIONS.md",
     "docs/COPY_MAP.md",
-    "LEDGER_TEMPLATE",  # the page chrome in src/watchdog/ledger.py
+    "LEDGER_TEMPLATE",  # the page chrome in src/corner_watchdog/ledger.py
 ]
 
 # Never checked, and why. See docs/COPY_MAP.md.
@@ -85,7 +85,7 @@ ALWAYS_ALLOWED = {"docs/COPY_MAP.md"}
 
 def ledger_chrome() -> str:
     """Prose from the ledger page template, which is chrome rather than data."""
-    src = (REPO / "src" / "watchdog" / "ledger.py").read_text()
+    src = (REPO / "src" / "corner_watchdog" / "ledger.py").read_text()
     blocks = re.findall(r'"""(.*?)"""', src, flags=re.S)
     html = "\n".join(b for b in blocks if "<" in b)
     html += "\n" + "\n".join(re.findall(r'"([^"\n]{40,})"', src))

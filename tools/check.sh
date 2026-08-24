@@ -48,8 +48,8 @@ step "import graph"
 # The local loop must never import the one module that can POST. This is the
 # guarantee behind "the agent has never posted anything anywhere", and it is
 # cheap enough to check on every run rather than trusting a test to stay written.
-if grep -REn 'from \.ingest|import ingest' src/watchdog/observer.py src/watchdog/actor.py \
-     src/watchdog/runner.py src/watchdog/outbox.py src/watchdog/cli.py >/dev/null 2>&1; then
+if grep -REn 'from \.ingest|import ingest' src/corner_watchdog/observer.py src/corner_watchdog/actor.py \
+     src/corner_watchdog/runner.py src/corner_watchdog/outbox.py src/corner_watchdog/cli.py >/dev/null 2>&1; then
   report 1 "the local loop reaches ingest.py, which can POST"
 else
   report 0 "the local loop does not import ingest.py"

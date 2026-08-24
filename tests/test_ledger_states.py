@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from watchdog.ledger import coverage, cycles, render_document
+from corner_watchdog.ledger import coverage, cycles, render_document
 
 DOCS = Path(__file__).resolve().parents[1] / "docs" / "states"
 
@@ -130,7 +130,7 @@ def test_the_empty_state_refuses_to_imply_the_corners_are_fine():
     html = render_document([])
     assert "No cycle has run yet" in html
     assert "not a claim that the watched corners are fine" in html
-    assert "python -m watchdog run" in html
+    assert "python -m corner_watchdog run" in html
 
 
 def test_the_empty_state_shows_no_streak_and_no_breakdown():

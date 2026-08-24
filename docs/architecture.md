@@ -32,7 +32,7 @@ consulted, so no model can be talked out of it.
 | Rubric job | Ran tonight | Stands in for | Wired |
 | --- | --- | --- | --- |
 | Timed trigger | launchd or cron, rendered by `watchdog schedule` | Cloud Scheduler | no |
-| Scale-to-zero runtime | `python -m watchdog` | Cloud Run | no |
+| Scale-to-zero runtime | `python -m corner_watchdog` | Cloud Run | no |
 | Cost-routed triage | `RuleTriage` | Gemma on Vertex | no |
 | Decoupled trigger | `DirectBus`, JSON round trip in process | Pub/Sub | no |
 | Deliberation with reasoning traces | `RuleDecider` | Gemini on Vertex | no |
@@ -41,7 +41,7 @@ consulted, so no model can be talked out of it.
 | The one trust boundary | `DryRunActuator`, writes to `outbox/` | `POST /api/agent/report` | no |
 | Public observability | `docs/ledger.html` | the same page, hosted | rendered locally |
 
-Five of those rows are protocols in [`ports.py`](../src/watchdog/ports.py):
+Five of those rows are protocols in [`ports.py`](../src/corner_watchdog/ports.py):
 `Store`, `Bus`, `Triage`, `Decider` and `Actuator`. Each currently has one
 implementation, the local one, and the cloud column names what a second would be.
 The other four rows are not protocols and should not be read as though they were:

@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-from watchdog.contract import (
+from corner_watchdog.contract import (
     ALLOWED_ACTIONS,
     DELIBERATION_KEYS,
     DELIBERATION_VERDICTS,
@@ -79,19 +79,19 @@ def test_the_python_triage_prompt_declares_the_schema_the_code_enforces():
     prompt perfectly would have had every answer rejected, and nothing on either
     side would have logged why.
     """
-    from watchdog.prompts import TRIAGE_PROMPT
+    from corner_watchdog.prompts import TRIAGE_PROMPT
 
     assert _keys_declared_in(TRIAGE_PROMPT) == TRIAGE_KEYS
 
 
 def test_the_python_deliberation_prompt_declares_the_schema_the_code_enforces():
-    from watchdog.prompts import DELIBERATION_PROMPT
+    from corner_watchdog.prompts import DELIBERATION_PROMPT
 
     assert _keys_declared_in(DELIBERATION_PROMPT) == DELIBERATION_KEYS
 
 
 def test_the_python_prompts_and_the_markdown_agree_on_the_verdicts():
-    from watchdog.prompts import DELIBERATION_PROMPT, TRIAGE_PROMPT
+    from corner_watchdog.prompts import DELIBERATION_PROMPT, TRIAGE_PROMPT
 
     for verdict in TRIAGE_VERDICTS:
         assert verdict in TRIAGE_PROMPT, f"triage prompt never mentions {verdict!r}"
@@ -101,8 +101,8 @@ def test_the_python_prompts_and_the_markdown_agree_on_the_verdicts():
 
 def test_a_rendered_triage_prompt_still_declares_the_schema():
     """Rendered, not just the template, so a format() bug cannot hide it."""
-    from watchdog.prompts import triage_prompt
-    from watchdog.schema import Calibration
+    from corner_watchdog.prompts import triage_prompt
+    from corner_watchdog.schema import Calibration
 
     rendered = triage_prompt(
         name="6th and Mission", grade="F", index=99,

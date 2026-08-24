@@ -29,14 +29,14 @@ cloud = [
 ]
 
 [project.scripts]
-watchdog = "watchdog.cli:main"
+watchdog = "corner_watchdog.cli:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/watchdog"]
+packages = ["src/corner_watchdog"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
@@ -78,4 +78,4 @@ ignore = [
 # ledger.py is mostly HTML templates inside triple-quoted f-strings. A noqa
 # comment cannot go on a line inside a string literal, and wrapping mid-tag makes
 # the generated markup worse to read than the source it came from.
-"src/watchdog/ledger.py" = ["E501"]
+"src/corner_watchdog/ledger.py" = ["E501"]

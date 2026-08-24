@@ -17,4 +17,4 @@ EXPOSE 8080
 # the observer and the actor deploy from the same build and can never drift out
 # of sync with each other's schema.
 ENV SERVICE=observer
-CMD exec uvicorn watchdog.server:app --host 0.0.0.0 --port ${PORT}
+CMD exec uvicorn corner_watchdog.server:app --host 0.0.0.0 --port ${PORT}
