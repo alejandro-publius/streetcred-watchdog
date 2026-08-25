@@ -23,6 +23,22 @@ one reads a collection that grows every morning forever. An unbounded read here
 is a page that takes longer to render every day until one day it does not
 render, which is a failure that arrives slowly enough to be nobody's fault.
 
+**The database is named `watchdog` rather than `(default)`, and that is a
+workaround for a real bug rather than a preference.** Every call against the
+default database fails with `InvalidArgument: 400 Invalid database id
+%28default%29`. The REST transport shows why: the request goes to
+`.../databases/%2528default%2529/documents:commit`, which is `(default)`
+percent-encoded twice. The server decodes once, sees `%28default%29`, and
+rejects it.
+
+What was ruled out before concluding that: it reproduces on a laptop and on a
+clean Cloud Run instance, on google-cloud-firestore 2.22 and 2.29, on grpcio
+1.76 and 1.83, and on both the gRPC and REST transports. A hand-built REST call
+with a literal `(default)` in the path succeeds against the same database with
+the same credentials, so the server and the database are fine and the client is
+double-encoding. A named database contains no characters that need encoding, so
+it takes the same code path and works. `FIRESTORE_DATABASE` overrides it.
+
 **The malformed-snapshot path is preserved.** `get_snapshot` refuses a document
 it cannot parse rather than coercing it, exactly as the local store does, and
 records why in `quarantined` so the observer journals the corner as "the
@@ -48,6 +64,10 @@ JOURNAL = "journal"
 CALIBRATION = "calibration"
 CALIBRATION_DOC = "state"
 
+# Not "(default)". See the module docstring: the client double-encodes the
+# parentheses and every call against the default database is rejected.
+DEFAULT_DATABASE = "watchdog"
+
 # How many journal entries a page render will read. The ledger groups by cycle
 # and the agent writes at most one entry per watched corner per sweep, so this
 # is several weeks of history and still one bounded query.
@@ -62,17 +82,24 @@ class FirestoreStore:
         project: str | None = None,
         *,
         client: Any = None,
+        database: str | None = None,
         journal_limit: int = DEFAULT_JOURNAL_LIMIT,
     ) -> None:
         self.project = project or os.environ.get("GOOGLE_CLOUD_PROJECT", "")
-        self.db = client or firestore.Client(project=self.project or None)
+        self.database = database or os.environ.get("FIRESTORE_DATABASE") or DEFAULT_DATABASE
+        self.db = client or firestore.Client(
+            project=self.project or None, database=self.database
+        )
         self.journal_limit = journal_limit
         # Same contract as LocalJsonStore.quarantined: slug -> why. The observer
         # reads it to tell "unreadable baseline" apart from "never seen".
         self.quarantined: dict[str, str] = {}
 
     def describe(self) -> str:
-        return f"FirestoreStore, project {self.project or 'inferred'}, three collections"
+        return (
+            f"FirestoreStore, project {self.project or 'inferred'}, "
+            f"database {self.database}, three collections"
+        )
 
     # ------------------------------------------------------------- snapshots
 
