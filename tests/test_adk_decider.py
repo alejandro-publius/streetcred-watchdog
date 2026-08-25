@@ -261,3 +261,64 @@ def test_the_default_wiring_does_not_build_a_live_decider_without_a_project(monk
     assert isinstance(decider, RuleDecider)
     assert "DECIDER=adk was requested" in note
     assert "Nothing on this entry was decided by a model" in note
+
+
+# ============================================== the two facts the evidence package states
+
+def test_the_case_says_the_counts_are_the_totals_after_the_change():
+    """Found by reading what a real model said back.
+
+    The first live deliberation reasoned that collisions had "risen from 42 to
+    44" when 42 was already the total after the change. The evidence package
+    listed the delta and the counts next to each other and left which was which
+    to inference, and the inference went the wrong way. That reasoning is
+    published verbatim beside the actions, so a wrong number in it is a wrong
+    number on a public page.
+    """
+    from corner_watchdog.prompts import deliberation_case
+
+    case = deliberation_case(
+        name="6th and Mission", grade="F", index=99,
+        delta="6th and Mission: 2 new injury collisions.",
+        escalation_reason="two new injury collisions",
+        counts=counts(),
+    )
+    # Whitespace-normalised: the prompt is wrapped for reading, so the sentence
+    # this asserts on is split across lines in the source.
+    flat = " ".join(case.split())
+    assert "already include the change described above" in flat
+    assert "totals after it, not before it" in flat
+
+
+def test_the_case_carries_the_letters_age_when_the_corner_knows_it():
+    """The prompt has asked since it was written; nothing supplied it until now.
+
+    It is the one fact that can make an escalated change need no correction: a
+    letter drafted after the change already states the new figures, so redrafting
+    churns the page to no effect. Without it every deliberation is told "unknown"
+    and can never reach that conclusion.
+    """
+    model = scripted(
+        [call("decline", reasoning=REASONING, still_accurate=STILL_TRUE)], [text("done")]
+    )
+    decider = AdkDecider(model=model)
+    corner = {**CORNER, "letterDrafted": "today, after this change was recorded"}
+    asyncio.run(
+        decider.decide(delta(reports_311_change=16), corner, counts(), "a 311 swing past the bar")
+    )
+
+    shown = "\n".join(model.prompts_seen())
+    assert "today, after this change was recorded" in shown
+
+
+def test_a_corner_that_does_not_know_its_letters_age_still_says_unknown():
+    model = scripted(
+        [call("decline", reasoning=REASONING, still_accurate=STILL_TRUE)], [text("done")]
+    )
+    decider = AdkDecider(model=model)
+    asyncio.run(
+        decider.decide(delta(reports_311_change=16), CORNER, counts(), "a 311 swing past the bar")
+    )
+
+    shown = "\n".join(model.prompts_seen())
+    assert "last drafted unknown" in shown

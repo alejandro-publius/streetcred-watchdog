@@ -527,6 +527,12 @@ class AdkDecider:
             delta=delta.summary(),
             escalation_reason=escalation_reason,
             counts=counts,
+            # The prompt has asked about the letter's age since it was written and
+            # nothing ever supplied it, so every deliberation to date has been told
+            # "unknown". That is the one fact that can make an escalated change
+            # need no correction: a letter drafted after the change already states
+            # the new figures, and redrafting it churns the page to no effect.
+            letter_age=corner.get("letterDrafted") or "unknown",
         )
         record, signatures = await self._run(case)
         self.last_signatures = signatures

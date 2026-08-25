@@ -203,6 +203,7 @@ class GemmaTriageAgent(BaseAgent):
             delta=envelope.get("delta_summary") or delta.summary(),
             escalation_reason=verdict.reason,
             counts=counts_from_envelope(envelope.get("counts") or {}),
+            letter_age=corner.get("letterDrafted") or "unknown",
         )
         yield self._say(ctx, f"Escalated by tier one. {verdict.reason}\n\n{case}", state=state)
 

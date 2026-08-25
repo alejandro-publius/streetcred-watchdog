@@ -191,7 +191,10 @@ Danger Index: {index}, grade {grade}
 What changed: {delta}
 Why it was escalated: {escalation_reason}
 
-The corner's current evidence state:
+The corner's evidence state as the city records it RIGHT NOW. These figures already
+include the change described above; they are the totals after it, not before it. The
+published page still shows the figures from before, which is what makes a correction
+necessary or unnecessary:
 - collisions in the last five years: {collisions} ({fatal} fatal, {severe} severe)
 - filtered street-condition 311 reports in the last three years: {reports_311}
 - the published letter cites these figures and was last drafted {letter_age}
