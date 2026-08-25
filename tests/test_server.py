@@ -47,20 +47,32 @@ def client(monkeypatch, role: str) -> TestClient:
 
 # ================================================================ which service
 
+def test_the_status_route_is_not_named_healthz():
+    """Cloud Run's front end reserves /healthz and answers it with its own 404.
+
+    The container never sees the request, so the route looks broken while the
+    service is fine. Pinned here because the next person to tidy route names
+    would reach for /healthz first.
+    """
+    paths = {r.path for r in app.routes}
+    assert "/status" in paths
+    assert "/healthz" not in paths
+
+
 def test_the_observer_says_it_is_the_observer(monkeypatch):
-    body = client(monkeypatch, OBSERVER).get("/healthz").json()
+    body = client(monkeypatch, OBSERVER).get("/status").json()
     assert body["ok"] is True
     assert body["service"] == OBSERVER
 
 
 def test_the_actor_says_it_is_the_actor(monkeypatch):
-    body = client(monkeypatch, ACTOR).get("/healthz").json()
+    body = client(monkeypatch, ACTOR).get("/status").json()
     assert body["service"] == ACTOR
 
 
 def test_health_reports_the_wiring_rather_than_only_that_it_is_alive(monkeypatch):
     """A check that proves the process is up says nothing about what it will do."""
-    body = client(monkeypatch, OBSERVER).get("/healthz").json()
+    body = client(monkeypatch, OBSERVER).get("/status").json()
     assert "decider=" in body["config"]
     assert "actionBudget" in body and "tokenBudget" in body
 

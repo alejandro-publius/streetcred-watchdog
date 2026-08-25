@@ -8,7 +8,14 @@ under "what is still missing after all of this". This is that gap closed.
     SERVICE=observer    POST /sweep       one full pass over the watched set
                         POST /tick        the same pass, marked hourly
     SERVICE=actor       POST /deliberate  the Pub/Sub push endpoint
-    either              GET  /healthz     what this instance thinks it is
+    either              GET  /status      what this instance thinks it is
+
+The status route is `/status` and not `/healthz` for a reason found the hard
+way. Cloud Run's front end reserves `/healthz`: it answers that path itself with
+a generic Google 404 and never forwards it to the container. Every other path on
+a private service returns 403 as it should, so the symptom is one route
+returning 404 while the container is demonstrably healthy and serving, which
+reads as a routing bug in the application and is not one.
 
 Why one image rather than two. The observer and the actor exchange a JSON
 envelope whose shape is defined in `schema.py`, and two images built from two
@@ -83,7 +90,7 @@ def _now() -> str:
     return _dt.datetime.now(_dt.UTC).isoformat(timespec="seconds")
 
 
-@app.get("/healthz")
+@app.get("/status")
 async def healthz() -> dict[str, Any]:
     """What this instance is, and what it would run if asked.
 
