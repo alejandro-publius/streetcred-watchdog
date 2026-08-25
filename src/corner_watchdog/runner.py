@@ -62,8 +62,18 @@ async def run_cycle(
     extra_degradation: str | None = None,
     action_budget: ActionBudget | None = None,
     token_budget: TokenBudget | None = None,
+    bus: Any = None,
+    wire_actor: bool = True,
 ) -> CycleReport:
-    """One full pass: observe, diff, triage, decide, act dry, journal."""
+    """One full pass: observe, diff, triage, decide, act dry, journal.
+
+    `bus` and `wire_actor` are what let this same function drive the deployed
+    observer. On Cloud Run the actor is a different service behind a push
+    subscription, so the observer publishes to Pub/Sub and nothing is subscribed
+    in this process. Locally the actor is wired to a DirectBus and the whole
+    loop runs in one pass, which is the default and what every existing caller
+    gets.
+    """
     # Before anything is fetched. A cycle that runs with an unverified filter
     # produces numbers, and a wrong number is worse than a run that stopped.
     assert_pinned()
@@ -72,7 +82,7 @@ async def run_cycle(
     run_id = run_id or started.strftime("%Y%m%dT%H%M%SZ")
 
     store = store or LocalJsonStore(state_dir)
-    bus = DirectBus()
+    bus = bus if bus is not None else DirectBus()
     triage, decider, model_note = select_brains()
     # Tier two always consults its model, so the model caveat always applies to
     # the actor's entries. The observer decides which of its own entries it
@@ -87,7 +97,8 @@ async def run_cycle(
         provenance=extra_degradation, run_id=run_id, tokens=tokens
     )
     actor = Actor(store, decider, act, budget, degraded=degraded, run_id=run_id, tokens=tokens)
-    bus.subscribe(actor.handle)
+    if wire_actor:
+        bus.subscribe(actor.handle)
 
     report = CycleReport(
         run_id=run_id,

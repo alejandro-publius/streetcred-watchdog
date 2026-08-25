@@ -7,7 +7,14 @@ WORKDIR /app
 # Dependencies first, so a code edit does not reinstall the world.
 COPY pyproject.toml ./
 COPY src ./src
-RUN pip install --no-cache-dir .
+# The watched roster is data the agent is responsible for, not configuration it
+# can rebuild. Without it the deployed sweep has no corners and reports a clean
+# zero, which is the shape of failure this whole repository is written against.
+COPY data ./data
+# The cloud extra, because the deployed services are the ones that actually need
+# Firestore, Pub/Sub and a web server. A local `pip install -e ".[dev]"` still
+# gets none of it.
+RUN pip install --no-cache-dir ".[cloud]"
 
 # Cloud Run injects PORT. Defaulted so the image also runs locally unchanged.
 ENV PORT=8080
