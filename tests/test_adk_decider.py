@@ -322,3 +322,53 @@ def test_a_corner_that_does_not_know_its_letters_age_still_says_unknown():
 
     shown = "\n".join(model.prompts_seen())
     assert "last drafted unknown" in shown
+
+
+# =========================================== what counts as a usable credential
+
+def test_cloud_run_counts_as_configured_even_with_no_credential_file(monkeypatch):
+    """Found by deploying, not by reasoning about it.
+
+    The first cloud sweep wrote 25 journal entries, every one of which said "no
+    Google application default credentials on this machine", while running on a
+    machine whose entire identity is an application default credential. Cloud
+    Run hands the service account to the process through the metadata server, so
+    there is no file and no GOOGLE_APPLICATION_CREDENTIALS to find, and tier two
+    silently ran the stand-in. Only the degraded line, which exists for exactly
+    this, made it visible.
+    """
+    from corner_watchdog.brains import vertex_is_configured
+
+    monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "streetcred-506117")
+    monkeypatch.delenv("GOOGLE_APPLICATION_CREDENTIALS", raising=False)
+    monkeypatch.setenv("K_SERVICE", "watchdog-observer")
+    monkeypatch.setattr("os.path.exists", lambda _p: False)
+
+    ok, why = vertex_is_configured()
+    assert ok is True
+    assert "metadata server" in why
+
+
+def test_no_project_is_still_not_configured_even_on_cloud_run(monkeypatch):
+    """A credential without a project cannot call Vertex, so the order matters."""
+    from corner_watchdog.brains import vertex_is_configured
+
+    monkeypatch.delenv("GOOGLE_CLOUD_PROJECT", raising=False)
+    monkeypatch.setenv("K_SERVICE", "watchdog-observer")
+
+    ok, why = vertex_is_configured()
+    assert ok is False
+    assert "GOOGLE_CLOUD_PROJECT" in why
+
+
+def test_a_laptop_with_no_credentials_is_still_not_configured(monkeypatch):
+    from corner_watchdog.brains import vertex_is_configured
+
+    monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "streetcred-506117")
+    monkeypatch.delenv("GOOGLE_APPLICATION_CREDENTIALS", raising=False)
+    monkeypatch.delenv("K_SERVICE", raising=False)
+    monkeypatch.setattr("os.path.exists", lambda _p: False)
+
+    ok, why = vertex_is_configured()
+    assert ok is False
+    assert "no Google application default credentials" in why

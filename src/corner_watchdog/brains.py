@@ -43,9 +43,36 @@ def vertex_is_configured() -> tuple[bool, str]:
     adc = os.path.expanduser("~/.config/gcloud/application_default_credentials.json")
     if not project:
         return False, "GOOGLE_CLOUD_PROJECT is not set"
-    if not creds and not os.path.exists(adc):
-        return False, "no Google application default credentials on this machine"
-    return True, "configured"
+    if creds:
+        return True, "configured, GOOGLE_APPLICATION_CREDENTIALS"
+    if on_cloud_run():
+        # The credential that matters here has no file and no environment
+        # variable behind it. Cloud Run hands the service account to the process
+        # through the metadata server, so both of the checks below are false on
+        # a correctly configured production instance.
+        #
+        # This was found by deploying and reading the journal, not by reasoning
+        # about it: the first cloud sweep wrote 25 entries every one of which
+        # said "no Google application default credentials on this machine" while
+        # sitting on a machine whose whole identity is an application default
+        # credential. The tier silently degraded and only the degraded line,
+        # which exists for exactly this, made it visible.
+        return True, "configured, Cloud Run metadata server"
+    if os.path.exists(adc):
+        return True, "configured, local application default credentials"
+    return False, "no Google application default credentials on this machine"
+
+
+def on_cloud_run() -> bool:
+    """Whether this process is a Cloud Run instance.
+
+    K_SERVICE is injected by the runtime into every container it starts and is
+    part of the documented contract, so it is a fact about the environment
+    rather than a guess. Checked instead of calling the metadata server, because
+    a network probe here would reintroduce the hang this function exists to
+    avoid.
+    """
+    return bool(os.environ.get("K_SERVICE", "").strip())
 
 
 # ------------------------------------------------------------------- tier one

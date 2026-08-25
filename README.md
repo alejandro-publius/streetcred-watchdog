@@ -79,7 +79,7 @@ All measured from this repository, on 2026-08-20.
 | Evaluations journaled | 175 |
 | Actions taken | 0 |
 | Restraint rate | 100 percent, and the ledger explains why that number is not yet impressive |
-| Tests | 631, offline, no credentials, under a second |
+| Tests | 634, offline, no credentials, under a second |
 | Runtime dependencies | 2 (`httpx`, `google-adk`) |
 | Google Cloud accounts touched | 0 |
 
@@ -94,7 +94,7 @@ that flatters the system is worth less than one that explains itself.
 
 Verified in a fresh virtual environment on 2026-08-24: 63 packages installed including pip
 itself and the project, three of them Google (`google-adk`, and `google-genai` and
-`google-auth` beneath it), all 631 tests green with no network and no credentials.
+`google-auth` beneath it), all 634 tests green with no network and no credentials.
 
 That count was 15, and none of them were Google, until tier two became an ADK agent. The
 jump is what adopting a framework actually costs, and it is stated here rather than
@@ -108,7 +108,7 @@ cd streetcred-watchdog
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"          # two runtime dependencies: httpx and google-adk
 
-pytest -q                        # 631 tests, no network, no credentials
+pytest -q                        # 634 tests, no network, no credentials
 python -m corner_watchdog run --cycles 2  # the whole loop, twice, against live DataSF
 open docs/ledger.html            # every decision, restraint rate on top
 ```
@@ -228,7 +228,7 @@ Fuller versions in [`DECISIONS.md`](DECISIONS.md).
 | `src/prompts/` | Both prompts in full, with ten worked examples the test suite parses. |
 | `src/corner_watchdog/live.py` | The live path. Implements the interface, refuses every verb. |
 | `src/corner_watchdog/ledger.py` | The journal as a page, restraint rate on top, declines at full size. |
-| `tests/` | 631 of them. The cases where a naive implementation produces a confident lie. |
+| `tests/` | 634 of them. The cases where a naive implementation produces a confident lie. |
 | `LOG.md`, `DECISIONS.md` | What was found by running it, and what was decided and rejected. |
 
 ## A note on the radius
