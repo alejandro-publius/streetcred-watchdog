@@ -20,7 +20,7 @@ reads as a routing bug in the application and is not one.
 Why one image rather than two. The observer and the actor exchange a JSON
 envelope whose shape is defined in `schema.py`, and two images built from two
 commits can disagree about that shape while both look healthy. One image cannot.
-`SERVICE` picks the half at boot, and `/healthz` reports which half it got, so
+`SERVICE` picks the half at boot, and `/status` reports which half it got, so
 an instance running the wrong role is visible rather than merely wrong.
 
 **Authentication is the platform's job, not this file's.** Both services deploy
@@ -83,7 +83,7 @@ def service_role() -> str:
     if role not in (OBSERVER, ACTOR):
         # Same rule as config.decider_name: an unrecognised value is an error,
         # never a silent default. An instance quietly booting as the observer
-        # because SERVICE was misspelled would answer /healthz cheerfully and
+        # because SERVICE was misspelled would answer /status cheerfully and
         # never deliberate on anything.
         raise RuntimeError(
             f"SERVICE={role!r} is not {OBSERVER!r} or {ACTOR!r}. Refusing to guess which "
@@ -97,7 +97,7 @@ def _now() -> str:
 
 
 @app.get("/status")
-async def healthz() -> dict[str, Any]:
+async def status() -> dict[str, Any]:
     """What this instance is, and what it would run if asked.
 
     Deliberately more than {"ok": true}. A health check that only proves the

@@ -75,6 +75,92 @@ Read this before the rest.
   them do: the journal is append only, so entries written before that field existed
   cannot gain it.
 
+## The shape of one cycle
+
+Eleven boxes, and every one of them is running. The two tiers are labelled with what
+serves each **today** rather than what is planned for it, because a diagram that draws
+the intended system next to the built one is how a reader ends up believing the intended
+one shipped.
+
+```mermaid
+%%{init: {"flowchart": {"curve": "basis", "nodeSpacing": 45, "rankSpacing": 55, "padding": 14, "wrappingWidth": 460}}}%%
+flowchart TB
+
+    subgraph OBSERVER["Observer service &nbsp;&middot;&nbsp; Cloud Run, scales to zero"]
+        direction LR
+        SCHED["<b>Cloud Scheduler</b><br/>watchdog-daily-cycle<br/>07:00 America/Los_Angeles"]
+        DATASF["<b>DataSF</b><br/>311 and collisions<br/>keyless, read only"]
+        SWEEP["<b>Sweep</b><br/>diff each of 25 corners against<br/>the stored Firestore snapshot"]
+        REFLEX["<b>Reflex tier</b><br/>served today by <b>RuleTriage</b>: deterministic<br/>thresholds, no model, no network<br/><i>Gemma is not wired, and every entry it writes says so</i>"]
+        SCHED --> SWEEP
+        DATASF --> SWEEP
+        SWEEP --> REFLEX
+    end
+
+    subgraph ACTOR["The escalation path: Pub/Sub, then the Actor service on Cloud Run"]
+        direction LR
+        PS["<b>Pub/Sub</b><br/>topic <b>corner-deltas</b>, push subscription with OIDC<br/><i>the quiet corners stop here, and tier two<br/>is never built, called or billed</i>"]
+        JUDGE["<b>Judgment tier</b><br/>served today by an <b>ADK LlmAgent</b> on<br/><b>gemini-3.5-flash</b>, Vertex locations/global"]
+        TOOLS["<b>Five tools, exactly one call</b><br/>rescore &middot; regenerate_letter &middot; re_audit &middot; flag<br/><b>decline</b>, which is a signed decision, not a silence"]
+        PS --> JUDGE
+        JUDGE --> TOOLS
+    end
+
+    subgraph PUBLISH["The record, the boundary, and the public page"]
+        direction LR
+        FS[("<b>Firestore journal</b><br/>watchdog database, append only,<br/>declines and failed publishes included")]
+        INGEST{{"<b>Authenticated ingest</b><br/>POST /api/agent/report<br/><b>one bearer token, one direction</b><br/>the cloud writes in and reads nothing back"}}
+        GATE["<b>Validation gate</b><br/>six rejection classes, unknown tools refused,<br/>a claim the site cannot verify is turned away"]
+        DIARY["<b>Public diary and Activity Inspector</b><br/>/watchdog: every decision, every decline,<br/>every rejected ingest, each with its reason"]
+        FS --> INGEST
+        INGEST --> GATE
+        GATE --> DIARY
+    end
+
+    OBSERVER -->|"escalations only"| ACTOR
+    ACTOR -->|"decided, then journaled, then published"| PUBLISH
+
+    classDef source fill:#eef2f0,stroke:#5c6a6e,stroke-width:1.5px,color:#161d1f
+    classDef gcp fill:#f7ecdf,stroke:#a1571c,stroke-width:1.5px,color:#161d1f
+    classDef model fill:#e7efea,stroke:#2f5d50,stroke-width:2.5px,color:#161d1f
+    classDef boundary fill:#fbecec,stroke:#8c2f2f,stroke-width:2.5px,color:#161d1f
+    classDef edge fill:#eaf0f6,stroke:#2b4d73,stroke-width:1.5px,color:#161d1f
+
+    class DATASF source
+    class SCHED,PS,SWEEP,TOOLS,FS gcp
+    class REFLEX,JUDGE model
+    class INGEST boundary
+    class GATE,DIARY edge
+
+    style OBSERVER fill:#fdfaf6,stroke:#a1571c,stroke-width:2px,color:#a1571c
+    style ACTOR fill:#fdfaf6,stroke:#a1571c,stroke-width:2px,color:#a1571c
+    style PUBLISH fill:#fbfcfb,stroke:#5c6a6e,stroke-width:2px,color:#5c6a6e
+```
+
+Rendered at [`docs/architecture.png`](docs/architecture.png), source in
+[`docs/architecture.mmd`](docs/architecture.mmd), and the callbacks, the conditional edge
+and the reasons for each are in [`docs/architecture.md`](docs/architecture.md).
+
+Three things in that picture are worth saying in prose.
+
+**The arrow out of the observer says `escalations only`, and that is the architecture.**
+A `SequentialAgent` runs its sub-agents unconditionally, so the obvious build lets tier
+two start and return early on a quiet corner. That version writes the same journal and
+bills a model on every corner every morning. The gate is a `before_agent_callback` on
+tier two, checked before the agent is entered at all, so a quiet corner costs nothing
+rather than costing a little.
+
+**The boundary is one token in one direction.** The cloud side posts to
+`/api/agent/report` with a bearer token out of Secret Manager and reads nothing back. The
+public site holds no credential for the agent, cannot call it, and cannot be used to
+reach it.
+
+**The gate is on the far side of that boundary, not this one.** StreetCred validates what
+arrives on content rather than trusting the sender, which is why the first real cloud
+deliberation was refused: the agent claimed it had redrafted a letter, and the site holds
+no letter for that corner. That refusal is on the public page with its reason, and it is
+the gate working rather than a bug.
+
 ## The numbers
 
 All measured from this repository, on 2026-08-20.
@@ -91,7 +177,7 @@ All measured from this repository, on 2026-08-20.
 | Evaluations journaled | 175 |
 | Actions taken | 0 |
 | Restraint rate | 100 percent, and the ledger explains why that number is not yet impressive |
-| Tests | 654, offline, no credentials, under a second |
+| Tests | 661, offline, no credentials, under a second |
 | Runtime dependencies | 2 (`httpx`, `google-adk`) |
 | Google Cloud accounts touched | 0 |
 
@@ -106,7 +192,7 @@ that flatters the system is worth less than one that explains itself.
 
 Verified in a fresh virtual environment on 2026-08-24: 63 packages installed including pip
 itself and the project, three of them Google (`google-adk`, and `google-genai` and
-`google-auth` beneath it), all 654 tests green with no network and no credentials.
+`google-auth` beneath it), all 661 tests green with no network and no credentials.
 
 That count was 15, and none of them were Google, until tier two became an ADK agent. The
 jump is what adopting a framework actually costs, and it is stated here rather than
@@ -120,7 +206,7 @@ cd streetcred-watchdog
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"          # two runtime dependencies: httpx and google-adk
 
-pytest -q                        # 654 tests, no network, no credentials
+pytest -q                        # 661 tests, no network, no credentials
 python -m corner_watchdog run --cycles 2  # the whole loop, twice, against live DataSF
 open docs/ledger.html            # every decision, restraint rate on top
 ```
@@ -296,7 +382,7 @@ Fuller versions in [`DECISIONS.md`](DECISIONS.md).
 | `src/prompts/` | Both prompts in full, with ten worked examples the test suite parses. |
 | `src/corner_watchdog/live.py` | The live path. Implements the interface, refuses every verb. |
 | `src/corner_watchdog/ledger.py` | The journal as a page, restraint rate on top, declines at full size. |
-| `tests/` | 654 of them. The cases where a naive implementation produces a confident lie. |
+| `tests/` | 661 of them. The cases where a naive implementation produces a confident lie. |
 | `LOG.md`, `DECISIONS.md` | What was found by running it, and what was decided and rejected. |
 
 ## A note on the radius
