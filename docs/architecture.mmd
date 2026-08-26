@@ -1,76 +1,57 @@
-%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Public Sans, Helvetica, sans-serif", "fontSize": "15px", "lineColor": "#5c6a6e", "edgeLabelBackground": "#fbfcfb", "tertiaryColor": "#fbfcfb", "primaryTextColor": "#161d1f"}, "flowchart": {"curve": "basis", "nodeSpacing": 45, "rankSpacing": 55}}}%%
+%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Public Sans, Helvetica, sans-serif", "fontSize": "16px", "lineColor": "#5c6a6e", "edgeLabelBackground": "#ffffff", "primaryTextColor": "#161d1f"}, "flowchart": {"curve": "basis", "nodeSpacing": 45, "rankSpacing": 55, "padding": 14, "wrappingWidth": 460, "htmlLabels": true, "useMaxWidth": false}}}%%
 flowchart TB
-%% The Corner Watchdog, two layers, honestly separated.
-%% Dashed green is what actually ran, on a laptop, with no cloud account touched.
-%% Solid amber is what each stand-in is a stand-in for. None of it is wired.
-%% Render: npx @mermaid-js/mermaid-cli -i docs/architecture.mmd -o docs/architecture.svg
+%% The Corner Watchdog, one cycle, as deployed. Eleven nodes.
+%% Every label says what serves that box today, not what is planned for it.
+%% Render: npx @mermaid-js/mermaid-cli -i docs/architecture.mmd -o docs/architecture.png -w 1920 -H 1080 -b white -s 2
+%% External edges attach to subgraph ids, never to inner nodes: mermaid drops a
+%% subgraph's own direction the moment an edge reaches past it to a child.
 
-    subgraph SOURCES["Read only, unauthenticated, no account"]
+    subgraph OBSERVER["Observer service &nbsp;&middot;&nbsp; Cloud Run, scales to zero"]
         direction LR
-        DATASF["DataSF open data portal<br/><i>the city's own record</i>"]
-        SCRED["StreetCred public scoreboard<br/><i>the watched set, 25 worst corners</i>"]
+        SCHED["<b>Cloud Scheduler</b><br/>watchdog-daily-cycle<br/>07:00 America/Los_Angeles"]
+        DATASF["<b>DataSF</b><br/>311 and collisions<br/>keyless, read only"]
+        SWEEP["<b>Sweep</b><br/>diff each of 25 corners against<br/>the stored Firestore snapshot"]
+        REFLEX["<b>Reflex tier</b><br/>served today by <b>RuleTriage</b>: deterministic<br/>thresholds, no model, no network<br/><i>Gemma is not wired, and every entry it writes says so</i>"]
+        SCHED --> SWEEP
+        DATASF --> SWEEP
+        SWEEP --> REFLEX
     end
 
-    subgraph TONIGHT["TONIGHT: ran locally, zero cloud accounts touched"]
-        direction TB
-        SCHED_L["launchd or cron<br/><i>timed trigger</i>"]
-        OBS_L["Observer sweep, python -m corner_watchdog<br/><i>runtime</i>"]
-        FLOOR["Rule floor, delta.py<br/><b>no model, no network, no cloud</b><br/><i>a new death escalates before any model is consulted</i>"]
-        TRIAGE_L["RuleTriage<br/><i>cost-routed triage</i>"]
-        BUS_L["DirectBus<br/><i>decoupled trigger</i>"]
-        DELIB_L["RuleDecider<br/><i>deliberation with reasoning traces</i>"]
-        ACT_L["DryRunActuator, writes to outbox/<br/><i>acts, sends nothing</i>"]
-        STORE_L["LocalJsonStore, the journal<br/><i>persistent cross-session memory</i>"]
-        LEDGER_L["docs/ledger.html<br/><i>public observability</i>"]
-        SEC_L["dotenv, gitignored, never committed<br/><i>zero credentials in code</i>"]
-    end
-
-    subgraph THISWEEK["THIS WEEK: what each dashed box is a stand-in for. None is wired, nothing is deployed, no account exists."]
+    subgraph ACTOR["The escalation path: Pub/Sub, then the Actor service on Cloud Run"]
         direction LR
-        SCHED_C["Cloud Scheduler<br/><i>timed trigger</i>"]
-        RUN_C["Cloud Run<br/><i>scale-to-zero runtime</i>"]
-        GEMMA_C["Gemma on Vertex<br/><i>cost-routed triage</i>"]
-        PS_C["Pub/Sub<br/><i>decoupled trigger</i>"]
-        GEMINI_C["Gemini on Vertex<br/><i>deliberation with reasoning traces</i>"]
-        POST_C["POST /api/agent/report<br/><i>the one trust boundary</i>"]
-        FS_C["Firestore<br/><i>persistent cross-session memory</i>"]
-        SM_C["Secret Manager<br/><i>zero credentials in code</i>"]
-        %% Invisible links only, to lay the inventory out in two rows rather
-        %% than one tall column. They carry no meaning: nothing in this layer
-        %% is connected to anything, which is the point of the layer.
-        SCHED_C ~~~ RUN_C ~~~ GEMMA_C ~~~ PS_C
-        GEMINI_C ~~~ POST_C ~~~ FS_C ~~~ SM_C
+        PS["<b>Pub/Sub</b><br/>topic <b>corner-deltas</b>, push subscription with OIDC<br/><i>the quiet corners stop here, and tier two<br/>is never built, called or billed</i>"]
+        JUDGE["<b>Judgment tier</b><br/>served today by an <b>ADK LlmAgent</b> on<br/><b>gemini-3.5-flash</b>, Vertex locations/global"]
+        TOOLS["<b>Five tools, exactly one call</b><br/>rescore &middot; regenerate_letter &middot; re_audit &middot; flag<br/><b>decline</b>, which is a signed decision, not a silence"]
+        PS --> JUDGE
+        JUDGE --> TOOLS
     end
 
-    DATASF --> OBS_L
-    SCRED --> OBS_L
-    SCHED_L --> OBS_L
-    OBS_L --> FLOOR
-    FLOOR -->|"ambiguous middle only"| TRIAGE_L
-    FLOOR -->|"fatal or severe, settled by rule"| BUS_L
-    FLOOR -->|"nothing changed"| STORE_L
-    TRIAGE_L -->|"escalate"| BUS_L
-    TRIAGE_L -->|"ignore or defer"| STORE_L
-    BUS_L --> DELIB_L
-    DELIB_L -->|"act"| ACT_L
-    DELIB_L -->|"decline or defer"| STORE_L
-    ACT_L --> STORE_L
-    STORE_L --> LEDGER_L
-    SEC_L -.-> ACT_L
+    subgraph PUBLISH["The record, the boundary, and the public page"]
+        direction LR
+        FS[("<b>Firestore journal</b><br/>watchdog database, append only,<br/>declines and failed publishes included")]
+        INGEST{{"<b>Authenticated ingest</b><br/>POST /api/agent/report<br/><b>one bearer token, one direction</b><br/>the cloud writes in and reads nothing back"}}
+        GATE["<b>Validation gate</b><br/>six rejection classes, unknown tools refused,<br/>a claim the site cannot verify is turned away"]
+        DIARY["<b>Public diary and Activity Inspector</b><br/>/watchdog: every decision, every decline,<br/>every rejected ingest, each with its reason"]
+        FS --> INGEST
+        INGEST --> GATE
+        GATE --> DIARY
+    end
 
-    %% Invisible, and only to rank the cloud inventory below the loop that runs.
-    LEDGER_L ~~~ SCHED_C
+    OBSERVER -->|"escalations only"| ACTOR
+    ACTOR -->|"decided, then journaled, then published"| PUBLISH
 
-    classDef source fill:#eef2f0,stroke:#5c6a6e,stroke-width:1px,color:#161d1f
-    classDef local fill:#e7efea,stroke:#2f5d50,stroke-width:1.5px,stroke-dasharray:5 4,color:#161d1f
-    classDef cloud fill:#f7ecdf,stroke:#a1571c,stroke-width:1.5px,color:#161d1f
-    classDef floorbox fill:#fbecec,stroke:#8c2f2f,stroke-width:2.5px,color:#161d1f
+    classDef source fill:#eef2f0,stroke:#5c6a6e,stroke-width:1.5px,color:#161d1f
+    classDef gcp fill:#f7ecdf,stroke:#a1571c,stroke-width:1.5px,color:#161d1f
+    classDef model fill:#e7efea,stroke:#2f5d50,stroke-width:2.5px,color:#161d1f
+    classDef boundary fill:#fbecec,stroke:#8c2f2f,stroke-width:2.5px,color:#161d1f
+    classDef edge fill:#eaf0f6,stroke:#2b4d73,stroke-width:1.5px,color:#161d1f
 
-    class DATASF,SCRED source
-    class SCHED_L,OBS_L,TRIAGE_L,BUS_L,DELIB_L,ACT_L,STORE_L,LEDGER_L,SEC_L local
-    class SCHED_C,RUN_C,FS_C,PS_C,GEMMA_C,GEMINI_C,POST_C,SM_C cloud
-    class FLOOR floorbox
+    class DATASF source
+    class SCHED,PS,SWEEP,TOOLS,FS gcp
+    class REFLEX,JUDGE model
+    class INGEST boundary
+    class GATE,DIARY edge
 
-    style SOURCES fill:#fbfcfb,stroke:#d5dbd7,stroke-width:1px,color:#5c6a6e
-    style TONIGHT fill:#fbfcfb,stroke:#2f5d50,stroke-width:2px,stroke-dasharray:8 5,color:#2f5d50
-    style THISWEEK fill:#fdfaf6,stroke:#a1571c,stroke-width:2px,color:#a1571c
+    style OBSERVER fill:#fdfaf6,stroke:#a1571c,stroke-width:2px,color:#a1571c
+    style ACTOR fill:#fdfaf6,stroke:#a1571c,stroke-width:2px,color:#a1571c
+    style PUBLISH fill:#fbfcfb,stroke:#5c6a6e,stroke-width:2px,color:#5c6a6e

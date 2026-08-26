@@ -1,12 +1,23 @@
 # Architecture
 
-![The Corner Watchdog architecture](architecture.svg)
+![The Corner Watchdog architecture](architecture.png)
 
-Source: [`architecture.mmd`](architecture.mmd). Regenerate with:
+Eleven boxes, and every one of them is running. Both tiers are labelled with what serves
+each **today** rather than what is planned for it. Source in
+[`architecture.mmd`](architecture.mmd), and the same diagram is inline in both READMEs.
+Regenerate both renders with:
 
 ```bash
+npx @mermaid-js/mermaid-cli -i docs/architecture.mmd -o docs/architecture.png -w 1920 -H 1080 -b white -s 2
 npx @mermaid-js/mermaid-cli -i docs/architecture.mmd -o docs/architecture.svg -b transparent
 ```
+
+The PNG is 3480 by 1826, which is a shade under 16 by 9 and drops into a 1080p frame with
+room for a title. One layout note worth writing down, because it cost two renders to
+find: mermaid silently discards a subgraph's own `direction` the moment an edge from
+outside reaches past it to one of its children. Every external edge here therefore
+attaches to a subgraph id, never to an inner node, which is why the lanes lay out as rows
+instead of collapsing into one very long line.
 
 ## The agent graph
 
@@ -60,51 +71,59 @@ Run it locally with `adk web agents`. The graph is exposed for the ADK's tooling
 in [`agents/corner_watchdog_graph/agent.py`](../agents/corner_watchdog_graph/agent.py),
 which builds the same graph production runs rather than one shaped for a demo.
 
-## Why the diagram has two layers
+## What the diagram used to say, and why that changed
 
-Because the system has two layers and only one of them exists.
+Until 2026-08-26 this page carried a two-layer diagram: a dashed green band of things
+that ran on a laptop, and an amber band captioned as an inventory of what each stand-in
+stood in for, wired to nothing. It said, in full: no Google Cloud account was created,
+authenticated to, or touched at any point in this project.
 
-The **dashed green layer ran**. Every box in it executed on a laptop, against San
-Francisco's open data portal and StreetCred's public scoreboard, both
-unauthenticated reads. No Google Cloud account was created, authenticated to, or
-touched at any point in this project.
+That was true when it was written and it is not true now. Both bands are one connected
+system, deployed, and the honest thing to do with a diagram that has been overtaken is to
+replace it and say so rather than let a reader find the old one behind a link. The
+[deployment inventory](../HANDOFF.md) lists what exists.
 
-The **amber band did not run**. It is an inventory of what each stand-in is a
-stand-in for. Drawing the two as one connected system would claim something that
-is not true, and this repository's entire argument is that its output can be
-trusted without checking.
+One box is still a stand-in, and the new diagram says so on the box rather than in a
+caption: the reflex tier is `RuleTriage`, deterministic thresholds with no model in them,
+and Gemma is not wired. Every journal entry written by that tier carries a line naming
+it, so the degradation travels with the record instead of living here.
 
-The **red box is neither**. `delta.py` is deterministic arithmetic with no model,
-no network and no cloud in it, and it is the piece that decides anything
-expensive to get wrong. A new fatality escalates by rule, before either tier is
-consulted, so no model can be talked out of it.
+The rule floor is neither a tier nor a model. `delta.py` is deterministic arithmetic with
+no model, no network and no cloud in it, and it is the piece that decides anything
+expensive to get wrong. A new fatality escalates by rule, before either tier is consulted,
+so no model can be talked out of it. It sits inside the sweep box.
 
 ## What each component is for
 
-| Rubric job | Ran tonight | Stands in for | Wired |
-| --- | --- | --- | --- |
-| Timed trigger | launchd or cron, rendered by `watchdog schedule` | Cloud Scheduler | no |
-| Scale-to-zero runtime | `python -m corner_watchdog` | Cloud Run | no |
-| Cost-routed triage | `GemmaTriageAgent` wrapping `RuleTriage` | Gemma on Vertex | the graph node is real, the model is not |
-| Decoupled trigger | `DirectBus`, JSON round trip in process | Pub/Sub | no |
-| Agent framework | `SequentialAgent` over two agents, five registered tools | the same, on Cloud Run | yes |
-| Deliberation with reasoning traces | `AdkDecider`, an `LlmAgent` | Gemini on Vertex | yes, the agent; the model needs a project |
-| Persistent cross-session memory | `LocalJsonStore`, `state/journal.jsonl` | Firestore | no |
-| Zero credentials in code | `.env`, gitignored, never committed | Secret Manager | no |
-| The one trust boundary | `DryRunActuator`, writes to `outbox/` | `POST /api/agent/report` | no |
-| Public observability | `docs/ledger.html` | the same page, hosted | rendered locally |
+| Rubric job | What serves it today | Where |
+| --- | --- | --- |
+| Timed trigger | Cloud Scheduler, `watchdog-daily-cycle`, 07:00 Pacific | deployed |
+| Scale-to-zero runtime | two Cloud Run services, `SERVICE` picks the half at boot | deployed |
+| Cost-routed triage | `GemmaTriageAgent` wrapping `RuleTriage` | deployed, and the model is still a rule |
+| Decoupled trigger | Pub/Sub topic `corner-deltas`, push subscription with OIDC | deployed |
+| Agent framework | `SequentialAgent` over two agents, five registered tools | deployed |
+| Deliberation with reasoning traces | `AdkDecider`, an `LlmAgent` on `gemini-3.5-flash` | deployed, Vertex `locations/global` |
+| Persistent cross-session memory | Firestore, named database `watchdog`, append only | deployed |
+| Zero credentials in code | Secret Manager, scoped accessor on both services | deployed |
+| The one trust boundary | `POST /api/agent/report`, one bearer token, one direction | deployed |
+| Public observability | `/watchdog` on StreetCred, plus `docs/ledger.html` | deployed |
+
+`LocalJsonStore`, `DirectBus` and `DryRunActuator` did not go away. They are what a local
+run still uses, which is what keeps the test suite offline and credential free, and the
+seam between them and the cloud implementations is the same one it always was.
 
 Five of those rows are protocols in [`ports.py`](../src/corner_watchdog/ports.py):
-`Store`, `Bus`, `Triage`, `Decider` and `Actuator`. Each currently has one
-implementation, the local one, and the cloud column names what a second would be.
-The other four rows are not protocols and should not be read as though they were:
-the timed trigger is launchd or cron calling the CLI, the runtime is the process
-itself, credentials are a gitignored file, and the ledger is a rendered page.
+`Store`, `Bus`, `Triage`, `Decider` and `Actuator`. Each now has two
+implementations, the local one and the cloud one, and nothing above the seam knows which
+side it was handed. The other four rows are not protocols and should not be read as
+though they were: the trigger, the runtime, the secret store and the public page are
+infrastructure, not interfaces.
 
 Swapping a protocol is a constructor change at one of two wiring sites,
 `select_brains()` in `brains.py` for the two tiers and `run_cycle()` in
-`runner.py` for the rest, and nothing above the seam knows which side is running.
-The plan for doing that is [`GEMINI_WIRING.md`](GEMINI_WIRING.md).
+`runner.py` for the rest. That plan was [`GEMINI_WIRING.md`](GEMINI_WIRING.md); it has
+since been carried out, and the file is kept as the record of what was intended before
+the deployment found out what was actually hard.
 
 `Decider` is the one that now has two real implementations rather than one.
 `DECIDER=adk` is the default and `DECIDER=rule` keeps the deterministic stand-in

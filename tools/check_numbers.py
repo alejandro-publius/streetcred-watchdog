@@ -40,12 +40,25 @@ def live_facts() -> dict[str, int]:
     if watched.exists():
         corners = len(json.loads(watched.read_text()).get("corners") or [])
 
-    collected = subprocess.run(
+    # A partial collection is not a smaller suite, it is a broken interpreter,
+    # and the difference is invisible in the output. Run under the wrong python
+    # and five files fail to import: pytest prints "530 tests collected, 5 errors"
+    # and exits non-zero, and a version of this function that read only the first
+    # number wrote 530 into the README where 661 was true. Refuse instead. A
+    # figure this file cannot stand behind must not be published as one.
+    run = subprocess.run(
         [sys.executable, "-m", "pytest", "-q", "--collect-only"],
         capture_output=True, text=True, cwd=REPO,
-    ).stdout
-    found = re.search(r"(\d+) tests collected", collected)
-    tests = int(found.group(1)) if found else 0
+    )
+    found = re.search(r"(\d+) tests collected", run.stdout)
+    if run.returncode != 0 or not found:
+        raise SystemExit(
+            f"pytest could not collect the suite under {sys.executable}.\n"
+            f"{run.stdout.strip().splitlines()[-1] if run.stdout.strip() else run.stderr.strip()}\n"
+            "Run this through the project venv, .venv/bin/python, as tools/check.sh does. "
+            "A count taken from a failed collection is a smaller number, not a smaller suite."
+        )
+    tests = int(found.group(1))
 
     return {"entries": entries, "corners": corners, "tests": tests}
 
@@ -70,6 +83,81 @@ RULES = [
     # nothing would report a missing figure forever.
     ("docs/blog_draft.md", "entries", r"It has made ([\d,]+) decisions"),
 ]
+
+
+
+# ---------------------------------------------------------------- the scoreboard
+
+# docs/PROGRESS.md prints a bar chart above four checklists, and the chart was
+# wrong: it claimed 30 of 40 items at 75 percent while its own tables held 43
+# rows and 29 done. Nobody noticed because the header and the evidence for it are
+# four screens apart, which is the same distance that let every other figure in
+# this repository drift. So the chart is rendered from the rows rather than
+# written next to them, and this holds the two together.
+
+PROGRESS = "docs/PROGRESS.md"
+
+AXES = [
+    ("Innovation and utility (40%)", "## Innovation and utility, 40 percent"),
+    ("Architecture (30%)", "## Architecture, 30 percent"),
+    ("Demo readiness (30%)", "## Demo readiness, 30 percent"),
+    ("Bonuses", "## Bonuses"),
+]
+
+
+def _tally(block: str) -> tuple[int, int]:
+    rows = [ln for ln in block.splitlines() if ln.startswith(("| done |", "| **not** |"))]
+    return sum(1 for ln in rows if ln.startswith("| done |")), len(rows)
+
+
+def progress_counts(text: str) -> list[tuple[str, int, int]]:
+    """Each axis, counted from the checklist under it."""
+    starts = [text.index(h) for _, h in AXES]
+    ends = [*starts[1:], text.index("## What moves the number most")]
+    return [
+        (label, *_tally(text[a:b]))
+        for (label, _), a, b in zip(AXES, starts, ends)
+    ]
+
+
+def render_chart(text: str) -> str:
+    """The bar chart, from the rows. The needs-line is prose and is preserved."""
+    counts = progress_counts(text)
+    old = {}
+    for line in text[text.index("```") : text.index("```", text.index("```") + 3)].splitlines():
+        if "needs:" in line:
+            old[line.split("[")[0].strip()] = "   needs:" + line.split("needs:")[1]
+        elif "nothing outstanding" in line:
+            old[line.split("[")[0].strip()] = "   nothing outstanding"
+
+    lines = []
+    for label, done, total in counts:
+        pct = round(100 * done / total) if total else 0
+        bar = "#" * round(pct / 5) + "-" * (20 - round(pct / 5))
+        lines.append(f"{label:<30}[{bar}] {pct:>3}%{old.get(label, '')}")
+    lines.append("-" * 78)
+    d = sum(c[1] for c in counts)
+    t = sum(c[2] for c in counts)
+    pct = round(100 * d / t)
+    bar = "#" * round(pct / 5) + "-" * (20 - round(pct / 5))
+    lines.append(f"{'OVERALL':<30}[{bar}] {pct:>3}%   {d} of {t} items")
+    return "```\n" + "\n".join(lines) + "\n```"
+
+
+def check_progress(fix: bool) -> list[str]:
+    path = REPO / PROGRESS
+    if not path.exists():
+        return [f"{PROGRESS}: missing, but the scoreboard rule points at it"]
+    text = path.read_text()
+    start = text.index("```")
+    end = text.index("```", start + 3) + 3
+    want = render_chart(text)
+    if text[start:end] == want:
+        return []
+    if fix:
+        path.write_text(text[:start] + want + text[end:])
+        return []
+    return [f"{PROGRESS}: the bar chart disagrees with the checklists under it"]
 
 
 def main(fix: bool = False) -> int:
@@ -117,6 +205,8 @@ def main(fix: bool = False) -> int:
                 problems.append(
                     f"{filename}: says {fact} is {stated}, repository says {facts[fact]}"
                 )
+
+    problems += check_progress(fix)
 
     print(f"live facts: {facts}")
 

@@ -95,6 +95,10 @@ step "adk claims"
 "$PY" tools/check_adk_claims.py
 report $? "documentation matches what src/ imports"
 
+step "architecture diagram"
+"$PY" tools/check_diagram.py
+report $? "every inlined diagram matches its source"
+
 step "copy map"
 "$PY" tools/check_copy_map.py
 report $? "each mapped block is in its one home"

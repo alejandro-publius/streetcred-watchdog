@@ -1,23 +1,33 @@
 # Submission readiness
 
-Written 2026-08-26, updated after the loop closed. **Deadline: 2026-08-31,
+Written 2026-08-26, updated after the architecture diagram landed. **Deadline: 2026-08-31,
 5:00 PM PT. Five days remain.**
 
 Every percentage below is items done over items total from the checklist under
-it. Nothing here is a feel. A row moves when an artefact exists and can be
-pointed at, not when it is understood.
+it, counted by `tools/check_numbers.py` rather than typed. Nothing here is a
+feel. A row moves when an artefact exists and can be pointed at, not when it is
+understood.
 
 ```
 Innovation and utility (40%)  [####################] 100%   nothing outstanding
 Architecture (30%)            [##################--]  92%   needs: Gemma tier
-Demo readiness (30%)          [########------------]  40%   needs: video, architecture diagram refresh
+Demo readiness (30%)          [##########----------]  50%   needs: video, rehearsal, submission
 Bonuses                       [######--------------]  30%   needs: blog, social, Gemma
 ------------------------------------------------------------------------------
-OVERALL                       [###############-----]  75%   30 of 40 items
+OVERALL                       [##############------]  70%   30 of 43 items
 ```
 
-Previous pass: 65 percent, 26 of 40. The loop closing moved three items on the
-highest-weighted axis and one on architecture.
+This pass moved one item, the architecture diagram, on the axis that was holding
+the total down.
+
+**The header used to be wrong, and that is worth naming rather than quietly
+fixing.** Until this pass it read 75 percent, 30 of 40 items. Its own tables held
+43 rows and 29 done, which is 67 percent. The chart and the evidence for it sit
+four screens apart, and a figure written by hand at that distance drifts exactly
+the way every other figure in this repository drifted before it was made a build
+step. So the chart is now rendered from the rows by `tools/check_numbers.py`, and
+the build fails when the two disagree. The number went down. That is what a
+measurement is for.
 
 ## Innovation and utility, 40 percent
 
@@ -59,7 +69,7 @@ Twelve of thirteen.
 
 ## Demo readiness, 30 percent
 
-Four of ten. The weakest axis and the cheapest to move.
+Five of ten. Still the weakest axis, and the video is now most of what is left.
 
 | | Item | Evidence |
 | --- | --- | --- |
@@ -68,7 +78,7 @@ Four of ten. The weakest axis and the cheapest to move.
 | done | `adk web` renders the reasoning trace | confirmed locally |
 | done | Filming list written | report of 2026-08-26 |
 | **not** | Demo video recorded | nothing shot |
-| **not** | Architecture diagram refreshed for the graph | `docs/architecture.svg` predates the ADK port |
+| done | Architecture diagram refreshed for the graph | `docs/architecture.png`, 11 nodes, inline in both READMEs |
 | **not** | Live diary linked from the submission | link exists, submission does not |
 | **not** | One rehearsed run-through end to end | never rehearsed |
 | **not** | Fallback recording in case Vertex quota refuses | quota has refused twice |
@@ -93,11 +103,12 @@ Three of ten.
 
 ## What moves the number most, in order
 
-1. **Record the video.** Six items on the 30 percent axis, and it is now the
-   only axis holding the total down. The filming list is written and every
-   screen it names exists and is live.
-2. **Refresh the architecture diagram.** One item, an hour, on the axis judges
-   read first.
+1. **Record the video.** Five items on the 30 percent axis, and it is now the
+   only axis holding the total down. The filming list is written, every screen
+   it names exists and is live, and the diagram it opens on is current as of
+   today rather than a week stale.
+2. **Fill the submission form and link the live diary.** Two items, both
+   clerical, both worth more than they cost.
 3. **Gemma as tier one.** One architecture item and one bonus, and it costs a
    model integration. Still the lowest ratio of the three: the honest
    degradation line already tells the story of why tier one is a rule.
