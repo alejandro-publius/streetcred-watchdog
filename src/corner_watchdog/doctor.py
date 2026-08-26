@@ -124,7 +124,42 @@ def _roster_checks(watched_path: Path) -> list[Check]:
     return out
 
 
-def _publish_checks(state_dir: Path) -> list[Check]:
+def publish_log_source(state_dir: Path, reader=None) -> tuple[list, str]:
+    """The publish log, from wherever it actually lives, and where that was.
+
+    The deployed services write their receipts to Firestore and a laptop writes
+    them to a file. A check that only ever read the file reported "no publish
+    attempts recorded yet" on a machine whose whole job is running that check,
+    while 24 decisions had been published from Cloud Run an hour earlier. That
+    is not a wrong answer to the question, it is a right answer to a different
+    one, which is the harder kind to notice.
+
+    Firestore first when a project is configured, because that is where the
+    deployed agent writes and the deployed agent is the one whose state anybody
+    asking this question cares about. The file is the fallback and the source is
+    always named in the answer, so a reader can tell which store was consulted
+    rather than having to know.
+    """
+    if reader is not None:
+        return reader()
+
+    project = os.environ.get("GOOGLE_CLOUD_PROJECT", "").strip()
+    if project:
+        try:
+            from .cloud import FirestoreStore
+
+            store = FirestoreStore()
+            return store.read_publish_log(), f"Firestore, {store.database} in {project}"
+        except Exception as e:  # noqa: BLE001 - a failed read falls back and says so
+            local = LocalJsonStore(state_dir)
+            return local.read_publish_log(), (
+                f"the local file, because Firestore could not be read: {type(e).__name__}"
+            )
+
+    return LocalJsonStore(state_dir).read_publish_log(), f"the local file at {state_dir}"
+
+
+def _publish_checks(state_dir: Path, reader=None) -> list[Check]:
     """Decisions that never reached the public diary.
 
     A failed publish is journaled, which means it is already visible to anyone
@@ -133,20 +168,20 @@ def _publish_checks(state_dir: Path) -> list[Check]:
     between the agent's record and the public one is exactly the kind of quiet
     disagreement this project exists to refuse.
     """
-    store = LocalJsonStore(state_dir)
-    log = store.read_publish_log() if hasattr(store, "read_publish_log") else []
+    log, source = publish_log_source(state_dir, reader)
+
     if not log:
         return [
             Check(
                 "decisions published",
                 PASS,
-                "no publish attempts recorded yet, which is what an unpublished local run looks like",
+                f"no publish attempts recorded in {source}",
             )
         ]
 
     dead = [r for r in log if r.get("status") == "permanently_failed"]
     ok = [r for r in log if r.get("status") in ("published", "duplicate")]
-    detail = f"{len(ok)} reached the diary, {len(dead)} did not, of {len(log)} attempted"
+    detail = f"{len(ok)} reached the diary, {len(dead)} did not, of {len(log)} attempted, from {source}"
     if dead:
         why = dead[-1].get("why", "")
         return [
