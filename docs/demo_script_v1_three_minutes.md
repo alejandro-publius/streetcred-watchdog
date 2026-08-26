@@ -1,5 +1,11 @@
 # Demo script
 
+> **Superseded on 2026-08-26 by [`DEMO_SCRIPT.md`](DEMO_SCRIPT.md).** Do not film
+> from this file. It is a three minute script written before anything was
+> deployed, and its disclosure card says no cloud account has been touched, which
+> was true when written and is false in every clause now. Kept as a record of what
+> the demo was going to be, which is worth more than a deleted file.
+
 Three minutes. Every command in this script exists and runs today; nothing here
 is a mockup or a future tense. Timings are cumulative.
 

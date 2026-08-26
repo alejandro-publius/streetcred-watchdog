@@ -23,10 +23,21 @@ time it is.
 
 from __future__ import annotations
 
+import asyncio
+import json
 import os
+import re
+from dataclasses import replace
 from typing import Any
 
-from .config import decider_name, deliberation_model
+from .config import (
+    decider_name,
+    deliberation_model,
+    triage_model,
+    triage_name,
+    vertex_location,
+    vertex_project,
+)
 from .prompts import DELIBERATION_PROMPT_VERSION, TRIAGE_PROMPT_VERSION, deliberation_prompt, triage_prompt
 from .schema import Calibration, Counts, Delta, Tier1Verdict, Tier2Decision
 
@@ -96,7 +107,20 @@ class RuleTriage:
     def degraded(self) -> str | None:
         return f"Tier one ran as deterministic rules, not Gemma: {self._why}."
 
+    @property
+    def decided_by(self) -> str:
+        return f"RuleTriage, deterministic thresholds, no model ({TRIAGE_PROMPT_VERSION})"
+
     async def judge(self, delta: Delta, corner: dict[str, Any], calibration: Calibration) -> Tier1Verdict:
+        # Stamped here rather than by the caller, so a verdict describes what
+        # produced it wherever it is read from. A tier whose output only becomes
+        # self-describing after the observer touches it is one that can be read
+        # unlabelled by anything else, and the journal is not the only reader.
+        return replace(
+            await self._judge(delta, corner, calibration), decided_by=self.decided_by
+        )
+
+    async def _judge(self, delta: Delta, corner: dict[str, Any], calibration: Calibration) -> Tier1Verdict:
         # Rendered and discarded. See the module docstring.
         triage_prompt(
             name=delta.name,
@@ -166,6 +190,168 @@ class RuleTriage:
             ),
             confidence=None,
             by_rule=False,
+        )
+
+
+
+class GemmaTriage:
+    """Tier one, as Gemma on Vertex.
+
+    Reaches the model through the same Application Default Credentials the
+    judgment tier already uses, which on Cloud Run is the metadata server and on
+    a laptop is `gcloud auth application-default login`. No key, no secret, and
+    no second authentication path to keep working.
+
+    Two findings from probing this are worth carrying in the code rather than in
+    a commit message, because both look like bugs in this file when they are not.
+
+    **The model name is not the obvious one.** Gemma reaches Vertex as a managed
+    service, `google/gemma-4-26b-a4b-it-maas`, served only from the global
+    endpoint. The name AI Studio uses, `gemma-3-27b-it`, answers on Vertex with a
+    404 against a publisher path, which reads as a permissions problem and is
+    not one.
+
+    **A 429 here is capacity, not quota.** The managed pool is shared, and about
+    one call in three came back `RESOURCE_EXHAUSTED, the request queue is full`
+    during the probe. That is backpressure and it clears on a retry, so it is
+    retried a bounded number of times. What it must never do is silently become
+    a decline: a corner that nobody looked at is not a corner judged unimportant,
+    and the two are the same shape in a journal unless something says otherwise.
+
+    So the fallback is per call and it is labelled per call. When Gemma answers,
+    the entry records Gemma. When it does not, the entry records the rule that
+    stood in and why, and `basis` still says `triage` because a tier was
+    consulted. A reader can tell the difference; a run-level degradation note
+    could not, because it would be identical on both.
+    """
+
+    RETRYABLE = ("RESOURCE_EXHAUSTED", "429", "UNAVAILABLE", "503")
+
+    def __init__(
+        self,
+        *,
+        model: str | None = None,
+        location: str | None = None,
+        project: str | None = None,
+        client: Any = None,
+        attempts: int = 3,
+        base_delay_s: float = 1.0,
+        sleep: Any = None,
+    ) -> None:
+        self.model = model or triage_model()
+        self.location = location or vertex_location()
+        self.project = project or vertex_project()
+        self.attempts = attempts
+        self.base_delay_s = base_delay_s
+        self._client = client
+        self._sleep = sleep or asyncio.sleep
+        # The floor this falls back to. Constructed with the reason a fallback
+        # would be happening rather than a generic one, so the sentence it writes
+        # is about this call and not about the build.
+        self._floor = RuleTriage("Gemma was consulted and did not answer")
+
+    def describe(self) -> str:
+        return f"GemmaTriage, {self.model} on Vertex {self.location} ({TRIAGE_PROMPT_VERSION})"
+
+    @property
+    def degraded(self) -> str | None:
+        # Tier one is a model in this wiring. A call that falls back says so on
+        # its own entry, which is the only place the claim is true or false.
+        return None
+
+    @property
+    def decided_by(self) -> str:
+        return f"Gemma, {self.model}, Vertex {self.location} ({TRIAGE_PROMPT_VERSION})"
+
+    def _get_client(self) -> Any:
+        if self._client is None:
+            from google import genai
+
+            self._client = genai.Client(
+                vertexai=True, project=self.project, location=self.location
+            )
+        return self._client
+
+    async def judge(self, delta: Delta, corner: dict[str, Any], calibration: Calibration) -> Tier1Verdict:
+        prompt = triage_prompt(
+            name=delta.name,
+            grade=corner.get("grade"),
+            index=corner.get("index"),
+            delta=delta.summary(),
+            calibration=calibration,
+        )
+
+        why = ""
+        for attempt in range(1, self.attempts + 1):
+            try:
+                raw = await self._call(prompt)
+            except Exception as e:  # noqa: BLE001 - the reason is recorded, not swallowed
+                why = f"{type(e).__name__}: {str(e)[:160]}"
+                if attempt < self.attempts and any(m in str(e) for m in self.RETRYABLE):
+                    # Queue-full backpressure clears in about a second. Bounded
+                    # deliberately: tier one runs on every corner in the sweep,
+                    # so a generous backoff here is multiplied by the size of the
+                    # watched set and turns a daily cron into a timeout.
+                    await self._sleep(self.base_delay_s * (2 ** (attempt - 1)))
+                    continue
+                break
+
+            parsed = self._parse(raw)
+            if parsed is not None:
+                return parsed
+            # A model that answered in prose is a real answer to the wrong
+            # question. Retrying is cheap and the floor is still there.
+            why = f"the reply did not parse as the schema the prompt asks for: {raw[:120]!r}"
+            if attempt < self.attempts:
+                continue
+            break
+
+        fallen = await self._floor.judge(delta, corner, calibration)
+        return replace(
+            fallen,
+            decided_by=(
+                f"RuleTriage, deterministic thresholds, because Gemma did not answer "
+                f"after {self.attempts} attempt(s): {why}"
+            ),
+        )
+
+    async def _call(self, prompt: str) -> str:
+        client = self._get_client()
+        response = await asyncio.to_thread(
+            client.models.generate_content, model=self.model, contents=prompt
+        )
+        return (getattr(response, "text", "") or "").strip()
+
+    def _parse(self, raw: str) -> Tier1Verdict | None:
+        """The prompt asks for strict JSON. Read it, or say it was not there."""
+        text = raw.strip()
+        if text.startswith("```"):
+            text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text, flags=re.S).strip()
+        try:
+            data = json.loads(text)
+        except (ValueError, TypeError):
+            return None
+        if not isinstance(data, dict):
+            return None
+
+        verdict = str(data.get("verdict", "")).strip().lower()
+        reason = str(data.get("reason", "")).strip()
+        if verdict not in ("escalate", "ignore", "defer") or not reason:
+            return None
+
+        confidence = data.get("confidence")
+        confidence = float(confidence) if isinstance(confidence, (int, float)) else None
+
+        return Tier1Verdict(
+            significant=verdict == "escalate",
+            reason=reason,
+            confidence=confidence,
+            by_rule=False,
+            # A defer is not an ignore. The vocabulary already carries the
+            # distinction and losing it here would flatten "I cannot tell" into
+            # "this does not matter", which are opposite claims about evidence.
+            basis="triage_defer" if verdict == "defer" else "triage",
+            decided_by=self.decided_by,
         )
 
 
@@ -248,47 +434,68 @@ class RuleDecider:
         return Tier2Decision(reasoning=" ".join(because), actions=ordered)  # type: ignore[arg-type]
 
 
-def select_brains() -> tuple[RuleTriage, Any, str | None]:
+def select_brains() -> tuple[Any, Any, str | None]:
     """Wire the tiers, and say plainly which ones are real.
 
     Returns the two tiers plus a single degradation line for the journal, or
     None when both tiers were genuinely models.
 
-    `DECIDER` chooses tier two. The default is the ADK judgment agent; `rule`
-    keeps the deterministic stand-in selectable so the two can be compared on
-    the same journal. An unrecognised value raises rather than falling back,
-    which is `config.py`'s rule and the reason it exists.
+    `TRIAGE` chooses tier one and `DECIDER` chooses tier two. Both default to a
+    model; `rule` keeps the deterministic stand-in selectable on either, so the
+    two can be compared on the same journal rather than by argument. An
+    unrecognised value raises rather than falling back, which is `config.py`'s
+    rule and the reason it exists.
 
     There is one fallback here and it is loud. `DECIDER=adk` on a machine with no
     Vertex project cannot call a model, so it runs the stand-in and says so on
     every entry it writes. That is the same admission this module has always
     made; what it must never become is silence, because an agent that quietly
     degrades produces output indistinguishable from the real thing.
+
+    Tier one now has the same shape, with one difference worth naming: Gemma can
+    fail a single call and succeed on the next, so its fallback is per entry
+    rather than per run and is recorded on the entry. The note returned from here
+    covers only what is true for the whole run.
     """
     wanted = decider_name()
+    wanted_triage = triage_name()
     ok, why = vertex_is_configured()
-    triage = RuleTriage(why)
+
+    triage: Any
+    if wanted_triage == "rule":
+        triage = RuleTriage(
+            "TRIAGE=rule was selected, not because a model was unavailable"
+        )
+    elif ok:
+        triage = GemmaTriage()
+    else:
+        triage = RuleTriage(why)
+
+    # Joined rather than interpolated. Tier one's note is None when Gemma is
+    # wired, and an f-string would have written the word "None" onto every entry
+    # in the journal, which is worse than saying nothing because it looks like a
+    # value.
+    def note_with(tier_two: str) -> str:
+        return " ".join(p for p in (triage.degraded, tier_two) if p)
 
     if wanted == "rule":
         decider = RuleDecider(why)
-        note = (
-            f"{triage.degraded} Tier two ran as deterministic policy because DECIDER=rule was "
-            "selected, not because a model was unavailable."
+        return triage, decider, note_with(
+            "Tier two ran as deterministic policy because DECIDER=rule was selected, not "
+            "because a model was unavailable."
         )
-        return triage, decider, note
 
     if not ok:
         decider = RuleDecider(why)
-        note = (
-            f"{triage.degraded} DECIDER=adk was requested but no model could be called: {why}. "
-            "Tier two ran as deterministic policy instead. Nothing on this entry was decided by "
-            "a model."
+        return triage, decider, note_with(
+            f"DECIDER=adk was requested but no model could be called: {why}. Tier two ran as "
+            "deterministic policy instead. Nothing on this entry was decided by a model."
         )
-        return triage, decider, note
 
     from .adk_decider import AdkDecider
 
     decider = AdkDecider(model=deliberation_model())
-    # Tier one is still not a model. Tier two now is, so the note names only the
-    # tier that is actually standing in.
+    # Both tiers are models in the default wiring, so there is nothing to admit
+    # at the run level and the note is None. A tier one call that falls back is
+    # recorded on the entry it happened to, not here.
     return triage, decider, triage.degraded

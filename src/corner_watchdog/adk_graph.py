@@ -56,11 +56,24 @@ from google.adk.events.event import Event
 from google.adk.events.event_actions import EventActions
 from google.genai import types
 
-from .brains import RuleTriage
 from .delta import rule_verdict
 from .ports import Triage
 from .prompts import deliberation_case
 from .schema import Calibration, Counts, Delta, Tier1Verdict
+
+
+def _default_triage() -> Triage:
+    """The tier one this graph gets when the caller does not supply one.
+
+    Routed through `select_brains` rather than constructed here, so `adk web`
+    renders the same tier the deployed observer runs. A graph that hardcoded the
+    stand-in would show a reasoning trace that was true of nothing, which is a
+    worse demo than showing a rule and saying it is one.
+    """
+    from .brains import select_brains
+
+    triage, _decider, _note = select_brains()
+    return triage
 
 TRIAGE_AGENT_NAME = "gemma_triage"
 GRAPH_NAME = "corner_watchdog"
@@ -142,7 +155,7 @@ class GemmaTriageAgent(BaseAgent):
                 "Decides whether a change in a corner's public record is worth spending "
                 "expensive deliberation on. Most changes are not."
             ),
-            triage=triage or RuleTriage("no Gemma client is wired in this build"),
+            triage=triage or _default_triage(),
             calibration=calibration or Calibration(),
         )
 
