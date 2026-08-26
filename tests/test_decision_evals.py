@@ -221,8 +221,25 @@ def test_the_set_has_at_least_eight_cases():
 
 
 def test_every_case_is_built_from_a_real_recorded_snapshot():
-    """No invented current record. The baseline is constructed; the reading is not."""
+    """No invented current record. The baseline is constructed; the reading is not.
+
+    `state/` is gitignored, so a clean clone has no recordings and this check has
+    nothing to check against. It used to assert an empty set and fail, which made
+    `pytest -q` red on the documented spin-up path while passing on any machine
+    that had ever run a cycle. Skipped with the reason named, rather than
+    weakened to pass: what cannot be verified here is stated, not asserted.
+
+    The stronger fix is to ship recorded snapshots beside the eval set so the
+    claim travels with it. That is a change to what the repository carries and
+    is not made silently in a test file.
+    """
     snapshots = {p.stem for p in (REPO / "state" / "snapshots").glob("*.json")}
+    if not snapshots:
+        pytest.skip(
+            "no snapshots in state/, which is gitignored. Run "
+            "`python -m corner_watchdog run --cycles 1` to record some, then this "
+            "checks that every eval case is built from one of them."
+        )
     for case in CASES:
         envelope = json.loads(case_message(case))
         assert envelope["corner"]["slug"] in snapshots
