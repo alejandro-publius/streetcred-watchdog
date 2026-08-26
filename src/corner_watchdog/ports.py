@@ -73,6 +73,16 @@ class Triage(Protocol):
         """None when the real model ran, a plain sentence when it did not."""
         ...
 
+    @property
+    def decided_by(self) -> str:
+        """What to record on an entry this tier judged.
+
+        A run-level default. An implementation that can fall back per call
+        overrides it on the verdict it returns, because the run-level answer
+        would be a lie about that entry specifically.
+        """
+        ...
+
     async def judge(self, delta: Delta, corner: dict[str, Any], calibration: Calibration) -> Tier1Verdict: ...
 
 

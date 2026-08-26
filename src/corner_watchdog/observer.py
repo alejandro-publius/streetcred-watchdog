@@ -305,6 +305,10 @@ class Observer:
                     reason=reason,
                     by_rule=True,
                     basis=self._basis(old, delta, by_rule=True),
+                    # The floor, named. It is not tier one and crediting tier one
+                    # for its work is the overstatement `by_rule` already exists
+                    # to prevent, said once more where a reader will look.
+                    decided_by="delta.py rule floor, deterministic, no tier consulted",
                 )
             else:
                 # The one place tier one would cost money. Reserve before
@@ -313,7 +317,15 @@ class Observer:
                 projected = Cost.for_tiers("tier1")
                 if self.tokens.take(projected):
                     judged = await self.triage.judge(delta, corner, calibration)
-                    verdict = replace(judged, basis=judged.basis or "triage")
+                    # The implementation's own answer wins when it gave one. A
+                    # Gemma tier that fell back on this call returns the rule's
+                    # name here, and overwriting it with the run-level default
+                    # would put a model's name on an entry no model saw.
+                    verdict = replace(
+                        judged,
+                        basis=judged.basis or "triage",
+                        decided_by=judged.decided_by or getattr(self.triage, "decided_by", None),
+                    )
                     cost = projected
                 else:
                     result.token_refusals += 1
@@ -326,6 +338,7 @@ class Observer:
                         ),
                         by_rule=True,
                         basis="budget_exhausted",
+                        decided_by="nothing; the token budget was spent before any tier was called",
                     )
                     cost = Cost()
 

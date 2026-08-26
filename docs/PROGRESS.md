@@ -10,15 +10,15 @@ understood.
 
 ```
 Innovation and utility (40%)  [####################] 100%   nothing outstanding
-Architecture (30%)            [##################--]  92%   needs: Gemma tier
-Demo readiness (30%)          [##########----------]  50%   needs: video, rehearsal, submission
-Bonuses                       [######--------------]  30%   needs: blog, social, Gemma
+Architecture (30%)            [####################] 100%   nothing outstanding
+Demo readiness (30%)          [############--------]  58%   needs: video, rehearsal, submission
+Bonuses                       [########------------]  40%   needs: blog, social, outreach
 ------------------------------------------------------------------------------
-OVERALL                       [##############------]  70%   30 of 43 items
+OVERALL                       [###############-----]  76%   34 of 45 items
 ```
 
-This pass moved one item, the architecture diagram, on the axis that was holding
-the total down.
+This pass wired Gemma as tier one, which closes the architecture axis and one
+bonus, and added the claim pass, the Devpost write-up and the demo script.
 
 **The header used to be wrong, and that is worth naming rather than quietly
 fixing.** Until this pass it read 75 percent, 30 of 40 items. Its own tables held
@@ -49,7 +49,7 @@ page without anyone being told where to look.
 
 ## Architecture, 30 percent
 
-Twelve of thirteen.
+Thirteen of thirteen.
 
 | | Item | Evidence |
 | --- | --- | --- |
@@ -65,18 +65,20 @@ Twelve of thirteen.
 | done | Guardrails as framework callbacks | budget gate, injection screen, journal write |
 | done | Cost and behaviour inspectable | activity inspector on `/watchdog` |
 | done | Poison handling proven | a 4xx is dead on arrival, never retried, journaled |
-| **not** | Second Google model actually running | tier one is still `RuleTriage`, journaled as degraded |
+| done | Second Google model actually running | Gemma on Vertex as tier one, `tier1.decidedBy` per entry |
 
 ## Demo readiness, 30 percent
 
-Five of ten. Still the weakest axis, and the video is now most of what is left.
+Seven of twelve. The video is now most of what is left.
 
 | | Item | Evidence |
 | --- | --- | --- |
 | done | Reproducible spin-up instructions | `README.md`, verified in a clean venv |
 | done | Deployment inventory and teardown | `HANDOFF.md` |
 | done | `adk web` renders the reasoning trace | confirmed locally |
-| done | Filming list written | report of 2026-08-26 |
+| done | Filming list written | `docs/DEMO_SCRIPT.md`, nine screens in order |
+| done | Devpost write-up drafted | `docs/SUBMISSION.md` |
+| done | Narration script, timed and marked live or recorded | `docs/DEMO_SCRIPT.md`, ends 3:56 |
 | **not** | Demo video recorded | nothing shot |
 | done | Architecture diagram refreshed for the graph | `docs/architecture.png`, 11 nodes, inline in both READMEs |
 | **not** | Live diary linked from the submission | link exists, submission does not |
@@ -86,7 +88,7 @@ Five of ten. Still the weakest axis, and the video is now most of what is left.
 
 ## Bonuses
 
-Three of ten.
+Four of ten.
 
 | | Item | Evidence |
 | --- | --- | --- |
@@ -95,7 +97,7 @@ Three of ten.
 | done | Cost transparency | activity inspector, projected and actual apart |
 | **not** | Blog post | `docs/blog_draft.md` is a draft |
 | **not** | Social post | `docs/social_draft.md` is a draft |
-| **not** | Gemma running as tier one | stand-in only |
+| done | Gemma running as tier one | `google/gemma-4-26b-a4b-it-maas`, `locations/global` |
 | **not** | Letter delivered to a real recipient | dead-ends at a clipboard |
 | **not** | A stakeholder has seen it | no conversation yet |
 | **not** | Prospect outreach sent | `prospects.csv` built, nothing sent |
@@ -109,9 +111,9 @@ Three of ten.
    today rather than a week stale.
 2. **Fill the submission form and link the live diary.** Two items, both
    clerical, both worth more than they cost.
-3. **Gemma as tier one.** One architecture item and one bonus, and it costs a
-   model integration. Still the lowest ratio of the three: the honest
-   degradation line already tells the story of why tier one is a rule.
+3. **Rehearse it once end to end.** The script is written and timed; nobody has
+   read it aloud against the live screens, which is where a four minute video
+   turns out to be five.
 
 ## One thing the first live round trip found
 

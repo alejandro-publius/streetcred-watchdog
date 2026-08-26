@@ -250,6 +250,13 @@ class Tier1Verdict:
     by_rule: bool = False
     # Which rule, or none of them. See Basis above.
     basis: Basis | None = None
+    # What actually produced this verdict, named rather than inferred. `basis`
+    # says a tier weighed it; this says which implementation of that tier did,
+    # and the two can disagree: a Gemma tier that fell back to rules on one call
+    # still writes basis="triage", and only this field records that no model saw
+    # it. Optional because the journal is append only and entries written before
+    # the field existed cannot gain it.
+    decided_by: str | None = None
 
     @property
     def involved_judgment(self) -> bool:
@@ -263,6 +270,7 @@ class Tier1Verdict:
             "confidence": self.confidence,
             "byRule": self.by_rule,
             "basis": self.basis,
+            "decidedBy": self.decided_by,
         })
 
 

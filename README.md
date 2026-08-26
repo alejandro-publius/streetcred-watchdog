@@ -12,6 +12,7 @@ not to do.
 
 **The ledger: [`docs/ledger.html`](docs/ledger.html)** &middot;
 **[Architecture](docs/architecture.md)** &middot;
+**[Patterns](docs/PATTERNS.md)** &middot;
 **[Decisions and rejections](DECISIONS.md)** &middot;
 **[What went wrong](LOG.md)**
 
@@ -24,13 +25,28 @@ Read this before the rest.
 - **StreetCred, the display surface this agent publishes to, predates this hackathon.**
   It was built at a prior Build Club event. The Corner Watchdog, meaning this repository
   and every line in it, is entirely new work built for All Things Agentic.
-- **None of the Google Cloud integration is wired.** Not Vertex, not Gemini, not Gemma,
-  not Firestore, not Pub/Sub, not Cloud Run. Every one of them sits behind an adapter with
-  a working local stand-in, and **no Google Cloud account has been created, authenticated
-  to, or touched at any point in this project.** The plan for wiring them is
-  [`docs/GEMINI_WIRING.md`](docs/GEMINI_WIRING.md).
-  Cloud setup is a ten minute operator task: see [`docs/GCP_PRECONDITIONS.md`](docs/GCP_PRECONDITIONS.md), then [`scripts/preflight_gcp.sh`](scripts/preflight_gcp.sh) to verify.
-  **The Agent Development Kit is now genuinely in use**, which is a change from every earlier version of this page. Tier two is an `LlmAgent` with five registered tools in `src/corner_watchdog/adk_decider.py`, `google-adk` has moved out of the `cloud` extra into the runtime dependencies, and `tools/check_adk_claims.py` flipped itself to its IN USE state the moment the first import landed. Nothing else on this list has moved.
+- **All of the Google Cloud integration is now wired, and this bullet used to say the
+  opposite.** Until 2026-08-26 it read: none of it is wired, not Vertex, not Gemini, not
+  Gemma, not Firestore, not Pub/Sub, not Cloud Run, and no Google Cloud account has been
+  created, authenticated to, or touched at any point in this project. That was true when
+  it was written and every clause of it is now false. Two Cloud Run services, a Firestore
+  database, a Pub/Sub topic with an OIDC push subscription, Secret Manager, Cloud
+  Scheduler, and both model tiers on Vertex. The inventory is in
+  [`HANDOFF.md`](HANDOFF.md) and the shape is in
+  [`docs/architecture.md`](docs/architecture.md). The old wording is quoted rather than
+  deleted because a disclosure that silently improves is not a disclosure.
+- **Both tiers are Google models, as of 2026-08-26.** The Agent Development Kit is now
+  genuinely in use and tier two is an `LlmAgent` with five registered tools in
+  `src/corner_watchdog/adk_decider.py`, on `gemini-3.5-flash`. Tier one is Gemma, `google/gemma-4-26b-a4b-it-maas`, on Vertex at
+  `locations/global`, reached through the same Application Default Credentials as tier
+  two with no second key and no new secret. Tier one was a deterministic stand-in for the
+  whole build until this date, and every entry it wrote said so.
+  **The stand-in has not been deleted and it still runs.** Gemma reaches Vertex through a
+  shared managed pool that refuses roughly one call in three with a queue-full 429. Those
+  are retried three times and then a rule answers instead, so a single sweep can produce
+  entries from both. Which one decided is recorded on the entry, in `tier1.decidedBy`, not
+  inferred from how the run was configured, because a corner nobody looked at and a corner
+  judged unimportant are the same shape in a journal unless something says otherwise.
 - **The agent now publishes its decisions, and only its decisions.** Every journaled
   decision is posted to one authenticated endpoint on StreetCred,
   `POST /api/agent/report`, in one direction only: StreetCred never calls the agent. The
@@ -58,7 +74,8 @@ Read this before the rest.
   fetch, a corrupted baseline, or two readings taken under different queries.
 - **Routes by cost.** A cheap tier sees every change; an expensive tier only ever sees what
   the cheap one escalated. Deaths and severe injuries never reach either: they escalate by
-  rule, before any model is consulted.
+  rule, before any model is consulted. Both tiers are Google models: Gemma on the cheap
+  one, Gemini on the expensive one.
 - **Runs as a two-agent graph.** A `SequentialAgent` over a custom triage agent and an
   `LlmAgent` with five registered tools, with the edge between them conditional so the
   expensive tier is skipped rather than entered and excused. What each callback enforces and
@@ -70,10 +87,13 @@ Read this before the rest.
   actual figures rather than a log line saying a letter would have been written.
 - **Publishes every decision**, including and especially the ones that ended in nothing,
   with the reasoning verbatim and a link to the raw journal record.
-- **Says when it is degraded.** Every entry now carries a line naming which tier was not
-  a model, and the ledger prints how many entries carry it rather than claiming all of
-  them do: the journal is append only, so entries written before that field existed
-  cannot gain it.
+- **Says which tier decided, per entry.** Every entry carries `tier1.decidedBy`: Gemma,
+  the rule that stood in when Gemma's shared pool refused the call, or the deterministic
+  floor that settled it before either tier was consulted. Recorded rather than inferred
+  from the run's configuration, because one sweep produces all three. The older
+  `degraded` line is still there for run-level admissions, and the ledger prints how many
+  entries carry it rather than claiming all of them do: the journal is append only, so
+  entries written before a field existed cannot gain it.
 
 ## The shape of one cycle
 
@@ -91,7 +111,7 @@ flowchart TB
         SCHED["<b>Cloud Scheduler</b><br/>watchdog-daily-cycle<br/>07:00 America/Los_Angeles"]
         DATASF["<b>DataSF</b><br/>311 and collisions<br/>keyless, read only"]
         SWEEP["<b>Sweep</b><br/>diff each of 25 corners against<br/>the stored Firestore snapshot"]
-        REFLEX["<b>Reflex tier</b><br/>served today by <b>RuleTriage</b>: deterministic<br/>thresholds, no model, no network<br/><i>Gemma is not wired, and every entry it writes says so</i>"]
+        REFLEX["<b>Reflex tier</b><br/>served today by <b>Gemma</b>, google/gemma-4-26b-a4b-it-maas<br/>on Vertex locations/global<br/><i>a call the shared pool refuses falls back to a rule,<br/>and the entry records which one decided it</i>"]
         SCHED --> SWEEP
         DATASF --> SWEEP
         SWEEP --> REFLEX
@@ -177,7 +197,7 @@ All measured from this repository, on 2026-08-20.
 | Evaluations journaled | 175 |
 | Actions taken | 0 |
 | Restraint rate | 100 percent, and the ledger explains why that number is not yet impressive |
-| Tests | 661, offline, no credentials, under a second |
+| Tests | 678, offline, no credentials, 14 seconds, 12 of which is one lock-release test waiting on a real timeout |
 | Runtime dependencies | 2 (`httpx`, `google-adk`) |
 | Google Cloud accounts touched | 0 |
 
@@ -192,7 +212,7 @@ that flatters the system is worth less than one that explains itself.
 
 Verified in a fresh virtual environment on 2026-08-24: 63 packages installed including pip
 itself and the project, three of them Google (`google-adk`, and `google-genai` and
-`google-auth` beneath it), all 661 tests green with no network and no credentials.
+`google-auth` beneath it), all 678 tests green with no network and no credentials.
 
 That count was 15, and none of them were Google, until tier two became an ADK agent. The
 jump is what adopting a framework actually costs, and it is stated here rather than
@@ -206,7 +226,7 @@ cd streetcred-watchdog
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"          # two runtime dependencies: httpx and google-adk
 
-pytest -q                        # 661 tests, no network, no credentials
+pytest -q                        # 678 tests, no network, no credentials
 python -m corner_watchdog run --cycles 2  # the whole loop, twice, against live DataSF
 open docs/ledger.html            # every decision, restraint rate on top
 ```
@@ -280,12 +300,13 @@ The second sweep is the one that can produce a delta.
 ## Patterns
 
 Named in the vocabulary the Agent Development Kit uses, with an honest column for whether
-they are built.
+they are built. Six of them are written up at length, each with the test that fails if the
+claim stops being true, in [`docs/PATTERNS.md`](docs/PATTERNS.md).
 
 | Pattern | How it appears here | Status |
 | --- | --- | --- |
 | Event-driven fan-out | The observer publishes escalations to a bus; the actor subscribes and never reads the observer's state. Locally the bus is an in-process call that round-trips through JSON, so a payload Pub/Sub could not carry fails here rather than in production. | built |
-| Cost-routed cascade | A deterministic floor answers most deltas for free, a cheap tier takes the ambiguous middle, and an expensive tier only ever sees escalations. Across 175 real evaluations, the number that would have reached a model is four. | built |
+| Cost-routed cascade | A deterministic floor answers most deltas for free, Gemma takes the ambiguous middle, and Gemini only ever sees escalations. Across 175 real evaluations, the number that would have reached tier two is four. | built |
 | Human-in-the-loop | `flag` is a first-class action, mandatory alongside any redraft on a new fatality. The live path additionally refuses to send until a human has read a full dry-run outbox and agreed with every letter in it. | built as a gate |
 | Decline queue | Declines are journaled by the observer at the moment they are made, never routed through the expensive tier, and rendered at the same visual weight as actions. | built |
 | Review and critique verifier | StreetCred recomputes every figure in an agent-written letter from the corner's own record and stores its own answer, recording disagreement as `selfReportDisputed`. The agent does not get to mark its own homework. | planned, not deployed |
@@ -382,7 +403,7 @@ Fuller versions in [`DECISIONS.md`](DECISIONS.md).
 | `src/prompts/` | Both prompts in full, with ten worked examples the test suite parses. |
 | `src/corner_watchdog/live.py` | The live path. Implements the interface, refuses every verb. |
 | `src/corner_watchdog/ledger.py` | The journal as a page, restraint rate on top, declines at full size. |
-| `tests/` | 661 of them. The cases where a naive implementation produces a confident lie. |
+| `tests/` | 678 of them. The cases where a naive implementation produces a confident lie. |
 | `LOG.md`, `DECISIONS.md` | What was found by running it, and what was decided and rejected. |
 
 ## A note on the radius

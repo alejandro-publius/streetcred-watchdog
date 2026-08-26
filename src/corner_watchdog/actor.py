@@ -108,6 +108,12 @@ class Actor:
             confidence=t1.get("confidence"),
             by_rule=bool(t1.get("byRule")),
             basis=t1.get("basis"),
+            # Carried across the bus rather than re-derived. The actor has no way
+            # to know which tier one implementation ran, and the entries that
+            # cross this boundary are exactly the ones a model most likely
+            # decided, so dropping the label here would lose it on the only
+            # entries where it is interesting.
+            decided_by=t1.get("decidedBy"),
         )
 
         projected = Cost.for_tiers("tier2")

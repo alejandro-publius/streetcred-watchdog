@@ -83,10 +83,13 @@ system, deployed, and the honest thing to do with a diagram that has been overta
 replace it and say so rather than let a reader find the old one behind a link. The
 [deployment inventory](../HANDOFF.md) lists what exists.
 
-One box is still a stand-in, and the new diagram says so on the box rather than in a
-caption: the reflex tier is `RuleTriage`, deterministic thresholds with no model in them,
-and Gemma is not wired. Every journal entry written by that tier carries a line naming
-it, so the degradation travels with the record instead of living here.
+Both tiers are now models, which was not true when this diagram was redrawn earlier the
+same day. Tier one is Gemma, `google/gemma-4-26b-a4b-it-maas`, on Vertex at
+`locations/global`. The deterministic tier is still in the build and still runs: Gemma's
+managed pool refuses roughly one call in three with a queue-full 429, and after three
+retries a rule answers instead. Which of the two produced a verdict is recorded on the
+entry as `tier1.decidedBy` rather than in a run-level note, because a run-level note is
+identical on both and therefore true of neither.
 
 The rule floor is neither a tier nor a model. `delta.py` is deterministic arithmetic with
 no model, no network and no cloud in it, and it is the piece that decides anything
@@ -99,7 +102,7 @@ so no model can be talked out of it. It sits inside the sweep box.
 | --- | --- | --- |
 | Timed trigger | Cloud Scheduler, `watchdog-daily-cycle`, 07:00 Pacific | deployed |
 | Scale-to-zero runtime | two Cloud Run services, `SERVICE` picks the half at boot | deployed |
-| Cost-routed triage | `GemmaTriageAgent` wrapping `RuleTriage` | deployed, and the model is still a rule |
+| Cost-routed triage | `GemmaTriageAgent` wrapping `GemmaTriage` | deployed, Gemma on Vertex, falling back to a rule per call |
 | Decoupled trigger | Pub/Sub topic `corner-deltas`, push subscription with OIDC | deployed |
 | Agent framework | `SequentialAgent` over two agents, five registered tools | deployed |
 | Deliberation with reasoning traces | `AdkDecider`, an `LlmAgent` on `gemini-3.5-flash` | deployed, Vertex `locations/global` |
