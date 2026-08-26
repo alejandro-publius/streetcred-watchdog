@@ -14,7 +14,10 @@ one that decides whether a Firestore outage reads as "nothing published" or as
 
 from __future__ import annotations
 
+import importlib.util
 from pathlib import Path
+
+import pytest
 
 from corner_watchdog.doctor import FAIL, PASS, _publish_checks, publish_log_source
 from corner_watchdog.store import LocalJsonStore
@@ -31,6 +34,28 @@ DEAD = {
 
 def reader(rows, source):
     return lambda: (rows, source)
+
+
+# Three tests below reach `corner_watchdog.cloud`, which needs the cloud extra.
+# `pip install -e ".[dev]"`, which is what the README's quick start runs, does
+# not install it, so those three raised ModuleNotFoundError on a clean checkout
+# while passing here. Same idiom as tests/test_server.py, but per test rather
+# than per module: the reader-injected cases above need no cloud and must keep
+# running everywhere, because they are the ones that guard the reporting.
+def _has_cloud() -> bool:
+    # find_spec on a dotted name imports the parents, and `google` here is a
+    # namespace package contributed by google-adk that has no `cloud` under it,
+    # so the lookup raises rather than returning None. Caught, because the
+    # question being asked is "is it installed", and an exception is an answer.
+    try:
+        return importlib.util.find_spec("google.cloud.firestore") is not None
+    except (ImportError, ValueError):
+        return False
+
+
+needs_cloud = pytest.mark.skipif(
+    not _has_cloud(), reason="the cloud extra is not installed"
+)
 
 
 # ================================================================== the answers
@@ -70,6 +95,7 @@ def test_with_no_project_configured_it_reads_the_local_file(tmp_path, monkeypatc
     assert "local file" in source
 
 
+@needs_cloud
 def test_with_a_project_configured_it_reads_firestore(tmp_path, monkeypatch):
     # The deployed path. Nothing here opens a network connection: the Firestore
     # client is replaced, because what is under test is which store doctor
@@ -94,6 +120,7 @@ def test_with_a_project_configured_it_reads_firestore(tmp_path, monkeypatch):
     assert source == "Firestore, watchdog in streetcred-506117"
 
 
+@needs_cloud
 def test_a_firestore_failure_falls_back_and_says_so(tmp_path, monkeypatch):
     # The important one. A Firestore that cannot be read must not read as
     # "nothing has been published", because that is the same output as a healthy
@@ -115,6 +142,7 @@ def test_a_firestore_failure_falls_back_and_says_so(tmp_path, monkeypatch):
     assert "RuntimeError" in source
 
 
+@needs_cloud
 def test_the_check_surfaces_the_fallback_source_to_a_reader(tmp_path, monkeypatch):
     monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "streetcred-506117")
 

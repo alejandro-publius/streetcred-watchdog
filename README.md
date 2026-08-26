@@ -183,7 +183,7 @@ the gate working rather than a bug.
 
 ## The numbers
 
-All measured from this repository, on 2026-08-20.
+All measured from this repository on 2026-08-20, except the last row, which is a fact about the world and is current. The journal figures describe the local state directory; the deployed agent keeps its own journal in Firestore, which is larger.
 
 | | |
 | --- | --- |
@@ -199,7 +199,7 @@ All measured from this repository, on 2026-08-20.
 | Restraint rate | 100 percent, and the ledger explains why that number is not yet impressive |
 | Tests | 678, offline, no credentials, 14 seconds, 12 of which is one lock-release test waiting on a real timeout |
 | Runtime dependencies | 2 (`httpx`, `google-adk`) |
-| Google Cloud accounts touched | 0 |
+| Google Cloud accounts touched | 1, `streetcred-506117`. This row read 0 until 2026-08-25 |
 
 The restraint rate is 100 percent and the ledger says, on its own front page, what that is
 made of: 171 of the 175 declines were settled by a rule rather than weighed by a tier, so
@@ -210,9 +210,10 @@ that flatters the system is worth less than one that explains itself.
 
 ## Quick start
 
-Verified in a fresh virtual environment on 2026-08-24: 63 packages installed including pip
-itself and the project, three of them Google (`google-adk`, and `google-genai` and
-`google-auth` beneath it), all 678 tests green with no network and no credentials.
+Verified from a clean clone into a fresh virtual environment on 2026-08-26: 63 packages
+installed including pip itself and the project, three of them Google (`google-adk`, and
+`google-genai` and `google-auth` beneath it). With the cloud extra added on top,
+all 678 tests green with no network and no credentials.
 
 That count was 15, and none of them were Google, until tier two became an ADK agent. The
 jump is what adopting a framework actually costs, and it is stated here rather than
@@ -223,10 +224,14 @@ project had kept its dependencies honest.
 git clone https://github.com/alejandro-publius/streetcred-watchdog
 cd streetcred-watchdog
 
-python3 -m venv .venv && source .venv/bin/activate
+# 3.11 or newer. Plain `python3` is 3.9 on a stock macOS and the failure it gives
+# is a confusing one about google-adk having no matching distribution.
+python3.11 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"          # two runtime dependencies: httpx and google-adk
 
-pytest -q                        # 678 tests, no network, no credentials
+pytest -q                        # 652 pass, no network, no credentials
+# 27 more need the Google client libraries and skip without them, by design:
+# pip install -e ".[dev,cloud]"  then pytest -q reports the full 678
 python -m corner_watchdog run --cycles 2  # the whole loop, twice, against live DataSF
 open docs/ledger.html            # every decision, restraint rate on top
 ```
@@ -236,7 +241,7 @@ expensive half of the loop never runs. To exercise it:
 
 ```bash
 python -m corner_watchdog rehearse      # constructed baselines, kept out of the real journal
-python -m corner_watchdog doctor        # 19 checks: environment, sources, vocabulary, stored state
+python -m corner_watchdog doctor        # 20 checks: environment, sources, vocabulary, stored state
 python -m corner_watchdog schedule      # renders launchd and cron config, installs nothing
 python -m corner_watchdog ledger --corner 6th-and-mission
 ```
@@ -356,18 +361,28 @@ Full evidence in [`LOG.md`](LOG.md).
 
 ## Requirements coverage
 
-Honest column first.
+Every row was **no** or **locally** until the week of 2026-08-25. The old table is
+worth remembering, because it is the version a judge would have read: it said Gemini
+was not wired, Google Cloud was five local stand-ins, and the additional model was a
+rule. All of that was true when written.
 
 | Criterion | Where it lives | Wired |
 | --- | --- | --- |
-| Gemini 3 or newer via Vertex AI | `src/prompts/deliberation.md`, `contract.py`, `brains.select_brains()` | **no**, `RuleDecider` stands in |
-| Agent Development Kit | `adk_decider.py`, an `LlmAgent` with five tools | yes |
-| Google Cloud services | all behind `ports.py`, plan in `docs/GEMINI_WIRING.md` | **no**, five local stand-ins |
-| Additional Google model | `src/prompts/triage.md`, tier one | **no**, `RuleTriage` stands in |
-| Autonomous operation | `schedule.py`, `watchdog tick` under a lock | yes, locally |
-| Persistent memory | `store.py`, `state/journal.jsonl`, append only | yes, locally |
-| Observability | `ledger.py`, `docs/ledger.html`, `docs/states/` | yes |
+| Gemini 3 or newer via Vertex AI | `adk_decider.py`, `gemini-3.5-flash`, `locations/global` | yes, deployed |
+| Agent Development Kit | `adk_decider.py`, an `LlmAgent` with five tools; `adk_graph.py`, a `SequentialAgent` | yes |
+| Google Cloud services | two Cloud Run services, Firestore, Pub/Sub, Secret Manager, Cloud Scheduler | yes, inventory in [`HANDOFF.md`](HANDOFF.md) |
+| Additional Google model | `brains.GemmaTriage`, `google/gemma-4-26b-a4b-it-maas` on Vertex | yes, and a rule answers when its shared pool refuses |
+| Autonomous operation | Cloud Scheduler `watchdog-daily-cycle`, 07:00 Pacific, ENABLED | yes, and it has fired on its own |
+| Persistent memory | Firestore `watchdog`, append only; `store.py` locally | yes, deployed |
+| Observability | `/watchdog` on StreetCred, `ledger.py`, `docs/ledger.html` | yes |
 | Safety and restraint | `delta.py` rule floor, `live.py` refusal, `budget.py` intents | yes |
+
+One thing on that list is narrower than it reads. **Autonomous operation has fired on
+its own schedule, and every sweep so far found a quiet city**, so the deterministic
+floor settled all 25 corners and neither model tier was consulted. That is the cost
+routing working exactly as designed, and it also means no scheduled run has yet
+produced an entry a model decided. `tier1.decidedBy` on each entry is what will show
+it on the first morning something changes.
 
 ## Considered and rejected
 

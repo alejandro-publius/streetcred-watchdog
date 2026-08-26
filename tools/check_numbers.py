@@ -68,7 +68,13 @@ def live_facts() -> dict[str, int]:
 # different numbers is the exact drift this catches.
 RULES = [
     ("README.md", "tests", r"\|\s*Tests\s*\|\s*([\d,]+),"),
-    ("README.md", "tests", r"#\s*([\d,]+) tests, no network"),
+    # Repointed 2026-08-26. The quick-start comment used to carry the full suite
+    # count beside `pip install -e ".[dev]"`, which does not install the Google
+    # client libraries, so a judge following it saw 652 next to a promise of 678.
+    # The pinned figure moved to the line that describes the full install; the
+    # documented path now states its own number, which this rule leaves alone
+    # because it is a different fact.
+    ("README.md", "tests", r"then pytest -q reports the full ([\d,]+)"),
     ("README.md", "tests", r"all ([\d,]+) tests green"),
     ("README.md", "tests", r"\|\s*`tests/`\s*\|\s*([\d,]+) of them"),
     ("README.md", "entries", r"\|\s*Evaluations journaled\s*\|\s*([\d,]+)\s*\|"),
@@ -82,6 +88,10 @@ RULES = [
     # to check. The rule is removed rather than loosened: a pattern that matches
     # nothing would report a missing figure forever.
     ("docs/blog_draft.md", "entries", r"It has made ([\d,]+) decisions"),
+    # The Devpost write-up quotes the suite size. Pinned for the same reason the
+    # README's copy is: it is the figure a reader is most likely to check, and
+    # the write-up is the document least likely to be reread before submission.
+    ("docs/SUBMISSION.md", "tests", r"([\d,]+) on the agent in"),
 ]
 
 

@@ -15,13 +15,18 @@ The runbook is the explanation; this file is the inventory.
 | Region | `us-central1` |
 | Vertex location | `global`, because the Gemini 3.x family is served from the multi-region endpoint |
 | Deliberation model | `gemini-3.5-flash` |
+| Triage model | `google/gemma-4-26b-a4b-it-maas`, global endpoint only |
 
 ## Cloud Run
 
 | Service | URL | Revision proven |
 | --- | --- | --- |
-| `watchdog-observer` | <https://watchdog-observer-bl5svvpbva-uc.a.run.app> | `watchdog-observer-00005-mqk` |
-| `watchdog-actor` | <https://watchdog-actor-bl5svvpbva-uc.a.run.app> | `watchdog-actor-00005-zp6` |
+| `watchdog-observer` | <https://watchdog-observer-bl5svvpbva-uc.a.run.app> | `watchdog-observer-00010-5qq` |
+| `watchdog-actor` | <https://watchdog-actor-bl5svvpbva-uc.a.run.app> | `watchdog-actor-00010-pjz` |
+
+Revisions as of 2026-08-26. Read the current pair from `gcloud run services list`
+rather than from here: this table is a record of what was proven, and a revision
+number in a file is stale the next time anyone deploys.
 
 Both private (`--no-allow-unauthenticated`), `minScale` unset so they scale to
 zero, `maxScale=3`, 1 GiB, 1 vCPU. One image, two services: `SERVICE` picks the

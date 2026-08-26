@@ -1,7 +1,9 @@
 # The Corner Watchdog
 
-Devpost write-up. Every figure here is measured, and the section that would
-normally list what is planned lists what is running instead.
+Devpost write-up. Every figure here is measured. Figures that move on their own,
+which is the journal and the publish log, carry the time they were read; every
+other figure is checked against the repository by `tools/check_numbers.py`, which
+fails the build when it drifts.
 
 ## Inspiration
 
@@ -52,8 +54,9 @@ seconds, 12 of which is a single lock-release test waiting on a real timeout,
 and 431 on the display surface in 1.2. 25
 intersections watched, pinned so the roster cannot drift without a journal
 entry. 125 unauthenticated queries per sweep across 5,905 collision and
-street-condition records. 202 decisions in the journal so far and 75 publish
-receipts. Two model tiers, five tools, six ingest rejection classes, four
+street-condition records. 227 decisions in the deployed journal and 100 publish
+receipts, read from Firestore at 2026-08-26T22:05Z; both grow on every scheduled
+run, so they are dated rather than pinned. Two model tiers, five tools, six ingest rejection classes, four
 service accounts, zero with Editor or Owner. Eleven boxes in the architecture
 diagram and every one of them is running.
 
