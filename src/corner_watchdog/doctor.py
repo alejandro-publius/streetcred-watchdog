@@ -124,6 +124,41 @@ def _roster_checks(watched_path: Path) -> list[Check]:
     return out
 
 
+def _publish_checks(state_dir: Path) -> list[Check]:
+    """Decisions that never reached the public diary.
+
+    A failed publish is journaled, which means it is already visible to anyone
+    reading the journal. It is surfaced here as well because nobody reads a
+    journal looking for something they do not know went wrong, and a hole
+    between the agent's record and the public one is exactly the kind of quiet
+    disagreement this project exists to refuse.
+    """
+    store = LocalJsonStore(state_dir)
+    log = store.read_publish_log() if hasattr(store, "read_publish_log") else []
+    if not log:
+        return [
+            Check(
+                "decisions published",
+                PASS,
+                "no publish attempts recorded yet, which is what an unpublished local run looks like",
+            )
+        ]
+
+    dead = [r for r in log if r.get("status") == "permanently_failed"]
+    ok = [r for r in log if r.get("status") in ("published", "duplicate")]
+    detail = f"{len(ok)} reached the diary, {len(dead)} did not, of {len(log)} attempted"
+    if dead:
+        why = dead[-1].get("why", "")
+        return [
+            Check(
+                "decisions published",
+                FAIL,
+                f"{detail}. Most recent failure: {str(why)[:120]}",
+            )
+        ]
+    return [Check("decisions published", PASS, detail)]
+
+
 def _state_checks(state_dir: Path) -> list[Check]:
     store = LocalJsonStore(state_dir)
     out: list[Check] = []
@@ -286,6 +321,7 @@ async def run_checks(
     checks += _env_checks()
     checks += _roster_checks(Path(watched_path))
     checks += _state_checks(Path(state_dir))
+    checks += _publish_checks(Path(state_dir))
     checks += _vocab_offline()
     checks += _live_path_check()
     if not offline:

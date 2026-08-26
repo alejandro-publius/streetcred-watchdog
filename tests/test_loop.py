@@ -395,16 +395,47 @@ def test_the_live_flag_refuses_and_does_not_fall_through_to_dry(capsys):
     assert "Nothing in this build posts to StreetCred" in out
 
 
-def test_nothing_in_the_local_loop_imports_the_streetcred_poster():
-    """ingest.py holds the only code that can POST. The local loop must not reach it."""
+def test_only_the_wiring_site_reaches_the_streetcred_poster():
+    """ingest.py holds the only code that can POST, and one file may reach it.
+
+    This assertion read "nothing in the local loop imports the poster" until the
+    agent started publishing its decisions. That was the honest claim while the
+    agent posted nothing, and keeping it would have meant the loop could not
+    close.
+
+    What it protects now is narrower and still worth protecting: the decision
+    path must not be able to post. The observer decides what to escalate, the
+    actor decides what to do, and the outbox writes the artefact. If any of them
+    could reach the network, a decision and its publication would be one action
+    and a failed post could cost the decision. runner.py is the wiring site and
+    is allowed to reach it, which is the same rule ports.py has always followed:
+    one file knows which side of every seam is real.
+    """
     import corner_watchdog.actor as a
     import corner_watchdog.observer as o
     import corner_watchdog.outbox as ob
     import corner_watchdog.runner as r
 
-    for mod in (a, o, ob, r):
+    for mod in (a, o, ob):
         src = Path(mod.__file__).read_text()
-        assert "from .ingest" not in src and "import ingest" not in src
+        assert "from .ingest" not in src and "import ingest" not in src, (
+            f"{mod.__name__} can post, and the decision path must not be able to"
+        )
+
+    wiring = Path(r.__file__).read_text()
+    assert "from .ingest import StreetCredClient" in wiring, (
+        "runner.py is the one wiring site and it is where publishing is turned on"
+    )
+
+
+def test_publishing_is_off_unless_a_caller_asks_for_it():
+    """A local run must not post to a live site as a side effect of being run."""
+    import inspect
+
+    import corner_watchdog.runner as r
+
+    sig = inspect.signature(r.run_cycle)
+    assert sig.parameters["publish"].default is False
 
 
 def test_the_live_actuator_refuses_every_verb():

@@ -35,6 +35,10 @@ class CycleReport:
     actor: ActorResult = field(default_factory=ActorResult)
     degraded: str | None = None
     wiring: dict[str, str] = field(default_factory=dict)
+    # What reached the public diary. Empty when publishing was not enabled,
+    # which is not the same as nothing having been published and reads that way
+    # in the report.
+    publish: dict[str, Any] = field(default_factory=dict)
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -46,6 +50,7 @@ class CycleReport:
             "actor": self.actor.as_dict(),
             "degraded": self.degraded,
             "wiring": self.wiring,
+            "publish": self.publish,
         }
 
 
@@ -64,6 +69,7 @@ async def run_cycle(
     token_budget: TokenBudget | None = None,
     bus: Any = None,
     wire_actor: bool = True,
+    publish: bool = False,
 ) -> CycleReport:
     """One full pass: observe, diff, triage, decide, act dry, journal.
 
@@ -82,6 +88,32 @@ async def run_cycle(
     run_id = run_id or started.strftime("%Y%m%dT%H%M%SZ")
 
     store = store or LocalJsonStore(state_dir)
+
+    # Every journaled decision reaches the public diary, or says why it did not.
+    #
+    # Wrapped rather than called at each journal site: the actor writes entries
+    # in three places and the ADK decider's after-tool callback writes a fourth,
+    # and the one that got forgotten would be a decision that never reached the
+    # diary with nothing saying so.
+    #
+    # Off by default. A local run must not post to a live site as a side effect
+    # of being run, and the deployed services turn it on explicitly.
+    publisher_store = None
+    if publish:
+        from .ingest import StreetCredClient
+        from .publisher import DecisionPublisher
+        from .publishing_store import PublishingStore
+
+        publisher_store = PublishingStore(
+            store,
+            DecisionPublisher(
+                StreetCredClient(),
+                append_journal=store.append_journal,
+                append_publish_log=getattr(store, "append_publish_log", None),
+            ),
+        )
+        store = publisher_store
+
     bus = bus if bus is not None else DirectBus()
     triage, decider, model_note = select_brains()
     # Tier two always consults its model, so the model caveat always applies to
@@ -122,6 +154,13 @@ async def run_cycle(
 
     report.sweep = await observer.sweep(corners, trigger=trigger)
     report.actor = actor.result
+
+    # Drained once, after the sweep and the actor have both finished writing.
+    # Publishing inside the write would make the Store protocol async and push
+    # the change into every caller and both store implementations.
+    if publisher_store is not None:
+        await publisher_store.flush()
+        report.publish = publisher_store.result.as_dict()
 
     # Always, including when the run acted on nothing. An empty outbox and an
     # outbox nobody opened are indistinguishable without this.

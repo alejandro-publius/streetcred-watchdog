@@ -45,14 +45,37 @@ step "tests"
 report $? "pytest"
 
 step "import graph"
-# The local loop must never import the one module that can POST. This is the
-# guarantee behind "the agent has never posted anything anywhere", and it is
-# cheap enough to check on every run rather than trusting a test to stay written.
+# The decision path must never import the one module that can POST.
+#
+# This used to cover runner.py too, and the claim behind it was "the agent has
+# never posted anything anywhere". That claim ended on 2026-08-26 when the agent
+# started publishing its decisions, and the guard narrowed rather than being
+# deleted: the observer, the actor and the outbox still must not be able to
+# reach the network, because a decision and its publication must not be one
+# action. runner.py is the wiring site and is where publishing is turned on.
 if grep -REn 'from \.ingest|import ingest' src/corner_watchdog/observer.py src/corner_watchdog/actor.py \
-     src/corner_watchdog/runner.py src/corner_watchdog/outbox.py src/corner_watchdog/cli.py >/dev/null 2>&1; then
-  report 1 "the local loop reaches ingest.py, which can POST"
+     src/corner_watchdog/outbox.py src/corner_watchdog/cli.py >/dev/null 2>&1; then
+  report 1 "the decision path reaches ingest.py, which can POST"
 else
-  report 0 "the local loop does not import ingest.py"
+  report 0 "the decision path does not import ingest.py"
+fi
+
+step "publishing claim"
+# The README may not say the agent posts nothing while runner.py wires a poster,
+# and it may not say the agent posts while nothing does. Same shape as the ADK
+# claim guard: reality is read from the source, the document is held to it.
+if grep -q 'from \.ingest import StreetCredClient' src/corner_watchdog/runner.py; then
+  if grep -q 'agent has never posted anything anywhere' README.md; then
+    report 1 "README says the agent has never posted, but runner.py wires the poster"
+  else
+    report 0 "the publishing claim matches what runner.py wires"
+  fi
+else
+  if grep -q 'agent has never posted anything anywhere' README.md; then
+    report 0 "the publishing claim matches what runner.py wires"
+  else
+    report 1 "nothing wires the poster, so the README should still say so"
+  fi
 fi
 
 step "secrets"

@@ -31,8 +31,20 @@ Read this before the rest.
   [`docs/GEMINI_WIRING.md`](docs/GEMINI_WIRING.md).
   Cloud setup is a ten minute operator task: see [`docs/GCP_PRECONDITIONS.md`](docs/GCP_PRECONDITIONS.md), then [`scripts/preflight_gcp.sh`](scripts/preflight_gcp.sh) to verify.
   **The Agent Development Kit is now genuinely in use**, which is a change from every earlier version of this page. Tier two is an `LlmAgent` with five registered tools in `src/corner_watchdog/adk_decider.py`, `google-adk` has moved out of the `cloud` extra into the runtime dependencies, and `tools/check_adk_claims.py` flipped itself to its IN USE state the moment the first import landed. Nothing else on this list has moved.
-- **The agent has never posted anything anywhere.** The live path exists, implements the
-  interface, and refuses on every verb.
+- **The agent now publishes its decisions, and only its decisions.** Every journaled
+  decision is posted to one authenticated endpoint on StreetCred,
+  `POST /api/agent/report`, in one direction only: StreetCred never calls the agent. The
+  site validates every field before publishing any of it and refuses an unresolvable
+  corner, a date in the future, a decline with no reasoning, a tool outside the known set,
+  a consequence it cannot verify from its own records, and a decision it already holds.
+  Refusals are published too, at
+  [`/watchdog`](https://streetcred.thealexschroeder.workers.dev/watchdog). This is a change
+  from every earlier version of this page, which said the agent had never posted anything
+  anywhere; that was true until 2026-08-26 and `tools/check.sh` fails the build if this
+  page and `runner.py` ever disagree about it again.
+- **The actuator still posts nothing.** Publishing a decision is not the same as acting on
+  the world. The live path exists, implements the interface, and refuses on every verb, so
+  no letter this agent drafts has been sent to anyone.
 - **Nothing in this repo has ever observed a real change at a watched corner.** The city
   was quiet for the whole build. Every number below reflects that.
 
@@ -79,7 +91,7 @@ All measured from this repository, on 2026-08-20.
 | Evaluations journaled | 175 |
 | Actions taken | 0 |
 | Restraint rate | 100 percent, and the ledger explains why that number is not yet impressive |
-| Tests | 634, offline, no credentials, under a second |
+| Tests | 654, offline, no credentials, under a second |
 | Runtime dependencies | 2 (`httpx`, `google-adk`) |
 | Google Cloud accounts touched | 0 |
 
@@ -94,7 +106,7 @@ that flatters the system is worth less than one that explains itself.
 
 Verified in a fresh virtual environment on 2026-08-24: 63 packages installed including pip
 itself and the project, three of them Google (`google-adk`, and `google-genai` and
-`google-auth` beneath it), all 634 tests green with no network and no credentials.
+`google-auth` beneath it), all 654 tests green with no network and no credentials.
 
 That count was 15, and none of them were Google, until tier two became an ADK agent. The
 jump is what adopting a framework actually costs, and it is stated here rather than
@@ -108,7 +120,7 @@ cd streetcred-watchdog
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"          # two runtime dependencies: httpx and google-adk
 
-pytest -q                        # 634 tests, no network, no credentials
+pytest -q                        # 654 tests, no network, no credentials
 python -m corner_watchdog run --cycles 2  # the whole loop, twice, against live DataSF
 open docs/ledger.html            # every decision, restraint rate on top
 ```
@@ -284,7 +296,7 @@ Fuller versions in [`DECISIONS.md`](DECISIONS.md).
 | `src/prompts/` | Both prompts in full, with ten worked examples the test suite parses. |
 | `src/corner_watchdog/live.py` | The live path. Implements the interface, refuses every verb. |
 | `src/corner_watchdog/ledger.py` | The journal as a page, restraint rate on top, declines at full size. |
-| `tests/` | 634 of them. The cases where a naive implementation produces a confident lie. |
+| `tests/` | 654 of them. The cases where a naive implementation produces a confident lie. |
 | `LOG.md`, `DECISIONS.md` | What was found by running it, and what was decided and rejected. |
 
 ## A note on the radius

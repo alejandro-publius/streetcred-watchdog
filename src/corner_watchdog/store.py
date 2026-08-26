@@ -115,6 +115,35 @@ class LocalJsonStore:
         with self.journal_path.open("a") as fh:
             fh.write(json.dumps(entry.to_dict(), sort_keys=True) + "\n")
 
+    # ----------------------------------------------------------- publish log
+
+    def append_publish_log(self, receipt: dict[str, Any]) -> None:
+        """What happened to a decision on its way to the diary.
+
+        Its own file, not the journal. The ledger counts a journal entry with no
+        actions as restraint, so a receipt per decision would raise the restraint
+        rate once per decision forever. This is the record that lets the journal
+        and the diary be reconciled without either polluting the other.
+        """
+        self.root.mkdir(parents=True, exist_ok=True)
+        with (self.root / "publish.jsonl").open("a") as fh:
+            fh.write(json.dumps(receipt, sort_keys=True) + "\n")
+
+    def read_publish_log(self) -> list[dict[str, Any]]:
+        path = self.root / "publish.jsonl"
+        if not path.exists():
+            return []
+        out: list[dict[str, Any]] = []
+        for line in path.read_text().splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                out.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+        return out
+
     def read_journal(self) -> list[dict[str, Any]]:
         if not self.journal_path.exists():
             return []

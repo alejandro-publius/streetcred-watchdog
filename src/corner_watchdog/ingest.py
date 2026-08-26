@@ -73,6 +73,16 @@ class StreetCredClient:
     async def journal(self, entry, client=None) -> IngestResult:
         return await self._post(entry.to_ingest_payload(), client)
 
+    async def post_journal(self, payload: dict[str, Any], client=None) -> IngestResult:
+        """A prepared payload, posted as is.
+
+        The publisher builds the body itself because it adds the decision id
+        that makes a repost idempotent, and that id has to be identical across
+        retries. Handing it back through `journal` would rebuild the payload
+        from the entry and lose it.
+        """
+        return await self._post(payload, client)
+
     async def rescore(self, slug: str, index: int, grade: str, client=None) -> IngestResult:
         return await self._post(
             {"kind": "rescore", "slug": slug, "index": index, "grade": grade}, client

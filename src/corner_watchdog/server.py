@@ -69,6 +69,12 @@ ACTOR = "actor"
 # journal is in Firestore.
 OUTBOX_DIR = os.environ.get("OUTBOX_DIR", "/tmp/outbox")
 
+# Whether this instance posts its decisions to StreetCred's public diary. On by
+# default in the deployed services and set explicitly by the Cloud Run config,
+# so a service that stops publishing is a config change somebody made rather
+# than a default nobody noticed.
+PUBLISH = (os.environ.get("PUBLISH_DECISIONS", "1").strip().lower() not in ("0", "false", "no"))
+
 app = FastAPI(title="Corner Watchdog", docs_url=None, redoc_url=None)
 
 
@@ -130,6 +136,10 @@ async def _sweep(trigger: str) -> dict[str, Any]:
         wire_actor=False,
         outbox_dir=OUTBOX_DIR,
         trigger=trigger,  # type: ignore[arg-type]
+        # The deployed services publish. A local run does not, because posting
+        # to a live site as a side effect of being run is not something a
+        # developer should have to remember to turn off.
+        publish=PUBLISH,
     )
     return report.as_dict()
 
@@ -213,6 +223,25 @@ async def deliberate(request: Request) -> Response:
         return Response(status_code=204)
 
     _triage, decider, model_note = select_brains()
+
+    # The actor journals its own decision, so the actor is where that decision
+    # has to be published from. The observer's sweep publishes its own entries.
+    publishing = None
+    if PUBLISH:
+        from .ingest import StreetCredClient
+        from .publisher import DecisionPublisher
+        from .publishing_store import PublishingStore
+
+        publishing = PublishingStore(
+            store,
+            DecisionPublisher(
+                StreetCredClient(),
+                append_journal=store.append_journal,
+                append_publish_log=getattr(store, "append_publish_log", None),
+            ),
+        )
+        store = publishing
+
     actor = Actor(
         store,
         decider,
@@ -223,4 +252,8 @@ async def deliberate(request: Request) -> Response:
         tokens=TokenBudget.from_env(),
     )
     await actor.handle(envelope)
+    # Drained before the handler returns. Cloud Run keeps the request alive for
+    # the whole push, so awaiting is safe and nothing needs waitUntil semantics.
+    if publishing is not None:
+        await publishing.flush()
     return Response(status_code=204)

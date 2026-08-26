@@ -63,6 +63,7 @@ SNAPSHOTS = "snapshots"
 JOURNAL = "journal"
 CALIBRATION = "calibration"
 CALIBRATION_DOC = "state"
+PUBLISH_LOG = "publishlog"
 
 # Not "(default)". See the module docstring: the client double-encodes the
 # parentheses and every call against the default database is rejected.
@@ -160,6 +161,27 @@ class FirestoreStore:
         # keeps the recent end rather than the ancient one.
         entries.reverse()
         return entries
+
+    # ----------------------------------------------------------- publish log
+
+    def append_publish_log(self, receipt: dict[str, Any]) -> None:
+        """Its own collection, for the same reason it is its own file locally.
+
+        A receipt is a fact about publishing, not a decision, and the ledger
+        would count it as restraint if it landed in the journal.
+        """
+        doc_id = f"{receipt.get('at', '')}-{uuid.uuid4().hex[:8]}"
+        self.db.collection(PUBLISH_LOG).document(doc_id).create(receipt)
+
+    def read_publish_log(self, limit: int | None = None) -> list[dict[str, Any]]:
+        query = (
+            self.db.collection(PUBLISH_LOG)
+            .order_by("at", direction=firestore.Query.DESCENDING)
+            .limit(limit or 200)
+        )
+        rows = [d.to_dict() or {} for d in query.stream()]
+        rows.reverse()
+        return rows
 
     # ----------------------------------------------------------- calibration
 
