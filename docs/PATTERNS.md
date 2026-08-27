@@ -84,15 +84,25 @@ judges against are read from the store on every corner, they persist across
 runs and processes, and they are bounded so no single week can move them past a
 floor or a ceiling.
 
-Two things commonly grouped here are **not** memory in this build, and saying so
-is cheaper than being caught. The streak and the per-corner history are computed
-from the journal for the ledger to render; nothing reads them to decide
-anything. And while `Calibration.adjust` enforces its bounds and journals every
-change, nothing in `src/` calls it: no outcome yet moves a threshold. The
-mechanism is built and guarded, the feedback loop is not wired, and the public
-page says the same.
-*Guarded by* `tests/test_calibration.py`, which pins the bounds, the refusal of
-unknown keys, and the journaling of every adjustment.
+**The outcome loop is now memory too, and it is the narrowest of the three.**
+`calibrate.review` runs at the end of every cycle, reads what tier two did with
+tier one's escalations, and moves at most one threshold. It only ever raises one,
+and the asymmetry is the design rather than a shortcut: an escalation tier two
+declined is a false positive and both tiers left a record on the same entry, while
+a delta tier one declined that actually mattered is a false negative with no record
+anywhere, because tier two never saw it. Evidence here can only ever argue for a
+higher bar. On the current journal it refuses outright: five escalations have
+reached tier two and the floor is twenty, so nothing moves and the refusal is
+reported. That is the restraint thesis applied to the agent's own knobs.
+
+One thing commonly grouped here is **not** memory in this build. The streak and
+the per-corner history are computed from the journal for the ledger to render;
+nothing reads them to decide anything.
+*Guarded by* `tests/test_calibration.py` for the bounds, the refusal of unknown
+keys and the journaling of every adjustment, and by
+`tests/test_calibrate_outcomes.py` for the loop, mutation tested both ways: let it
+lower a threshold and the asymmetry test goes red, drop the evidence floor and a
+cycle starts writing a journal entry the ledger would count as restraint.
 
 ## The metric-gaming line
 
@@ -116,3 +126,15 @@ not a corner judged unimportant.
 *Guarded by* `tests/test_cost.py::test_a_budget_exhausted_entry_never_counts_as_restraint`,
 with the error and unjudged splits computed in `ledger.summarise` and rendered
 beside the rate rather than folded into it.
+
+The same distinction runs through `doctor`'s publish check. Its pass or fail
+state answers "is it publishing now", over a 24 hour window it names in its own
+output, and a separate line answers "has it ever failed to publish", over the
+whole log, with the count and the date. It used to answer only the second
+question and call the result a failure, which meant that after one bad batch it
+could never be green again. A check that can only fail is a check people learn
+to skip. Nothing is deleted and nothing is forgiven by age: an old failure stays
+on the page as an old failure, which is a different claim from a current one.
+*Guarded by* the window tests in `tests/test_doctor_publish.py`, mutation tested
+both ways: remove the window and the historical batch fails a healthy agent
+again, remove the history line and the record disappears.

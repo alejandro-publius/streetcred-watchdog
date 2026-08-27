@@ -197,7 +197,7 @@ All measured from this repository on 2026-08-20, except the last row, which is a
 | Evaluations journaled | 175 |
 | Actions taken | 0 |
 | Restraint rate | 100 percent, and the ledger explains why that number is not yet impressive |
-| Tests | 678, offline, no credentials, 14 seconds, 12 of which is one lock-release test waiting on a real timeout |
+| Tests | 697, offline, no credentials, 14 seconds, 12 of which is one lock-release test waiting on a real timeout |
 | Runtime dependencies | 2 (`httpx`, `google-adk`) |
 | Google Cloud accounts touched | 1, `streetcred-506117`. This row read 0 until 2026-08-25 |
 
@@ -213,7 +213,7 @@ that flatters the system is worth less than one that explains itself.
 Verified from a clean clone into a fresh virtual environment on 2026-08-26: 63 packages
 installed including pip itself and the project, three of them Google (`google-adk`, and
 `google-genai` and `google-auth` beneath it). With the cloud extra added on top,
-all 678 tests green with no network and no credentials.
+all 697 tests green with no network and no credentials.
 
 That count was 15, and none of them were Google, until tier two became an ADK agent. The
 jump is what adopting a framework actually costs, and it is stated here rather than
@@ -232,7 +232,7 @@ pip install -e ".[dev]"          # two runtime dependencies: httpx and google-ad
 pytest -q                        # 651 pass, 5 skip, no network, no credentials
 # The skips are honest, not hidden: 4 need the Google client libraries and 1
 # needs recorded snapshots, which state/ is gitignored so a clone has none.
-# pip install -e ".[dev,cloud]"  then a cycle, then pytest -q reports the full 678
+# pip install -e ".[dev,cloud]"  then a cycle, then pytest -q reports the full 697
 python -m corner_watchdog run --cycles 2  # the whole loop, twice, against live DataSF
 open docs/ledger.html            # every decision, restraint rate on top
 ```
@@ -242,7 +242,8 @@ expensive half of the loop never runs. To exercise it:
 
 ```bash
 python -m corner_watchdog rehearse      # constructed baselines, kept out of the real journal
-python -m corner_watchdog doctor        # 20 checks: environment, sources, vocabulary, stored state
+python -m corner_watchdog doctor        # 20 checks: environment, sources, vocabulary, stored state,
+                                        # and publishing over a stated 24 hour window
 python -m corner_watchdog schedule      # renders launchd and cron config, installs nothing
 python -m corner_watchdog ledger --corner 6th-and-mission
 ```
@@ -316,7 +317,7 @@ claim stops being true, in [`docs/PATTERNS.md`](docs/PATTERNS.md).
 | Human-in-the-loop | `flag` is a first-class action, mandatory alongside any redraft on a new fatality. The live path additionally refuses to send until a human has read a full dry-run outbox and agreed with every letter in it. | built as a gate |
 | Decline queue | Declines are journaled by the observer at the moment they are made, never routed through the expensive tier, and rendered at the same visual weight as actions. | built |
 | Review and critique verifier | StreetCred recomputes every figure in an agent-written letter from the corner's own record and stores its own answer, recording disagreement as `selfReportDisputed`. The agent does not get to mark its own homework. | planned, not deployed |
-| Bounded self-calibration | Thresholds move from logged outcomes inside hard floors and ceilings, with every adjustment journaled with its before and after. This is threshold nudging, not model retraining, and the public page says exactly that. | schema and bounds built, nothing adjusts them yet |
+| Bounded self-calibration | `calibrate.review` runs every cycle, reads what tier two did with tier one's escalations, and raises at most one threshold inside hard bounds, never lowering one because a false negative leaves no record to learn from. Threshold nudging, not model retraining. | built and wired; on the current journal it refuses, 5 outcomes against a floor of 20 |
 
 ## Why the declines are the product
 
@@ -419,7 +420,7 @@ Fuller versions in [`DECISIONS.md`](DECISIONS.md).
 | `src/prompts/` | Both prompts in full, with ten worked examples the test suite parses. |
 | `src/corner_watchdog/live.py` | The live path. Implements the interface, refuses every verb. |
 | `src/corner_watchdog/ledger.py` | The journal as a page, restraint rate on top, declines at full size. |
-| `tests/` | 678 of them. The cases where a naive implementation produces a confident lie. |
+| `tests/` | 697 of them. The cases where a naive implementation produces a confident lie. |
 | `LOG.md`, `DECISIONS.md` | What was found by running it, and what was decided and rejected. |
 
 ## A note on the radius

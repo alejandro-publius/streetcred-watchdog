@@ -126,7 +126,7 @@ def progress_counts(text: str) -> list[tuple[str, int, int]]:
     ends = [*starts[1:], text.index("## What moves the number most")]
     return [
         (label, *_tally(text[a:b]))
-        for (label, _), a, b in zip(AXES, starts, ends)
+        for (label, _), a, b in zip(AXES, starts, ends, strict=True)
     ]
 
 

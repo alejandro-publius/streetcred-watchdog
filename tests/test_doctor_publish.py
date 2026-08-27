@@ -156,3 +156,89 @@ def test_the_check_surfaces_the_fallback_source_to_a_reader(tmp_path, monkeypatc
 
     checks = _publish_checks(tmp_path / "state")
     assert "Firestore could not be read" in checks[0].detail
+
+
+# ================================================================== the window
+
+# The check used to fail on any dead receipt ever recorded, so one bad batch on
+# 2026-08-26 meant it could never be green again. A check that can only fail is
+# a check people learn to skip, and DEMO_SCRIPT.md tells a presenter to run this
+# one on camera. The state now reflects a stated window; the history is still
+# printed, because forgiving a failure by age would be the opposite mistake.
+
+NOW = "2026-08-27T12:00:00+00:00"
+
+
+def at(stamp, **over):
+    row = {"status": "published", "slug": "a", "decision_id": "x", "at": stamp}
+    row.update(over)
+    return row
+
+
+def clock():
+    import datetime as dt
+
+    return dt.datetime.fromisoformat(NOW)
+
+
+def check(rows, hours=24):
+    return _publish_checks(
+        Path("state"), reader(rows, "Firestore, watchdog in p"), now=clock(), window_hours=hours
+    )[0]
+
+
+def test_an_old_dead_batch_does_not_fail_a_healthy_agent():
+    c = check([
+        at("2026-08-20T20:25:00+00:00", status="permanently_failed", why="claimed consequence"),
+        at("2026-08-27T09:00:00+00:00"),
+    ])
+    assert c.status == PASS
+    assert "1 reached the diary, 0 did not" in c.detail
+
+
+def test_the_old_batch_is_still_reported_with_its_count_and_date():
+    c = check([
+        at("2026-08-20T20:25:00+00:00", status="permanently_failed", why="nope"),
+        at("2026-08-20T20:26:00+00:00", status="permanently_failed", why="nope"),
+        at("2026-08-27T09:00:00+00:00"),
+    ])
+    assert "2 dead receipt(s) on 2026-08-20" in c.detail, c.detail
+    assert "retained" in c.detail
+
+
+def test_the_window_is_named_in_the_output():
+    assert "the last 24 hours" in check([at("2026-08-27T09:00:00+00:00")]).detail
+
+
+def test_a_recent_failure_still_fails():
+    c = check([
+        at("2026-08-27T09:00:00+00:00"),
+        at("2026-08-27T10:00:00+00:00", status="permanently_failed", why="unknown corner"),
+    ])
+    assert c.status == FAIL
+    assert "unknown corner" in c.detail
+
+
+def test_a_failure_inside_the_window_is_not_double_counted_as_history():
+    c = check([at("2026-08-27T10:00:00+00:00", status="permanently_failed", why="x")])
+    assert c.status == FAIL
+    assert "Older than" not in c.detail
+
+
+def test_no_attempts_in_the_window_says_so_and_keeps_the_history():
+    c = check([at("2026-08-20T20:25:00+00:00", status="permanently_failed", why="x")])
+    assert c.status == PASS
+    assert "no publish attempts in the last 24 hours" in c.detail
+    assert "1 dead receipt(s) on 2026-08-20" in c.detail
+
+
+def test_a_receipt_with_an_unreadable_date_counts_as_recent():
+    # Erring the other way would let a broken timestamp hide a live failure.
+    c = check([at("not a date", status="permanently_failed", why="broken clock")])
+    assert c.status == FAIL
+
+
+def test_a_wider_window_pulls_the_old_batch_back_into_the_state():
+    rows = [at("2026-08-20T20:25:00+00:00", status="permanently_failed", why="x")]
+    assert check(rows, hours=24).status == PASS
+    assert check(rows, hours=24 * 30).status == FAIL, "the window is the only thing forgiving it"

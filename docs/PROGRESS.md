@@ -1,6 +1,6 @@
 # Submission readiness
 
-Written 2026-08-26, updated after the architecture diagram landed. **Deadline: 2026-08-31,
+Written 2026-08-26, updated after the adversarial audit and its rulings. **Deadline: 2026-08-31,
 5:00 PM PT. Five days remain.**
 
 Every percentage below is items done over items total from the checklist under
@@ -12,13 +12,18 @@ understood.
 Innovation and utility (40%)  [####################] 100%   nothing outstanding
 Architecture (30%)            [####################] 100%   nothing outstanding
 Demo readiness (30%)          [############--------]  58%   needs: video, rehearsal, submission
-Bonuses                       [########------------]  40%   needs: blog, social, outreach
+Bonuses                       [###########---------]  54%   needs: blog, social, outreach
 ------------------------------------------------------------------------------
-OVERALL                       [###############-----]  76%   34 of 45 items
+OVERALL                       [###############-----]  77%   37 of 48 items
 ```
 
-This pass wired Gemma as tier one, which closes the architecture axis and one
-bonus, and added the claim pass, the Devpost write-up and the demo script.
+This pass came out of an adversarial audit that refused to read this file as
+evidence and checked the repositories and the deployments instead. It found six
+things, and the one that mattered was not on any list here: **neither repository
+had been pushed.** GitHub was serving the agent from 2026-08-18, eight days and
+seventy commits behind, with no Cloud Run, no Firestore, no Gemma and none of
+the write-ups. A checklist cannot catch that, because the checklist and the
+unpushed work live in the same place.
 
 **The header used to be wrong, and that is worth naming rather than quietly
 fixing.** Until this pass it read 75 percent, 30 of 40 items. Its own tables held
@@ -73,7 +78,7 @@ Seven of twelve. The video is now most of what is left.
 
 | | Item | Evidence |
 | --- | --- | --- |
-| done | Reproducible spin-up instructions | `README.md`, verified in a clean venv |
+| done | Reproducible spin-up instructions | verified from a clean clone, 651 pass 5 skip |
 | done | Deployment inventory and teardown | `HANDOFF.md` |
 | done | `adk web` renders the reasoning trace | confirmed locally |
 | done | Filming list written | `docs/DEMO_SCRIPT.md`, nine screens in order |
@@ -93,8 +98,11 @@ Four of ten.
 | | Item | Evidence |
 | --- | --- | --- |
 | done | Public decision ledger | `docs/ledger.html` and `/watchdog` |
+| done | Bounded self-calibration, wired | `calibrate.review`, raises only, refuses below 20 outcomes |
 | done | Honest degradation disclosure | every entry carries its `degraded` line |
 | done | Cost transparency | activity inspector, projected and actual apart |
+| done | Both repositories public and current | pushed 2026-08-27, 70 and 83 commits |
+| done | Open source licence | MIT, both repositories |
 | **not** | Blog post | `docs/blog_draft.md` is a draft |
 | **not** | Social post | `docs/social_draft.md` is a draft |
 | done | Gemma running as tier one | `google/gemma-4-26b-a4b-it-maas`, `locations/global` |

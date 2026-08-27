@@ -187,8 +187,12 @@ Every screen above, in the order the recording needs them.
 
 ## Before you record
 
-- Run `python -m corner_watchdog doctor` and read it. If the publish check is
-  failing, the diary and the journal disagree and beat 3 will show it.
+- Run `python -m corner_watchdog doctor` and read it. The publish check judges
+  the last 24 hours and names that window in its own output, so a failure there
+  means the diary and the journal disagree *now* and beat 3 will show it. Dead
+  receipts older than the window are still printed, with their count and date,
+  and do not fail the check. Read the whole line rather than the colour: an old
+  batch on the page beside a green state is the check working, not hiding.
 - Confirm the refused-ingest entry is still on `/watchdog`. Beat 8 has no
   fallback and the page is the only place that entry lives.
 - Have the recorded beats already cut, labelled, and to length. Recording them

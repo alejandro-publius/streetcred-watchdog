@@ -23,6 +23,7 @@ nothing downstream can tell that the numbers are wrong.
 
 from __future__ import annotations
 
+import datetime as _dt
 import json
 import os
 import sys
@@ -159,39 +160,94 @@ def publish_log_source(state_dir: Path, reader=None) -> tuple[list, str]:
     return LocalJsonStore(state_dir).read_publish_log(), f"the local file at {state_dir}"
 
 
-def _publish_checks(state_dir: Path, reader=None) -> list[Check]:
-    """Decisions that never reached the public diary.
+# How far back this check's pass or fail state looks. Stated in the output on
+# every run, because a health check whose window is implicit is one whose green
+# nobody can interpret.
+PUBLISH_WINDOW_HOURS = 24
 
-    A failed publish is journaled, which means it is already visible to anyone
-    reading the journal. It is surfaced here as well because nobody reads a
-    journal looking for something they do not know went wrong, and a hole
-    between the agent's record and the public one is exactly the kind of quiet
-    disagreement this project exists to refuse.
+
+def _parse_at(value) -> _dt.datetime | None:
+    try:
+        parsed = _dt.datetime.fromisoformat(str(value))
+    except (TypeError, ValueError):
+        return None
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=_dt.UTC)
+
+
+def _publish_checks(
+    state_dir: Path, reader=None, now=None, window_hours: int = PUBLISH_WINDOW_HOURS
+) -> list[Check]:
+    """Decisions that never reached the public diary, judged over a window.
+
+    A failed publish is journaled, so it is already visible to anyone reading
+    the journal. It is surfaced here as well because nobody reads a journal
+    looking for something they do not know went wrong, and a hole between the
+    agent's record and the public one is exactly the kind of quiet disagreement
+    this project exists to refuse.
+
+    The window is the part that took a second pass. This check used to fail on
+    any dead receipt ever recorded, which meant that after one bad batch on
+    2026-08-26 it could never be green again no matter how healthy the agent
+    became. A check that can only ever fail is a check people learn to skip, and
+    the demo script tells a presenter to run this one on camera.
+
+    So the two questions are separated. **Is it publishing now** is answered over
+    the last `window_hours` and decides pass or fail. **Has it ever failed to
+    publish** is answered over the whole log and is always reported, with the
+    count and the date, whether or not it is inside the window. Nothing is
+    deleted and nothing is forgiven by age: an old failure stays on the page as
+    an old failure, which is a different claim from a current one and needs to
+    read differently.
+
+    A receipt with no readable timestamp counts as recent. Erring the other way
+    would let an unparseable date hide a live failure, and the whole point of
+    the window is that it never does that.
     """
     log, source = publish_log_source(state_dir, reader)
+    now = now or _dt.datetime.now(_dt.UTC)
+    cutoff = now - _dt.timedelta(hours=window_hours)
+    window = f"the last {window_hours} hours"
 
     if not log:
+        return [Check("decisions published", PASS, f"no publish attempts recorded in {source}")]
+
+    def recent(r) -> bool:
+        at = _parse_at(r.get("at"))
+        return at is None or at >= cutoff
+
+    dead_all = [r for r in log if r.get("status") == "permanently_failed"]
+    recent_log = [r for r in log if recent(r)]
+    recent_dead = [r for r in recent_log if r.get("status") == "permanently_failed"]
+    recent_ok = [r for r in recent_log if r.get("status") in ("published", "duplicate")]
+
+    # Always printed, never used to decide the state. This is the record.
+    older_dead = [r for r in dead_all if r not in recent_dead]
+    if older_dead:
+        days = sorted({str(r.get("at", ""))[:10] for r in older_dead if r.get("at")})
+        when = f"{days[0]} to {days[-1]}" if len(days) > 1 else (days[0] if days else "an unrecorded date")
+        history = (
+            f" Older than {window}: {len(older_dead)} dead receipt(s) on {when}, retained."
+        )
+    else:
+        history = ""
+
+    if not recent_log:
         return [
             Check(
                 "decisions published",
                 PASS,
-                f"no publish attempts recorded in {source}",
+                f"no publish attempts in {window}, from {source}.{history}",
             )
         ]
 
-    dead = [r for r in log if r.get("status") == "permanently_failed"]
-    ok = [r for r in log if r.get("status") in ("published", "duplicate")]
-    detail = f"{len(ok)} reached the diary, {len(dead)} did not, of {len(log)} attempted, from {source}"
-    if dead:
-        why = dead[-1].get("why", "")
-        return [
-            Check(
-                "decisions published",
-                FAIL,
-                f"{detail}. Most recent failure: {str(why)[:120]}",
-            )
-        ]
-    return [Check("decisions published", PASS, detail)]
+    detail = (
+        f"{len(recent_ok)} reached the diary, {len(recent_dead)} did not, "
+        f"of {len(recent_log)} attempted in {window}, from {source}"
+    )
+    if recent_dead:
+        why = str(recent_dead[-1].get("why", ""))[:120]
+        return [Check("decisions published", FAIL, f"{detail}. Most recent failure: {why}.{history}")]
+    return [Check("decisions published", PASS, f"{detail}.{history}")]
 
 
 def _state_checks(state_dir: Path) -> list[Check]:

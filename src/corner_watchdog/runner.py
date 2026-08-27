@@ -39,6 +39,10 @@ class CycleReport:
     # which is not the same as nothing having been published and reads that way
     # in the report.
     publish: dict[str, Any] = field(default_factory=dict)
+    # What the outcome review decided about tier one's own threshold. Always
+    # present, including when it decided to move nothing, because a review that
+    # refused and a review that never ran are the same absence otherwise.
+    calibration: dict[str, Any] = field(default_factory=dict)
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -51,6 +55,7 @@ class CycleReport:
             "degraded": self.degraded,
             "wiring": self.wiring,
             "publish": self.publish,
+            "calibration": self.calibration,
         }
 
 
@@ -70,6 +75,7 @@ async def run_cycle(
     bus: Any = None,
     wire_actor: bool = True,
     publish: bool = False,
+    calibrate: bool = True,
 ) -> CycleReport:
     """One full pass: observe, diff, triage, decide, act dry, journal.
 
@@ -167,6 +173,26 @@ async def run_cycle(
     manifest = getattr(act, "write_manifest", None)
     if callable(manifest):
         manifest()
+
+    # The outcome loop, last, so it reads a journal that includes this run. It
+    # moves at most one threshold and only ever upward, and on this journal it
+    # refuses for want of evidence, which is the answer it should give.
+    #
+    # Deliberately NOT written into the journal, and the reason is the same one
+    # publisher.py records for its receipts. A review entry carries no actions
+    # and no error, which is exactly the shape the ledger counts as restraint,
+    # so one per cycle would raise the single number this project asks to be
+    # judged on, once per cycle, forever. It rides in the cycle report, which
+    # the CLI persists to runs.json, and an adjustment additionally lands in the
+    # calibration document's own history with its before, after and evidence.
+    if calibrate:
+        from .calibrate import review
+
+        current = store.get_calibration()
+        outcome = review(store.read_journal(), current)
+        report.calibration = outcome.to_dict()
+        if outcome.adjusted:
+            store.put_calibration(current)
 
     report.finished = _dt.datetime.now(_dt.UTC).isoformat(timespec="seconds")
     return report

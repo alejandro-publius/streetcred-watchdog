@@ -1,0 +1,15 @@
+{
+  "complete": true,
+  "counts": {
+    "collisions_5y": 41,
+    "district": 6,
+    "fatal_5y": 0,
+    "reports_311_3y": 173,
+    "severe_5y": 7
+  },
+  "fetched_at": "2026-08-20T16:01:52.380458+00:00",
+  "name": "5th and Cyril Magnin",
+  "query_fingerprint": "r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9",
+  "schema_version": "v1",
+  "slug": "5th-and-cyril-magnin"
+}

@@ -25,6 +25,16 @@ This is the part that changed. Tier two is an Agent Development Kit `LlmAgent`
 and the two tiers are now a `SequentialAgent`, so the cost-routed cascade is a
 graph rather than a call sequence.
 
+**On a deprecation, stated here rather than left in a warning.** `SequentialAgent`
+is deprecated in `google-adk` 2.7.1, the version pinned here, in favour of
+`Workflow` in `google.adk.workflow`, and it emits a `DeprecationWarning` on every
+run of the test suite. This repository still uses `SequentialAgent`, deliberately:
+the ADK's own deprecation note says a `Workflow` cannot yet be used as an
+`LlmAgent` sub-agent, which is precisely the shape this graph needs. It is a
+known migration, not an oversight, and it is written down here because a judge
+reading the test output will see the warning and deserves to find the reason in a
+document rather than in a source comment.
+
 ```
 SequentialAgent "corner_watchdog"
   |

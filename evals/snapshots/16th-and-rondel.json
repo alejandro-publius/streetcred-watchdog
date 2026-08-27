@@ -1,0 +1,15 @@
+{
+  "complete": true,
+  "counts": {
+    "collisions_5y": 38,
+    "district": 9,
+    "fatal_5y": 2,
+    "reports_311_3y": 93,
+    "severe_5y": 2
+  },
+  "fetched_at": "2026-08-20T16:01:56.142980+00:00",
+  "name": "16th and Rondel",
+  "query_fingerprint": "r=80m;collisions=5y;reports=3y;severe=Injury (Severe);services=9",
+  "schema_version": "v1",
+  "slug": "16th-and-rondel"
+}
