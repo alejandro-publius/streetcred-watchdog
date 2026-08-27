@@ -229,10 +229,9 @@ cd streetcred-watchdog
 python3.11 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"          # two runtime dependencies: httpx and google-adk
 
-pytest -q                        # 651 pass, 5 skip, no network, no credentials
-# The skips are honest, not hidden: 4 need the Google client libraries and 1
-# needs recorded snapshots, which state/ is gitignored so a clone has none.
-# pip install -e ".[dev,cloud]"  then a cycle, then pytest -q reports the full 697
+pytest -q                        # 671 pass, 4 skip, no network, no credentials
+# The 4 skips are honest, not hidden: they need the Google client libraries.
+# pip install -e ".[dev,cloud]"  then pytest -q reports the full 697
 python -m corner_watchdog run --cycles 2  # the whole loop, twice, against live DataSF
 open docs/ledger.html            # every decision, restraint rate on top
 ```
