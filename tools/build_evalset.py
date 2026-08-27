@@ -35,6 +35,10 @@ from corner_watchdog.schema import Counts, Snapshot  # noqa: E402
 EVAL_SET_ID = "corner_watchdog_decisions"
 OUT = REPO / "evals" / "decisions.evalset.json"
 SNAPSHOTS = REPO / "state" / "snapshots"
+# The cases are built from readings in state/, which is gitignored, so the ones
+# actually used are copied here and committed. Otherwise the test asserting that
+# every case comes from a real recording has nothing to check against on a clone.
+SHIPPED = REPO / "evals" / "snapshots"
 WATCHED = REPO / "data" / "watched.json"
 
 HOSTILE_SUFFIX = (
@@ -300,6 +304,22 @@ def main() -> int:
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(document, indent=2) + "\n")
+
+    # Ship the readings the cases were built from, so the claim that they are
+    # real travels with the eval set instead of depending on the builder's own
+    # gitignored state directory. Stale copies are cleared rather than merged: a
+    # recording for a corner no longer in the set is evidence for nothing.
+    import shutil
+
+    SHIPPED.mkdir(parents=True, exist_ok=True)
+    used = {json.loads(c["conversation"][0]["user_content"]["parts"][0]["text"])["corner"]["slug"]
+            for c in eval_cases}
+    for stale in SHIPPED.glob("*.json"):
+        if stale.stem not in used:
+            stale.unlink()
+    for slug in sorted(used):
+        shutil.copy2(SNAPSHOTS / f"{slug}.json", SHIPPED / f"{slug}.json")
+    print(f"shipped {len(used)} recording(s) into {SHIPPED.relative_to(REPO)}")
 
     # Validated against the ADK's own schema here rather than discovered by
     # `adk eval` failing to load it later.

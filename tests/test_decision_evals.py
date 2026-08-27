@@ -41,6 +41,9 @@ from corner_watchdog.budget import ActionBudget
 
 REPO = Path(__file__).resolve().parents[1]
 EVALSET = REPO / "evals" / "decisions.evalset.json"
+# The recordings the cases were built from, shipped so the claim can be checked
+# from a clone. state/ is gitignored and a clone has none of it.
+SHIPPED = REPO / "evals" / "snapshots"
 
 # The tool the model calls, and the action the journal stores.
 EXPECTED_ACTION = {
@@ -223,27 +226,35 @@ def test_the_set_has_at_least_eight_cases():
 def test_every_case_is_built_from_a_real_recorded_snapshot():
     """No invented current record. The baseline is constructed; the reading is not.
 
-    `state/` is gitignored, so a clean clone has no recordings and this check has
-    nothing to check against. It used to assert an empty set and fail, which made
-    `pytest -q` red on the documented spin-up path while passing on any machine
-    that had ever run a cycle. Skipped with the reason named, rather than
-    weakened to pass: what cannot be verified here is stated, not asserted.
-
-    The stronger fix is to ship recorded snapshots beside the eval set so the
-    claim travels with it. That is a change to what the repository carries and
-    is not made silently in a test file.
+    The recordings ship in `evals/snapshots/` rather than being read out of
+    `state/`, which is gitignored. Reading `state/` meant this asserted against
+    an empty set on every fresh clone while passing on any machine that had ever
+    run a cycle, which is exactly backwards: the claim is about the eval set, so
+    the evidence for it travels with the eval set.
     """
-    snapshots = {p.stem for p in (REPO / "state" / "snapshots").glob("*.json")}
-    if not snapshots:
-        pytest.skip(
-            "no snapshots in state/, which is gitignored. Run "
-            "`python -m corner_watchdog run --cycles 1` to record some, then this "
-            "checks that every eval case is built from one of them."
-        )
+    shipped = {p.stem for p in SHIPPED.glob("*.json")}
+    assert shipped, f"no recordings in {SHIPPED}, so this claim cannot be checked"
     for case in CASES:
         envelope = json.loads(case_message(case))
-        assert envelope["corner"]["slug"] in snapshots
+        assert envelope["corner"]["slug"] in shipped
         assert "constructed by offsetting the real record" in envelope["baselineNote"]
+
+
+def test_the_shipped_recordings_are_readings_and_not_hand_written_fixtures():
+    """A stub with the right filename would satisfy the check above.
+
+    So the shape is checked too: a real reading carries the query fingerprint the
+    fetcher stamps, a fetch timestamp, and a complete flag. None of those are
+    things anyone would bother inventing, and all three are what makes the
+    snapshot traceable back to a cycle.
+    """
+    for path in sorted(SHIPPED.glob("*.json")):
+        snap = json.loads(path.read_text())
+        assert snap["slug"] == path.stem
+        assert snap["complete"] is True
+        assert snap["query_fingerprint"].startswith("r=80m;collisions=5y")
+        assert snap["fetched_at"].startswith("2026-"), "a reading carries when it was read"
+        assert snap["counts"]["collisions_5y"] > 0
 
 
 def test_every_case_uses_a_different_corner():

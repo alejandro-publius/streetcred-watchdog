@@ -49,7 +49,7 @@ error.
 ## How we built it
 
 **The countable version first.** About 51,000 lines across two repositories.
-1,109 tests, all offline and all credential free: 678 on the agent in 14
+1,109 tests, all offline and all credential free: 697 on the agent in 14
 seconds, 12 of which is a single lock-release test waiting on a real timeout,
 and 431 on the display surface in 1.2. 25
 intersections watched, pinned so the roster cannot drift without a journal
@@ -172,10 +172,11 @@ neither.
 
 ## What's next
 
-Wire the outcome loop: `Calibration.adjust` enforces its bounds and journals
-every change, and nothing calls it yet, so no outcome moves a threshold. That is
-the difference between an agent with memory and an agent that learns, and the
-mechanism is built and guarded while the loop is not.
+Give the outcome loop something to work with. `calibrate.review` now runs every
+cycle and reads what tier two did with tier one's escalations, but five
+escalations have reached tier two and its floor is twenty, so it refuses and says
+so. It needs a month of quiet mornings and a few loud ones before it moves
+anything, which is the honest answer and not a fast one.
 
 Then a second corridor, and the letter reaching a real recipient, which needs a
 human to read a full dry-run outbox and agree with every letter in it. That is a
