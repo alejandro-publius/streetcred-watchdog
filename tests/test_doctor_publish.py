@@ -14,6 +14,7 @@ one that decides whether a Firestore outage reads as "nothing published" or as
 
 from __future__ import annotations
 
+import datetime as _dt
 import importlib.util
 from pathlib import Path
 
@@ -34,6 +35,16 @@ DEAD = {
 
 def reader(rows, source):
     return lambda: (rows, source)
+
+
+# Pinned, because the check now judges a window and these receipts are dated.
+# Left on the wall clock they passed for a day and then started failing on their
+# own, which is a test that measures the calendar rather than the code.
+FIXED_NOW = _dt.datetime.fromisoformat("2026-08-26T21:00:00+00:00")
+
+
+def checks(rows, source="Firestore, watchdog in p", **kw):
+    return _publish_checks(Path("state"), reader(rows, source), now=FIXED_NOW, **kw)
 
 
 # Three tests below reach `corner_watchdog.cloud`, which needs the cloud extra.
@@ -61,26 +72,26 @@ needs_cloud = pytest.mark.skipif(
 # ================================================================== the answers
 
 def test_a_clean_run_passes_and_names_its_source():
-    checks = _publish_checks(Path("state"), reader([PUBLISHED, PUBLISHED], "Firestore, watchdog in p"))
-    assert len(checks) == 1
-    assert checks[0].status == PASS
-    assert "2 reached the diary" in checks[0].detail
-    assert "Firestore, watchdog in p" in checks[0].detail
+    out = checks([PUBLISHED, PUBLISHED])
+    assert len(out) == 1
+    assert out[0].status == PASS
+    assert "2 reached the diary" in out[0].detail
+    assert "Firestore, watchdog in p" in out[0].detail
 
 
 def test_a_dead_publish_fails_and_names_the_reason():
-    checks = _publish_checks(Path("state"), reader([PUBLISHED, DEAD], "Firestore, watchdog in p"))
-    assert checks[0].status == FAIL
-    assert "1 reached the diary, 1 did not" in checks[0].detail
-    assert "claimed consequence" in checks[0].detail
+    out = checks([PUBLISHED, DEAD])
+    assert out[0].status == FAIL
+    assert "1 reached the diary, 1 did not" in out[0].detail
+    assert "claimed consequence" in out[0].detail
 
 
 def test_an_empty_log_says_where_it_looked():
     # The bug this file is about. "No publish attempts recorded yet" is only
     # useful if the reader can tell which store was consulted.
-    checks = _publish_checks(Path("state"), reader([], "the local file at state"))
-    assert checks[0].status == PASS
-    assert "the local file at state" in checks[0].detail
+    out = checks([], "the local file at state")
+    assert out[0].status == PASS
+    assert "the local file at state" in out[0].detail
 
 
 # ================================================================== the sources

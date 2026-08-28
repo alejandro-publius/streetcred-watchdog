@@ -1,6 +1,6 @@
 # Submission readiness
 
-Written 2026-08-26, updated after the adversarial audit and its rulings. **Deadline: 2026-08-31,
+Written 2026-08-26, updated after the ticker, the blog and the ceilings pass. **Deadline: 2026-08-31,
 5:00 PM PT. Five days remain.**
 
 Every percentage below is items done over items total from the checklist under
@@ -12,9 +12,9 @@ understood.
 Innovation and utility (40%)  [####################] 100%   nothing outstanding
 Architecture (30%)            [####################] 100%   nothing outstanding
 Demo readiness (30%)          [############--------]  58%   needs: video, rehearsal, submission
-Bonuses                       [###########---------]  54%   needs: blog, social, outreach
+Bonuses                       [#############-------]  64%   needs: social, outreach
 ------------------------------------------------------------------------------
-OVERALL                       [###############-----]  77%   37 of 48 items
+OVERALL                       [################----]  80%   39 of 49 items
 ```
 
 This pass came out of an adversarial audit that refused to read this file as
@@ -98,12 +98,13 @@ Four of ten.
 | | Item | Evidence |
 | --- | --- | --- |
 | done | Public decision ledger | `docs/ledger.html` and `/watchdog` |
+| done | The day's findings, on the homepage | StreetCred ticker, Pacific day, stored records only |
 | done | Bounded self-calibration, wired | `calibrate.review`, raises only, refuses below 20 outcomes |
 | done | Honest degradation disclosure | every entry carries its `degraded` line |
 | done | Cost transparency | activity inspector, projected and actual apart |
 | done | Both repositories public and current | pushed 2026-08-27, 70 and 83 commits |
 | done | Open source licence | MIT, both repositories |
-| **not** | Blog post | `docs/blog_draft.md` is a draft |
+| done | Blog post | `docs/BLOG.md`, 1,162 words, ready for the operator's voice pass |
 | **not** | Social post | `docs/social_draft.md` is a draft |
 | done | Gemma running as tier one | `google/gemma-4-26b-a4b-it-maas`, `locations/global` |
 | **not** | Letter delivered to a real recipient | dead-ends at a clipboard |
