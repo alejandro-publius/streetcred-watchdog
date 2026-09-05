@@ -1,0 +1,39 @@
+name: CI
+
+# 697 tests and a ruff config, and until now nothing ran them on push. The
+# suite is offline by construction (tests/conftest.py scrubs every credential
+# and forces DECIDER=rule), so this needs no secrets and no network.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          # Matches the Dockerfile (python:3.12-slim) and the .venv this was
+          # developed in.
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Test
+        run: python -m pytest -q
