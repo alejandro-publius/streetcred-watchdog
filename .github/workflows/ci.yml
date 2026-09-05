@@ -9,6 +9,11 @@ on:
   pull_request:
   workflow_dispatch:
 
+# A newer push to the same branch or PR cancels the run it supersedes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -17,9 +22,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           # Matches the Dockerfile (python:3.12-slim) and the .venv this was
           # developed in.
