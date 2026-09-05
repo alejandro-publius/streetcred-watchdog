@@ -1,5 +1,7 @@
 # The Corner Watchdog
 
+[![CI](https://github.com/alejandro-publius/streetcred-watchdog/actions/workflows/ci.yml/badge.svg)](https://github.com/alejandro-publius/streetcred-watchdog/actions/workflows/ci.yml)
+
 An autonomous agent that reads San Francisco's street data every morning, compares it to
 what it saw yesterday, and decides on its own whether anything changed enough to act on.
 Most mornings it decides to do nothing. It publishes those mornings too, with the
