@@ -33,9 +33,12 @@ jobs:
           cache-dependency-path: pyproject.toml
 
       - name: Install
+        # The dev extra says ruff>=0.4, which is right for a laptop and wrong
+        # for a gate: an unpinned linter turns every upstream release into a
+        # red build on untouched code. CI pins it; bump deliberately.
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+          pip install -e ".[dev]" 'ruff==0.16.6'
 
       - name: Lint
         run: ruff check .
