@@ -49,7 +49,7 @@ error.
 ## How we built it
 
 **The countable version first.** About 51,000 lines across two repositories.
-1,109 tests, all offline and all credential free: 697 on the agent in 14
+1,109 tests, all offline and all credential free: 698 on the agent in 14
 seconds, 12 of which is a single lock-release test waiting on a real timeout,
 and 431 on the display surface in 1.2. 25
 intersections watched, pinned so the roster cannot drift without a journal
