@@ -297,6 +297,35 @@ def test_a_failed_fetch_is_journaled_as_a_corner_we_could_not_read(tmp_path):
     assert "TimeoutError" in entry["degraded"]
 
 
+class ShortFetcher:
+    """Returns fewer results than it was handed corners. The exact bug `sweep`
+    guards against: a fetcher that silently drops one corner from its response.
+    """
+
+    def __init__(self, *snapshots) -> None:
+        self.snapshots = list(snapshots)
+
+    def describe(self) -> str:
+        return "ShortFetcher, deliberately truncated, no network"
+
+    async def fetch_all(self, corners):
+        return self.snapshots
+
+
+def test_a_fetcher_that_drops_a_corner_is_refused_not_silently_truncated(tmp_path):
+    """`zip(corners, fresh)` would stop at the shorter list on its own, so the
+    dropped corner gets no entry, no error and no mention anywhere: the journal
+    for that morning reads identically to one where every corner was fine. The
+    sweep must refuse outright instead, and journal nothing for a sweep it never
+    ran, rather than half-run it.
+    """
+    store = LocalJsonStore(tmp_path)
+    observer = Observer(store, DirectBus(), RuleTriage("t"), fetcher=ShortFetcher(snap()))
+    with pytest.raises(RuntimeError, match="returned 1 results for 2 corners"):
+        asyncio.run(observer.sweep([corner("a", "A"), corner("b", "B")]))
+    assert store.read_journal() == []
+
+
 def test_the_first_sighting_escalates_nothing(tmp_path):
     store = LocalJsonStore(tmp_path)
     bus = DirectBus()
