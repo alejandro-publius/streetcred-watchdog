@@ -1,6 +1,8 @@
 # The Corner Watchdog
 
 [![CI](https://github.com/alejandro-publius/streetcred-watchdog/actions/workflows/ci.yml/badge.svg)](https://github.com/alejandro-publius/streetcred-watchdog/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
 
 An autonomous agent that reads San Francisco's street data every morning, compares it to
 what it saw yesterday, and decides on its own whether anything changed enough to act on.
@@ -11,6 +13,17 @@ I moved to the Bay Area and ended up spending a lot of time thinking about the
 intersections I walk through. This is what came of that: a machine that watches the
 twenty five worst corners in the city, on its own schedule, and tells you what it decided
 not to do.
+
+![The rendered ledger: a 100 percent restraint rate broken down into what a rule settled and what a tier actually weighed, from a real cycle against live DataSF on 2026-08-20](docs/ledger-screenshot.png)
+
+That page is [`docs/ledger.html`](docs/ledger.html), committed as it was rendered. Three
+commands reproduce the loop that made it:
+
+```bash
+git clone https://github.com/alejandro-publius/streetcred-watchdog && cd streetcred-watchdog
+python3.11 -m venv .venv && source .venv/bin/activate && pip install -e ".[dev]"
+pytest -q   # 671 pass, 4 skip, offline; the full quickstart, including the live loop, is below
+```
 
 **The ledger: [`docs/ledger.html`](docs/ledger.html)** &middot;
 **[Architecture](docs/architecture.md)** &middot;
@@ -199,7 +212,7 @@ All measured from this repository on 2026-08-20, except the last row, which is a
 | Evaluations journaled | 175 |
 | Actions taken | 0 |
 | Restraint rate | 100 percent, and the ledger explains why that number is not yet impressive |
-| Tests | 697, offline, no credentials, 14 seconds, 12 of which is one lock-release test waiting on a real timeout |
+| Tests | 698, offline, no credentials, about 15 seconds as of 2026-09-07 (was 14s on 2026-08-20), about 13 of which is one lock-release test waiting on a real timeout |
 | Runtime dependencies | 2 (`httpx`, `google-adk`) |
 | Google Cloud accounts touched | 1, `streetcred-506117`. This row read 0 until 2026-08-25 |
 
@@ -212,10 +225,11 @@ that flatters the system is worth less than one that explains itself.
 
 ## Quick start
 
-Verified from a clean clone into a fresh virtual environment on 2026-08-26: 63 packages
-installed including pip itself and the project, three of them Google (`google-adk`, and
-`google-genai` and `google-auth` beneath it). With the cloud extra added on top,
-all 697 tests green with no network and no credentials.
+Verified from a clean clone into a fresh virtual environment: 64 packages installed as of
+2026-09-07 (63 the last time this was measured, 2026-08-26), including pip itself and the
+project, three of them Google (`google-adk`, and `google-genai` and `google-auth`
+beneath it). With the cloud extra added on top, all 698 tests green with no network and
+no credentials.
 
 That count was 15, and none of them were Google, until tier two became an ADK agent. The
 jump is what adopting a framework actually costs, and it is stated here rather than
@@ -233,7 +247,7 @@ pip install -e ".[dev]"          # two runtime dependencies: httpx and google-ad
 
 pytest -q                        # 671 pass, 4 skip, no network, no credentials
 # The 4 skips are honest, not hidden: they need the Google client libraries.
-# pip install -e ".[dev,cloud]"  then pytest -q reports the full 697
+# pip install -e ".[dev,cloud]"  then pytest -q reports the full 698
 python -m corner_watchdog run --cycles 2  # the whole loop, twice, against live DataSF
 open docs/ledger.html            # every decision, restraint rate on top
 ```
@@ -421,7 +435,7 @@ Fuller versions in [`DECISIONS.md`](DECISIONS.md).
 | `src/prompts/` | Both prompts in full, with ten worked examples the test suite parses. |
 | `src/corner_watchdog/live.py` | The live path. Implements the interface, refuses every verb. |
 | `src/corner_watchdog/ledger.py` | The journal as a page, restraint rate on top, declines at full size. |
-| `tests/` | 697 of them. The cases where a naive implementation produces a confident lie. |
+| `tests/` | 698 of them. The cases where a naive implementation produces a confident lie. |
 | `LOG.md`, `DECISIONS.md` | What was found by running it, and what was decided and rejected. |
 
 ## A note on the radius
