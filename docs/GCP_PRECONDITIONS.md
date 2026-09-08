@@ -225,8 +225,15 @@ Native mode, in the region `.env.example` already names as
 `GOOGLE_CLOUD_LOCATION`:
 
 ```bash
-gcloud firestore databases create --location=us-central1 --type=firestore-native
+gcloud firestore databases create --database=watchdog --location=us-central1 --type=firestore-native
 ```
+
+**Correction, added after the deploy this runbook led to.** The command above
+now names the database explicitly. It did not when this runbook was written,
+which creates the project's `(default)` database, and the client library
+double-encodes that name so every call against it is rejected. `HANDOFF.md`
+has the full account; `FIRESTORE_DATABASE=watchdog` is what the deployed
+services actually run with.
 
 There is one database per project and the location cannot be changed afterwards.
 `us-central1` matches the Vertex region in `.env.example`, which keeps the
