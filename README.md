@@ -176,25 +176,7 @@ Rendered at [`docs/architecture.png`](docs/architecture.png), source in
 [`docs/architecture.mmd`](docs/architecture.mmd), and the callbacks, the conditional edge
 and the reasons for each are in [`docs/architecture.md`](docs/architecture.md).
 
-Three things in that picture are worth saying in prose.
-
-**The arrow out of the observer says `escalations only`, and that is the architecture.**
-A `SequentialAgent` runs its sub-agents unconditionally, so the obvious build lets tier
-two start and return early on a quiet corner. That version writes the same journal and
-bills a model on every corner every morning. The gate is a `before_agent_callback` on
-tier two, checked before the agent is entered at all, so a quiet corner costs nothing
-rather than costing a little.
-
-**The boundary is one token in one direction.** The cloud side posts to
-`/api/agent/report` with a bearer token out of Secret Manager and reads nothing back. The
-public site holds no credential for the agent, cannot call it, and cannot be used to
-reach it.
-
-**The gate is on the far side of that boundary, not this one.** StreetCred validates what
-arrives on content rather than trusting the sender, which is why the first real cloud
-deliberation was refused: the agent claimed it had redrafted a letter, and the site holds
-no letter for that corner. That refusal is on the public page with its reason, and it is
-the gate working rather than a bug.
+What the diagram is saying, three things worth reading in prose, is in [`docs/architecture.md`](docs/architecture.md).
 
 ## The numbers
 
@@ -263,61 +245,7 @@ python -m corner_watchdog schedule      # renders launchd and cron config, insta
 python -m corner_watchdog ledger --corner 6th-and-mission
 ```
 
-## Running it on Google Cloud
-
-Deployed and proven on 2026-08-25: two Cloud Run services, Firestore, Pub/Sub,
-Secret Manager, Cloud Scheduler, and Gemini 3.5 Flash on Vertex AI at
-`locations/global`. Resource names, URLs and a teardown command are in
-[`HANDOFF.md`](HANDOFF.md); the reasoning behind each step, including what every
-API is for and what it costs, is in
-[`docs/GCP_PRECONDITIONS.md`](docs/GCP_PRECONDITIONS.md).
-
-```bash
-gcloud auth login && gcloud config set project YOUR_PROJECT
-./scripts/preflight_gcp.sh              # read only, mutates nothing, names what is missing
-
-# A budget before any API, because an alerts-only budget does not cap spend and
-# you want to know that before you find out.
-gcloud billing budgets create --billing-account=YOUR_BILLING_ID \
-  --display-name="watchdog total" --budget-amount=450USD \
-  --threshold-rule=percent=0.25 --threshold-rule=percent=0.50 --threshold-rule=percent=0.90 \
-  --filter-projects=projects/YOUR_PROJECT_NUMBER
-
-gcloud services enable run.googleapis.com firestore.googleapis.com pubsub.googleapis.com \
-  cloudscheduler.googleapis.com secretmanager.googleapis.com aiplatform.googleapis.com \
-  artifactregistry.googleapis.com cloudbuild.googleapis.com
-
-# Named, not (default). The client library double-encodes the parentheses and
-# every call against the default database is rejected. See HANDOFF.md.
-gcloud firestore databases create --database=watchdog --location=us-central1
-
-# Service accounts, secret, topic: docs/GCP_PRECONDITIONS.md steps 5 to 7 verbatim.
-
-gcloud run deploy watchdog-observer --source . --region=us-central1 \
-  --service-account=watchdog-observer@YOUR_PROJECT.iam.gserviceaccount.com \
-  --no-allow-unauthenticated --min-instances=0 --max-instances=3 \
-  --set-env-vars=SERVICE=observer,GOOGLE_CLOUD_LOCATION=global,GOOGLE_GENAI_USE_VERTEXAI=true,DECIDER=adk,FIRESTORE_DATABASE=watchdog,DAILY_ACTION_BUDGET=40,DAILY_TOKEN_BUDGET=200000
-
-# The actor is the same command with SERVICE=actor, its own service account, and
-# --set-secrets=WATCHDOG_INGEST_TOKEN=WATCHDOG_INGEST_TOKEN:latest
-
-./scripts/preflight_gcp.sh              # every row should now pass
-```
-
-Read the service URL from `gcloud run services describe`, not from what
-`gcloud run deploy` prints. They are different, and only one of them serves.
-
-Prove it end to end:
-
-```bash
-URL=$(gcloud run services describe watchdog-observer --region=us-central1 --format='value(status.url)')
-curl -s -X POST -H "Authorization: Bearer $(gcloud auth print-identity-token)" $URL/status
-curl -s -X POST -H "Authorization: Bearer $(gcloud auth print-identity-token)" $URL/sweep
-```
-
-The first sweep against an empty Firestore records 25 first sightings and
-escalates nothing, which is correct: there is nothing to compare against yet.
-The second sweep is the one that can produce a delta.
+Deploying this to Google Cloud, step by step, is in [`docs/GCP_DEPLOY.md`](docs/GCP_DEPLOY.md).
 
 ## Patterns
 
@@ -345,36 +273,7 @@ reasoning attached, and the page breaks that number down into what was actually 
 versus what a rule merely observed, because those are different events and adding them
 together produces a number that describes a quiet city while reading as a careful agent.
 
-## What went wrong
-
-**A filter that matched nothing, for the entire life of the project.**
-
-`SEVERE_VALUES` held `("Severe Injury", "Suspected Serious Injury")` from the first commit.
-Those are CHP's category names. DataSF publishes `Injury (Severe)`. The query was valid
-SoQL, matched zero rows, and returned a clean zero for every corner on every sweep, which
-made the rule "any new severe injury is significant" a rule that could never fire.
-
-Nothing failed. Nothing could fail. A filter matching nothing is indistinguishable from a
-corner where nothing happened. It was found by running the loop against live data and
-noticing that all 25 corners reported zero severe injuries while StreetCred's own board
-showed 9 at one of them.
-
-Two things came out of it that are worth more than the fix. Every enumerated value the code
-puts in a WHERE clause is now pinned against the live vocabulary with the row count carried
-alongside, and a cycle refuses to start if they disagree. And the same class of bug turned
-up twice more once I knew to look: a `count(*)` alias rename parsing as zero, and a tie in
-the district group-by resolving to whatever order the API returned, so a tied corner would
-flip district between sweeps and journal it as a real change.
-
-**Then fixing a different bug nearly caused the exact failure this repo exists to prevent.**
-Measuring against StreetCred's published figures showed the radius should be 80 metres, not
-150. Changing it would have made the next sweep subtract 80 metre counts from 150 metre
-counts and report a 40 percent collapse in collisions at all 25 corners on the same
-morning, with confident reasoning attached. Snapshots now carry a fingerprint of the query
-that produced them and the delta engine refuses to subtract across a change in it. The
-cycle after the change journaled 25 refusals naming both fingerprints and took no action.
-
-Full evidence in [`LOG.md`](LOG.md).
+Two bugs found by running this against live data, one of them nearly self-inflicted, are in [`docs/WHAT_WENT_WRONG.md`](docs/WHAT_WENT_WRONG.md).
 
 ## Requirements coverage
 
@@ -401,25 +300,7 @@ routing working exactly as designed, and it also means no scheduled run has yet
 produced an entry a model decided. `tier1.decidedBy` on each entry is what will show
 it on the first morning something changes.
 
-## Considered and rejected
-
-Fuller versions in [`DECISIONS.md`](DECISIONS.md).
-
-- **Calling a small local model so the demo could say a model ran.** Buys a sentence in a
-  pitch, costs the one property this project is about.
-- **Mutating real snapshots to force an interesting delta for the demo.** The rehearsal
-  constructs the *past* instead, never the present, and every entry it writes says so.
-- **A hash for the query fingerprint.** The journal entry that refuses a comparison prints
-  it, and `r=80m;collisions=5y;...` tells a reader what happened where `a3f19c` does
-  not. No entry ever printed `r=150m`: the old baselines predated the field, so the
-  refusals read `not recorded then r=80m...`, which is itself the right answer.
-- **Coercing a corrupted stored count to zero.** That is the SEVERE_VALUES failure with a
-  different mask. It refuses to load and the file is quarantined instead.
-- **Leaving the live path unwritten, or callable behind a flag.** Unwritten hides whether
-  the interface fits until the worst moment; callable is how a dry run becomes a live send
-  by way of one wrong argument.
-- **Quoting Vertex prices from memory in the cost estimate.** Token counts are measured;
-  the rates are left blank with the arithmetic beside them.
+What was considered and turned down, and why, is in [`docs/CONSIDERED_AND_REJECTED.md`](docs/CONSIDERED_AND_REJECTED.md).
 
 ## Repository map
 
@@ -453,3 +334,17 @@ so StreetCred's corner geometry is not a uniform circle and the exact rule is no
 The 311 window could not be pinned at all. The agent keeps its own three year window and
 says so in every letter, so the two figures are openly different quantities rather than two
 claims about the same thing that disagree.
+
+## Deeper docs
+
+Cut from this README to keep it readable, not to bury it. Each file below keeps the words it had here.
+
+| | |
+|---|---|
+| [`docs/architecture.md`](docs/architecture.md) | The full system diagram plus the reading of it: what the escalation arrow means, the boundary, the gate |
+| [`docs/GCP_DEPLOY.md`](docs/GCP_DEPLOY.md) | Deploying to Google Cloud, step by step, with the budget guard first |
+| [`docs/WHAT_WENT_WRONG.md`](docs/WHAT_WENT_WRONG.md) | The SEVERE_VALUES filter that matched nothing, and the radius change that nearly caused the exact failure this repo exists to prevent |
+| [`docs/CONSIDERED_AND_REJECTED.md`](docs/CONSIDERED_AND_REJECTED.md) | What was considered and turned down; fuller versions in [`DECISIONS.md`](DECISIONS.md) |
+| [`docs/PATTERNS.md`](docs/PATTERNS.md) | The six agent patterns, written up at length, each with the test that fails if the claim stops being true |
+| [`docs/GCP_PRECONDITIONS.md`](docs/GCP_PRECONDITIONS.md) | Why each Google Cloud step is needed and what it costs |
+| [`docs/FAQ.md`](docs/FAQ.md) | Judge-facing questions and answers |

@@ -155,3 +155,25 @@ It was not always true. The full account of how the claim was false, and of the
 audit that counted, is in `LOG.md` under the burn pass. The short version is that
 the journal is append only, so the entries written before the field existed cannot
 gain it, and the ledger prints how many carry the line instead of rounding up.
+
+## Reading the diagram
+
+Three things in that picture are worth saying in prose.
+
+**The arrow out of the observer says `escalations only`, and that is the architecture.**
+A `SequentialAgent` runs its sub-agents unconditionally, so the obvious build lets tier
+two start and return early on a quiet corner. That version writes the same journal and
+bills a model on every corner every morning. The gate is a `before_agent_callback` on
+tier two, checked before the agent is entered at all, so a quiet corner costs nothing
+rather than costing a little.
+
+**The boundary is one token in one direction.** The cloud side posts to
+`/api/agent/report` with a bearer token out of Secret Manager and reads nothing back. The
+public site holds no credential for the agent, cannot call it, and cannot be used to
+reach it.
+
+**The gate is on the far side of that boundary, not this one.** StreetCred validates what
+arrives on content rather than trusting the sender, which is why the first real cloud
+deliberation was refused: the agent claimed it had redrafted a letter, and the site holds
+no letter for that corner. That refusal is on the public page with its reason, and it is
+the gate working rather than a bug.
