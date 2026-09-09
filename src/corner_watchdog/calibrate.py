@@ -108,7 +108,15 @@ def outcomes_from(journal: list[dict[str, Any]]) -> Outcomes:
         out.escalations += 1
         if entry.get("slug"):
             out.corners.add(entry["slug"])
-        if not (entry.get("actions") or []):
+        # An entry with no actions is not always a decline: tier two may have
+        # chosen to act and had every one of those actions refused by the daily
+        # action budget. That is agreement blocked by money, not tier two
+        # disagreeing with tier one's escalation, and it is the same distinction
+        # `ledger._wanted_to_act` makes for the public restraint rate. Counting
+        # it as a decline here would let a starved budget, rather than tier
+        # two's own judgment, argue for raising the threshold.
+        wanted_to_act = bool(entry.get("intents")) and not (entry.get("actions") or [])
+        if not (entry.get("actions") or []) and not wanted_to_act:
             out.declined_at_tier_two += 1
     return out
 

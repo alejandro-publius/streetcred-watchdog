@@ -118,6 +118,32 @@ def test_an_escalation_the_budget_stopped_carries_no_verdict():
     assert outcomes_from(rows).escalations == 0
 
 
+def test_tier_two_agreeing_and_being_budget_blocked_is_not_a_decline():
+    """Tier two chose to act and the daily action budget refused every action.
+
+    That is agreement stopped by money, not tier two declining the escalation.
+    Counting it as a decline would let a starved action budget, rather than
+    tier two's own judgment, argue for raising the threshold -- and with enough
+    of these entries `review` would raise the bar on evidence that never spoke
+    to whether tier one's escalations were any good.
+    """
+    rows = []
+    for i in range(MIN_EVIDENCE):
+        e = entry(actions=[], slug=f"blocked{i}")
+        e["intents"] = ["daily action budget spent; wanted to rescore"]
+        rows.append(e)
+
+    out = outcomes_from(rows)
+    assert out.escalations == MIN_EVIDENCE
+    assert out.declined_at_tier_two == 0
+
+    r = review(rows, Calibration())
+    assert r.adjusted is False, (
+        "a 100 percent 'decline' rate made entirely of budget-blocked acts must "
+        "not raise the threshold; nothing here says tier one escalated too much"
+    )
+
+
 def test_a_decline_at_tier_one_is_not_an_outcome():
     rows = [entry(significant=False) for _ in range(MIN_EVIDENCE)]
     assert outcomes_from(rows).escalations == 0
