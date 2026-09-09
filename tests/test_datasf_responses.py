@@ -253,6 +253,29 @@ def test_garbage_district_rows_do_not_crash_the_lane():
     assert s.counts.district == 6
 
 
+def test_a_district_reply_shaped_as_an_object_marks_incomplete():
+    """A 200 with the wrong shape, not an error status.
+
+    Every other lane treats "parsed fine, wrong shape" as the silent failure it
+    is: an unknown alias, a non-list body, a non-dict row. The district lane has
+    to do the same or a malformed reply resolves quietly to "no district known"
+    on a snapshot that still claims to be complete, and a genuine supervisor
+    district change landing on the same sweep as a malformed reply is missed
+    rather than journaled as unreliable.
+    """
+    s = fetch(responder(district={"unexpected": "shape"}))
+    assert s.complete is False
+    assert s.counts.district is None
+    # The other four lanes were fine and still readable, same as any other
+    # single-lane failure.
+    assert s.counts.collisions_5y == 40
+
+
+def test_a_district_reply_shaped_as_a_string_marks_incomplete():
+    s = fetch(responder(district="not a list of rows"))
+    assert s.complete is False
+
+
 # ------------------------------------------------------------------ scale sanity
 
 def test_a_corner_returning_ten_times_the_expected_rows_is_just_a_big_number():

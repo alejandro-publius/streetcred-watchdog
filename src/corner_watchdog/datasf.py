@@ -300,7 +300,17 @@ async def fetch_corner_records(
     fatal, ok = _sum_value(f_rows, "sum_number_killed")
     complete = complete and ok
 
+    # A district response has to be a list to mean anything, even an empty one
+    # (a real "nothing in range" answer, see the empty-corner test). A 200 that
+    # comes back shaped as anything else -- an object, a string, a number -- is
+    # the same silent failure the count and sum lanes above are guarded against:
+    # a body that parses, has some shape, and carries the wrong meaning. Without
+    # this the district quietly resolves to None on a malformed reply while the
+    # snapshot is still marked complete, so a real supervisor-district change
+    # that lands on the same sweep as a malformed district reply is missed
+    # rather than journaled as unreliable.
     district_rows = d_rows if isinstance(d_rows, list) else []
+    complete = complete and isinstance(d_rows, list)
 
     # Grouped majority, then the corner's configured district wins if it has one.
     # Ties break to the lower district number rather than to whatever order the
